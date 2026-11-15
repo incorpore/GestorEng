@@ -25,6 +25,7 @@ MODULES = [
     "app.modules.funcionarios",
     "app.modules.inventario",
     "app.modules.ia",
+    "app.modules.backup",
 ]
 
 

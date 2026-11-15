@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { --primary: 29 78 216; --primary-dark: 30 64 175; }
+html, body, #root { height: 100%; }
+body { -webkit-tap-highlight-color: transparent; }
+
+@layer components {
+  .input {
+    @apply block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm outline-none transition
+      placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:bg-slate-100
+      dark:border-slate-700 dark:bg-slate-900 dark:disabled:bg-slate-800;
+  }
+  .label { @apply mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400; }
+  .card { @apply rounded-xl border border-slate-200 bg-white shadow-card dark:border-slate-800 dark:bg-slate-900; }
+  .tbl { @apply w-full text-sm; }
+  .tbl th { @apply whitespace-nowrap border-b border-slate-200 bg-slate-50 px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:bg-slate-800/50; }
+  .tbl td { @apply border-b border-slate-100 px-3 py-2 align-middle dark:border-slate-800; }
+  .tbl tbody tr { @apply transition hover:bg-slate-50 dark:hover:bg-slate-800/40; }
+}
+
+/* Editor de documentos */
+.doc-editor .ProseMirror { min-height: 420px; outline: none; padding: 1.5rem; font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.45; }
+.doc-editor .ProseMirror p { margin: 0 0 .6em; }
+.doc-editor .ProseMirror h1 { font-size: 1.6em; font-weight: 700; margin: .4em 0; }
+.doc-editor .ProseMirror h2 { font-size: 1.3em; font-weight: 700; margin: .4em 0; }
+.doc-editor .ProseMirror h3 { font-size: 1.1em; font-weight: 700; margin: .4em 0; }
+.doc-editor .ProseMirror ul { list-style: disc; padding-left: 1.5em; }
+.doc-editor .ProseMirror ol { list-style: decimal; padding-left: 1.5em; }
+.doc-editor .ProseMirror table { border-collapse: collapse; width: 100%; margin: .5em 0; table-layout: fixed; }
+.doc-editor .ProseMirror td, .doc-editor .ProseMirror th { border: 1px solid #94a3b8; padding: 4px 6px; vertical-align: top; position: relative; }
+.doc-editor .ProseMirror th { background: #f1f5f9; font-weight: 600; }
+.doc-editor .ProseMirror .selectedCell:after { content: ''; position: absolute; inset: 0; background: rgb(var(--primary) / .12); pointer-events: none; }
+.doc-editor .ProseMirror img { max-width: 100%; }
+.doc-editor .ProseMirror p.is-editor-empty:first-child::before { content: attr(data-placeholder); color: #94a3b8; float: left; height: 0; pointer-events: none; }
+.dark .doc-editor .ProseMirror th { background: #1e293b; }
+.doc-preview { background: white; color: #111; font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.4; }
+.doc-preview table { border-collapse: collapse; width: 100%; }
+.doc-preview td, .doc-preview th { border: 1px solid #999; padding: 3px 5px; }
+.doc-preview p { margin: 0 0 .6em; }
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+.safe-top { padding-top: env(safe-area-inset-top); }
