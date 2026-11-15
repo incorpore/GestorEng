@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+.venv/
+.env
+.env.local
+!.env.example
+node_modules/
+dist/
+frontend/android/
+frontend/ios/
+*.keystore
+*.jks
+.ruff_cache/
+.pytest_cache/
+coverage/
+data/
