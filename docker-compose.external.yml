@@ -1,0 +1,60 @@
+# GestorEng — somente a APLICAÇÃO (API + worker + web), usando PostgreSQL e Redis
+# que já rodam em outros containers (ex.: ZimaOS / Portainer).
+#
+# 1) Crie o banco no seu Postgres 16+:  CREATE DATABASE gestoreng; CREATE USER gestoreng WITH PASSWORD '...'; ALTER DATABASE gestoreng OWNER TO gestoreng;
+# 2) No .env defina DATABASE_URL, (opcional) REDIS_URL e EXTERNAL_NETWORK (rede Docker onde estão o Postgres/Redis)
+# 3) docker compose -f docker-compose.external.yml up -d
+name: gestoreng
+
+x-app: &app
+  image: ${IMAGE_API:-ghcr.io/incorpore/gestoreng-api:latest}
+  build: ./backend
+  restart: unless-stopped
+  env_file: .env
+  environment:
+    ENVIRONMENT: production
+    DATABASE_URL: ${DATABASE_URL:?defina DATABASE_URL (postgresql+psycopg://usuario:senha@host:5432/banco)}
+    REDIS_URL: ${REDIS_URL:-}
+    STORAGE_DIR: /data/storage
+  volumes:
+    - ${STORAGE_PATH:-storage}:/data/storage
+  networks: [backend, infra]
+  read_only: true
+  tmpfs: [/tmp]
+  security_opt: [no-new-privileges:true]
+  cap_drop: [ALL]
+
+services:
+  api:
+    <<: *app
+    command: ["api"]
+
+  worker:
+    <<: *app
+    command: ["worker"]
+    healthcheck: { disable: true }
+    depends_on: [api]
+
+  web:
+    image: ${IMAGE_WEB:-ghcr.io/incorpore/gestoreng-web:latest}
+    build: ./frontend
+    restart: unless-stopped
+    environment:
+      API_UPSTREAM: api:8000
+      MAX_BODY: ${MAX_UPLOAD_MB:-25}m
+    ports: ["${WEB_PORT:-8080}:8080"]
+    depends_on: [api]
+    networks: [backend]
+    read_only: true
+    tmpfs: [/tmp, /etc/nginx/conf.d, /var/cache/nginx]
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+
+volumes:
+  storage:
+
+networks:
+  backend:
+  infra:
+    name: ${EXTERNAL_NETWORK:-infra}
+    external: true

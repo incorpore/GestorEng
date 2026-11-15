@@ -18,7 +18,7 @@ export default defineConfig(({ mode }) => ({
       output: {
         manualChunks: {
           react: ['react', 'react-dom', 'react-router-dom', '@tanstack/react-query'],
-          editor: ['@tiptap/react', '@tiptap/starter-kit', '@tiptap/pm'],
+          editor: ['@tiptap/react', '@tiptap/starter-kit'],
           charts: ['recharts'],
         },
       },

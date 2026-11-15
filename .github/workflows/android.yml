@@ -1,0 +1,86 @@
+name: App Android
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Versão (ex.: 1.2.0)"
+        required: false
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+      - uses: android-actions/setup-android@v3
+
+      - name: Versão
+        id: v
+        run: |
+          V="${{ github.event.inputs.version }}"
+          if [ -z "$V" ] && [[ "$GITHUB_REF" == refs/tags/v* ]]; then V="${GITHUB_REF#refs/tags/v}"; fi
+          echo "name=${V:-1.0.${{ github.run_number }}}" >> "$GITHUB_OUTPUT"
+
+      - run: npm ci --no-audit --no-fund
+      - run: npm run build:mobile
+      - name: Gera projeto Android
+        run: |
+          npx cap add android
+          npx capacitor-assets generate --android --iconBackgroundColor '#1d4ed8' --splashBackgroundColor '#f8fafc' --splashBackgroundColorDark '#020617'
+          VERSION_CODE=${{ github.run_number }} VERSION_NAME=${{ steps.v.outputs.name }} node scripts/android-patch.mjs
+          npx cap sync android
+
+      - name: Compila release
+        working-directory: frontend/android
+        run: ./gradlew --no-daemon assembleRelease
+
+      - name: Assina APK
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          IN=android/app/build/outputs/apk/release/app-release-unsigned.apk
+          OUT=GestorEng-${{ steps.v.outputs.name }}.apk
+          "$BT/zipalign" -p -f 4 "$IN" aligned.apk
+          if [ -n "$KEYSTORE_B64" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > release.jks
+            "$BT/apksigner" sign --ks release.jks --ks-pass env:KS_PASS --ks-key-alias "$KEY_ALIAS" --key-pass env:KEY_PASS --out "$OUT" aligned.apk
+            rm -f release.jks
+          else
+            echo "::warning::Sem keystore nos secrets — APK assinado com chave temporária (apenas testes; não atualiza instalações anteriores)."
+            keytool -genkeypair -v -keystore tmp.jks -alias tmp -keyalg RSA -keysize 4096 -validity 3650 -storepass temp1234 -keypass temp1234 -dname "CN=GestorEng Teste"
+            "$BT/apksigner" sign --ks tmp.jks --ks-pass pass:temp1234 --out "$OUT" aligned.apk
+          fi
+          "$BT/apksigner" verify --print-certs "$OUT"
+          echo "APK=frontend/$OUT" >> "$GITHUB_ENV"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GestorEng-android-${{ steps.v.outputs.name }}
+          path: ${{ env.APK }}
+      - name: Publica release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ env.APK }}

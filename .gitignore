@@ -14,3 +14,4 @@ frontend/ios/
 .pytest_cache/
 coverage/
 data/
+backend/.env.dev
