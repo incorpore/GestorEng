@@ -83,6 +83,10 @@ export function RichEditor({ value, onChange, readOnly, entidade }: Props) {
   })
 
   useEffect(() => { ed?.setEditable(!readOnly) }, [ed, readOnly])
+  // sincroniza alterações externas (IA, emissão, recarga) quando o editor não está em foco
+  useEffect(() => {
+    if (ed && mode === 'visual' && !ed.isFocused && value !== ed.getHTML()) ed.commands.setContent(value, false)
+  }, [ed, mode, value])
   useEffect(() => {
     if (ed && mode === 'visual' && value !== ed.getHTML()) ed.commands.setContent(value, false)
     // eslint-disable-next-line react-hooks/exhaustive-deps

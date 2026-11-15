@@ -114,7 +114,8 @@ def make_env(strict: bool = False) -> ImmutableSandboxedEnvironment:
     from .helpers import HELPERS
 
     env = ImmutableSandboxedEnvironment(autoescape=True, undefined=StrictUndefined if strict else SoftUndefined,
-                                        trim_blocks=True, lstrip_blocks=True)
+                                        trim_blocks=True, lstrip_blocks=True,
+                                        finalize=lambda v: "" if v is None else v)
     env.filters.update(FILTERS)
     env.globals.update(HELPERS)
     return env

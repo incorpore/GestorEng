@@ -29,8 +29,12 @@ class Page(BaseModel, Generic[T]):
 
 def partial(model: type[BaseModel]) -> type[BaseModel]:
     """Gera um schema com todos os campos opcionais (para PATCH)."""
+    from .schemas import non_nullable
+
     fields: dict[str, Any] = {name: (f.annotation | None, None) for name, f in model.model_fields.items()}
-    return create_model(f"{model.__name__}Parcial", __base__=model, **fields)
+    out = create_model(f"{model.__name__}Parcial", __base__=model, **fields)
+    out.__non_nullable__ = non_nullable(model)  # type: ignore[attr-defined]
+    return out
 
 
 def _cast(col, raw: str):

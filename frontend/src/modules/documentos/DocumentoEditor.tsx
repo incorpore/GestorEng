@@ -11,6 +11,9 @@ import { DocMeta } from './components/DocMeta'
 import { PdfPreview } from './components/PdfPreview'
 import { RichEditor } from './RichEditor'
 
+/** Conteúdo emitido vem envolto em {% raw %}; para exibição removemos os marcadores. */
+const semRaw = (h: string) => h.replace(/^\{% raw %\}/, '').replace(/\{% endraw %\}$/, '')
+
 const EDITAVEIS = ['titulo', 'destinatario', 'data_emissao', 'conteudo', 'css', 'usar_timbrado', 'orientacao', 'margens', 'variaveis', 'entidade', 'entidade_id']
 
 export default function DocumentoEditor() {
@@ -52,7 +55,7 @@ export default function DocumentoEditor() {
           <DocActions doc={v} dirty={dirty} onSave={save} onChange={(d) => { setV(d); qc.invalidateQueries({ queryKey: ['/documentos'] }) }} onPreview={() => setPreview(true)} />
         </>} />
       <div className="grid gap-4 xl:grid-cols-[1fr_320px]">
-        <Card padded={false}><RichEditor value={v.conteudo || ''} onChange={(h) => set('conteudo', h)} readOnly={readOnly} entidade={v.entidade} /></Card>
+        <Card padded={false}><RichEditor key={readOnly ? 'ro' : 'rw'} value={readOnly ? semRaw(v.conteudo || '') : v.conteudo || ''} onChange={(h) => set('conteudo', h)} readOnly={readOnly} entidade={v.entidade} /></Card>
         <DocMeta v={v} set={set} readOnly={readOnly} />
       </div>
       {v.assinantes?.length > 0 && (

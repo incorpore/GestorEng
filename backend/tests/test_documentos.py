@@ -21,6 +21,7 @@ def test_sandbox_e_escape():
     except render.RenderError:
         pass
     assert render.render("{{ inexistente.campo }}ok", {}) == "ok"
+    assert render.render("[{{ x }}]", {"x": None}) == "[]"
 
 
 def test_gerar_e_emitir_documento(admin):

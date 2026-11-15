@@ -158,3 +158,12 @@ def test_anexos(admin):
     r = admin.post("/api/arquivos", data={"entidade": "obra", "entidade_id": o["id"]},
                    files={"arquivo": ("foto.png", b"MZ\x90\x00" + b"\x00" * 100, "image/png")})
     assert r.status_code == 415
+
+
+def test_nulos_em_campos_com_padrao(admin):
+    r = admin.post("/api/obras", json={"nome": "Obra nulos", "valor_aditivos": None, "progresso": None, "tipo": None})
+    assert r.status_code == 201, r.text
+    assert r.json()["valor_aditivos"] == 0 and r.json()["tipo"] == "particular"
+    r = admin.patch(f"/api/obras/{r.json()['id']}", json={"valor_contrato": None, "cidade": None})
+    assert r.status_code == 200, r.text
+    assert admin.post("/api/obras", json={"nome": None}).status_code == 422
