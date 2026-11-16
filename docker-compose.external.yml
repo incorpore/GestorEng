@@ -7,8 +7,9 @@
 name: gestoreng
 
 x-app: &app
-  image: ${IMAGE_API:-ghcr.io/incorpore/gestoreng-api:latest}
+  image: ${IMAGE_API:-gestoreng/api:local}
   build: ./backend
+  pull_policy: ${PULL_POLICY:-build}
   restart: unless-stopped
   env_file: .env
   environment:
@@ -36,8 +37,9 @@ services:
     depends_on: [api]
 
   web:
-    image: ${IMAGE_WEB:-ghcr.io/incorpore/gestoreng-web:latest}
+    image: ${IMAGE_WEB:-gestoreng/web:local}
     build: ./frontend
+    pull_policy: ${PULL_POLICY:-build}
     restart: unless-stopped
     environment:
       API_UPSTREAM: api:8000

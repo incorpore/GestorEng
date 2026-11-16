@@ -39,7 +39,7 @@ openssl rand -base64 48
 ### 1.2 Instalação completa
 
 ```bash
-docker compose up -d
+docker compose up -d --build
 docker compose logs -f api     # aguarde "Application startup complete"
 ```
 
@@ -71,7 +71,7 @@ Acesse `http://IP-DO-SERVIDOR:8080` com o `ADMIN_EMAIL` / `ADMIN_PASSWORD` do `.
    - Com usuário ACL (Redis 6+): `redis://usuario:senha@redis:6379/0`; com TLS use `rediss://`.
    - `/2` é o número do banco do Redis (0–15) — outra forma de isolar o GestorEng de outros sistemas.
    - `?prefix=velmont` faz todas as chaves começarem com `velmont:` (padrão `gestoreng:`). Alternativa: `REDIS_PREFIX=velmont`.
-4. `docker compose -f docker-compose.external.yml up -d`
+4. `docker compose -f docker-compose.external.yml up -d --build`
 
 > **Redis** é opcional: quando presente, o limite de tentativas de login é compartilhado entre processos/réplicas.
 > Sem ele, o limite funciona em memória. O sistema **não usa NATS** nem outro broker de mensagens; se você quis dizer
@@ -79,20 +79,40 @@ Acesse `http://IP-DO-SERVIDOR:8080` com o `ADMIN_EMAIL` / `ADMIN_PASSWORD` do `.
 
 ### 1.4 Imagens
 
-As imagens `ghcr.io/incorpore/gestoreng-api` e `gestoreng-web` (amd64 e **arm64**, para ZimaBoard/ZimaBlade) são publicadas
-pelo workflow **Imagens Docker** a cada push na `main` ou tag `v*`. Para construir localmente: `docker compose build`.
+Por padrão as imagens são **construídas no próprio servidor** (`pull_policy: build`) — a primeira instalação leva alguns
+minutos e precisa de acesso a Docker Hub, PyPI, npm e apt.postgresql.org.
+
+Opcionalmente, use as imagens publicadas pelo workflow **Imagens Docker** (amd64 e arm64) após o merge na `main`:
+```env
+IMAGE_API=ghcr.io/incorpore/gestoreng-api:latest
+IMAGE_WEB=ghcr.io/incorpore/gestoreng-web:latest
+PULL_POLICY=always
+```
 Se o repositório for privado, faça `docker login ghcr.io` com um token com escopo `read:packages`.
 
-### 1.5 ZimaOS
+### 1.5 Problemas comuns
+
+**`lookup ghcr.1panel.live: no such host`** (ou outro espelho como `*.1panel.live`, `docker.m.daocloud.io`):
+o Docker do servidor está configurado com um espelho de registro que saiu do ar. Remova-o:
+- **1Panel:** *Contêineres › Configuração › Espelhos de registro* — apague a linha do espelho e salve (reinicia o Docker).
+- **Manual:** edite `/etc/docker/daemon.json`, remova a entrada `registry-mirrors` com o endereço problemático e rode
+  `sudo systemctl restart docker`. Se o espelho estiver no containerd: `grep -rl 1panel /etc/containerd /etc/docker`.
+
+Depois teste com `docker pull ghcr.io/home-assistant/home-assistant:stable` (ou qualquer imagem pública do ghcr.io).
+
+**A instalação tenta baixar `gestoreng/api:local`:** confirme que o `.env` não tem `PULL_POLICY=always` sem as variáveis
+`IMAGE_*` e rode `docker compose up -d --build`.
+
+### 1.6 ZimaOS
 
 Em **App Store › Custom Install › Import** cole o conteúdo do compose desejado (e as variáveis do `.env`), ou use o terminal
 do ZimaOS com os comandos acima. Para HTTPS, coloque o GestorEng atrás do proxy reverso que você já usa (Nginx Proxy Manager,
 Traefik, Caddy, Cloudflare Tunnel) apontando para a porta `8080`.
 
-### 1.6 Atualização
+### 1.7 Atualização
 
 ```bash
-docker compose pull && docker compose up -d      # migrações do banco são aplicadas automaticamente
+git pull && docker compose up -d --build      # migrações do banco são aplicadas automaticamente
 ```
 
 ---
