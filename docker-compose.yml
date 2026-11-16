@@ -20,7 +20,7 @@ x-app: &app
     redis: { condition: service_healthy }
   networks: [backend]
   read_only: true
-  tmpfs: [/tmp]
+  tmpfs: ["/tmp:mode=1777"]
   security_opt: [no-new-privileges:true]
   cap_drop: [ALL]
 
@@ -80,7 +80,7 @@ services:
     depends_on: [api]
     networks: [backend]
     read_only: true
-    tmpfs: [/tmp, /etc/nginx/conf.d, /var/cache/nginx]
+    tmpfs: ["/tmp:mode=1777", "/etc/nginx/conf.d:mode=1777", "/var/cache/nginx:mode=1777"]
     security_opt: [no-new-privileges:true]
     cap_drop: [ALL]
 

@@ -8,6 +8,7 @@ RUN npm run build
 
 FROM nginxinc/nginx-unprivileged:1.27-alpine
 COPY nginx/default.conf.template /etc/nginx/templates/default.conf.template
+COPY --chmod=755 nginx/30-verificar-config.sh /docker-entrypoint.d/25-verificar-config.sh
 COPY --from=build /src/dist /usr/share/nginx/html
 ENV API_UPSTREAM=api:8000 MAX_BODY=30m
 EXPOSE 8080

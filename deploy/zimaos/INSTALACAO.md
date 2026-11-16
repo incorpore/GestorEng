@@ -303,6 +303,11 @@ sudo docker restart gestoreng-api && sudo docker start gestoreng-worker gestoren
 
 # Problemas comuns
 
+**`/etc/nginx/conf.d is not writable`** (no log do `gestoreng-web`; o site não abre) — o compose tem `read_only` e
+`tmpfs` que o ZimaOS cria sem permissão de escrita. Use os arquivos atuais de `deploy/zimaos/` (já sem essas opções)
+ou remova `read_only: true` e o bloco `tmpfs:` dos serviços `api`, `worker` e `web`. As imagens novas param com uma
+mensagem clara nesse caso, em vez de subir um site sem configuração.
+
 **`invalid user override: generated override does not reproduce submitted Compose`** — o ZimaOS não aceita
 compose com atalhos YAML (`&`, `*`, `<<:`) nem blocos `x-` além do `x-casaos`. Use os arquivos atuais de
 `deploy/zimaos/` (já sem atalhos) e cole o conteúdo inteiro, sem reformatar.

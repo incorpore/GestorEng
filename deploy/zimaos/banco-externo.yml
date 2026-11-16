@@ -39,9 +39,6 @@ services:
         target: /data/storage
     networks:
       - gestoreng
-    read_only: true
-    tmpfs:
-      - /tmp
     security_opt:
       - no-new-privileges:true
     cap_drop:
@@ -82,9 +79,6 @@ services:
       disable: true
     networks:
       - gestoreng
-    read_only: true
-    tmpfs:
-      - /tmp
     security_opt:
       - no-new-privileges:true
     cap_drop:
@@ -105,11 +99,6 @@ services:
       - api
     networks:
       - gestoreng
-    read_only: true
-    tmpfs:
-      - /tmp
-      - /etc/nginx/conf.d
-      - /var/cache/nginx
     security_opt:
       - no-new-privileges:true
     cap_drop:

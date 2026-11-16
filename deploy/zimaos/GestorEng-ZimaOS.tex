@@ -736,6 +736,15 @@ escolhido e apaga os antigos conforme a retenção.
 \hypertarget{problemas-comuns}{%
 \section{Problemas comuns}\label{problemas-comuns}}
 
+\textbf{\texttt{/etc/nginx/conf.d\ is\ not\ writable}} (no log do
+\texttt{gestoreng-web}; o site não abre) --- o compose tem
+\texttt{read\_only} e \texttt{tmpfs} que o ZimaOS cria sem permissão de
+escrita. Use os arquivos atuais de \texttt{deploy/zimaos/} (já sem essas
+opções) ou remova \texttt{read\_only:\ true} e o bloco \texttt{tmpfs:}
+dos serviços \texttt{api}, \texttt{worker} e \texttt{web}. As imagens
+novas param com uma mensagem clara nesse caso, em vez de subir um site
+sem configuração.
+
 \textbf{\texttt{invalid\ user\ override:\ generated\ override\ does\ not\ reproduce\ submitted\ Compose}}
 --- o ZimaOS não aceita compose com atalhos YAML (\texttt{\&},
 \texttt{*}, \texttt{\textless{}\textless{}:}) nem blocos \texttt{x-}
@@ -867,7 +876,6 @@ do repositório: o PDF quebra linhas longas.
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ }\StringTok{"no"}
 \AttributeTok{    }\FunctionTok{networks}\KeywordTok{:}
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ gestoreng}
-\AttributeTok{    }\FunctionTok{read\_only}\KeywordTok{:}\AttributeTok{ }\CharTok{true}
 \AttributeTok{    }\FunctionTok{security\_opt}\KeywordTok{:}
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ no{-}new{-}privileges:true}
 
@@ -909,9 +917,6 @@ do repositório: o PDF quebra linhas longas.
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ redis}
 \AttributeTok{    }\FunctionTok{networks}\KeywordTok{:}
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ gestoreng}
-\AttributeTok{    }\FunctionTok{read\_only}\KeywordTok{:}\AttributeTok{ }\CharTok{true}
-\AttributeTok{    }\FunctionTok{tmpfs}\KeywordTok{:}
-\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ /tmp}
 \AttributeTok{    }\FunctionTok{security\_opt}\KeywordTok{:}
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ no{-}new{-}privileges:true}
 \AttributeTok{    }\FunctionTok{cap\_drop}\KeywordTok{:}
@@ -952,9 +957,6 @@ do repositório: o PDF quebra linhas longas.
 \AttributeTok{      }\FunctionTok{disable}\KeywordTok{:}\AttributeTok{ }\CharTok{true}
 \AttributeTok{    }\FunctionTok{networks}\KeywordTok{:}
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ gestoreng}
-\AttributeTok{    }\FunctionTok{read\_only}\KeywordTok{:}\AttributeTok{ }\CharTok{true}
-\AttributeTok{    }\FunctionTok{tmpfs}\KeywordTok{:}
-\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ /tmp}
 \AttributeTok{    }\FunctionTok{security\_opt}\KeywordTok{:}
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ no{-}new{-}privileges:true}
 \AttributeTok{    }\FunctionTok{cap\_drop}\KeywordTok{:}
@@ -975,11 +977,6 @@ do repositório: o PDF quebra linhas longas.
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ api}
 \AttributeTok{    }\FunctionTok{networks}\KeywordTok{:}
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ gestoreng}
-\AttributeTok{    }\FunctionTok{read\_only}\KeywordTok{:}\AttributeTok{ }\CharTok{true}
-\AttributeTok{    }\FunctionTok{tmpfs}\KeywordTok{:}
-\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ /tmp}
-\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ /etc/nginx/conf.d}
-\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ /var/cache/nginx}
 \AttributeTok{    }\FunctionTok{security\_opt}\KeywordTok{:}
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ no{-}new{-}privileges:true}
 \AttributeTok{    }\FunctionTok{cap\_drop}\KeywordTok{:}
@@ -1056,9 +1053,6 @@ do repositório: o PDF quebra linhas longas.
 \AttributeTok{        }\FunctionTok{target}\KeywordTok{:}\AttributeTok{ /data/storage}
 \AttributeTok{    }\FunctionTok{networks}\KeywordTok{:}
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ gestoreng}
-\AttributeTok{    }\FunctionTok{read\_only}\KeywordTok{:}\AttributeTok{ }\CharTok{true}
-\AttributeTok{    }\FunctionTok{tmpfs}\KeywordTok{:}
-\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ /tmp}
 \AttributeTok{    }\FunctionTok{security\_opt}\KeywordTok{:}
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ no{-}new{-}privileges:true}
 \AttributeTok{    }\FunctionTok{cap\_drop}\KeywordTok{:}
@@ -1099,9 +1093,6 @@ do repositório: o PDF quebra linhas longas.
 \AttributeTok{      }\FunctionTok{disable}\KeywordTok{:}\AttributeTok{ }\CharTok{true}
 \AttributeTok{    }\FunctionTok{networks}\KeywordTok{:}
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ gestoreng}
-\AttributeTok{    }\FunctionTok{read\_only}\KeywordTok{:}\AttributeTok{ }\CharTok{true}
-\AttributeTok{    }\FunctionTok{tmpfs}\KeywordTok{:}
-\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ /tmp}
 \AttributeTok{    }\FunctionTok{security\_opt}\KeywordTok{:}
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ no{-}new{-}privileges:true}
 \AttributeTok{    }\FunctionTok{cap\_drop}\KeywordTok{:}
@@ -1122,11 +1113,6 @@ do repositório: o PDF quebra linhas longas.
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ api}
 \AttributeTok{    }\FunctionTok{networks}\KeywordTok{:}
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ gestoreng}
-\AttributeTok{    }\FunctionTok{read\_only}\KeywordTok{:}\AttributeTok{ }\CharTok{true}
-\AttributeTok{    }\FunctionTok{tmpfs}\KeywordTok{:}
-\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ /tmp}
-\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ /etc/nginx/conf.d}
-\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ /var/cache/nginx}
 \AttributeTok{    }\FunctionTok{security\_opt}\KeywordTok{:}
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ no{-}new{-}privileges:true}
 \AttributeTok{    }\FunctionTok{cap\_drop}\KeywordTok{:}
