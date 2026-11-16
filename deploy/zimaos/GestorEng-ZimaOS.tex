@@ -1,0 +1,1023 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\PassOptionsToPackage{dvipsnames,svgnames,x11names}{xcolor}
+%
+\documentclass[
+  10pt,
+]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\usepackage[a4paper,margin=2cm]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\ifLuaTeX
+\usepackage[bidi=basic]{babel}
+\else
+\usepackage[bidi=default]{babel}
+\fi
+\babelprovide[main,import]{brazilian}
+% get rid of language-specific shorthands (see #6817):
+\let\LanguageShortHands\languageshorthands
+\def\languageshorthands#1{}
+\usepackage{fvextra}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,breakanywhere,commandchars=\\\{\}}
+\usepackage{newunicodechar}
+\usepackage{amssymb}
+\newunicodechar{✓}{\ensuremath{\checkmark}}
+\newunicodechar{⋮}{\ensuremath{\vdots}}
+\newunicodechar{→}{\ensuremath{\rightarrow}}
+\usepackage{xcolor}
+\definecolor{velmont}{HTML}{1D4ED8}
+\usepackage{sectsty}
+\allsectionsfont{\color{velmont}\sffamily}
+\usepackage{fancyhdr}
+\pagestyle{fancy}\fancyhf{}
+\lhead{\small\sffamily GestorEng · ZimaOS}\rhead{\small\sffamily Velmont}
+\cfoot{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\let\oldquote\quote\let\endoldquote\endquote
+\renewenvironment{quote}{\begin{oldquote}\small\itshape}{\end{oldquote}}
+\setlength{\parskip}{0.5em}
+\newunicodechar{─}{-}
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  pdftitle={GestorEng no ZimaOS --- Guia de Instalação},
+  pdflang={pt-BR},
+  colorlinks=true,
+  linkcolor={blue},
+  filecolor={Maroon},
+  citecolor={Blue},
+  urlcolor={blue},
+  pdfcreator={LaTeX via pandoc}}
+
+\title{GestorEng no ZimaOS --- Guia de Instalação}
+\usepackage{etoolbox}
+\makeatletter
+\providecommand{\subtitle}[1]{% add subtitle to \maketitle
+  \apptocmd{\@title}{\par {\large #1 \par}}{}{}
+}
+\makeatother
+\subtitle{Velmont · banco interno ou externo · passo a passo}
+\author{}
+\date{16/11/2026}
+
+\begin{document}
+\maketitle
+
+{
+\hypersetup{linkcolor=}
+\setcounter{tocdepth}{1}
+\tableofcontents
+}
+\hypertarget{antes-de-comeuxe7ar}{%
+\section{Antes de começar}\label{antes-de-comeuxe7ar}}
+
+\hypertarget{qual-arquivo-usar}{%
+\subsection{Qual arquivo usar}\label{qual-arquivo-usar}}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3333}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Arquivo
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Quando usar
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+O que sobe
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\texttt{banco-interno.yml} & Instalação nova e independente
+(\textbf{recomendado} se você não tem um Postgres dedicado) & PostgreSQL
+16, Redis, API, worker e web \\
+\texttt{banco-externo.yml} & Você \textbf{já tem} PostgreSQL (13 a 18)
+e/ou Redis rodando na rede & API, worker e web \\
+\end{longtable}
+
+Os dois estão em \texttt{deploy/zimaos/} no repositório. Em ambos você
+edita \textbf{somente o bloco CONFIGURAÇÃO} no topo do arquivo.
+
+\hypertarget{o-que-vocuxea-vai-precisar}{%
+\subsection{O que você vai precisar}\label{o-que-vocuxea-vai-precisar}}
+
+\begin{itemize}
+\tightlist
+\item
+  ZimaOS com acesso ao \textbf{terminal}: pelo painel (Configurações
+  \textgreater{} Terminal) ou por SSH
+  (\texttt{ssh\ SEU\_USUARIO@IP-DO-ZIMAOS}).
+\item
+  Uma conta do GitHub com acesso ao repositório
+  \texttt{incorpore/GestorEng} (o repositório é \textbf{privado}).
+\item
+  Cerca de 2 GB livres de disco.
+\end{itemize}
+
+\begin{quote}
+\textbf{Convenção deste guia:} \texttt{IP-DO-ZIMAOS} é o endereço do seu
+servidor (ex.: \texttt{192.168.3.100}). Comandos que começam com
+\texttt{sudo} são executados \textbf{no terminal do ZimaOS}. Comandos
+com \texttt{docker\ exec} executam algo \textbf{dentro de um container}.
+\end{quote}
+
+\hypertarget{passo-1-liberar-o-download-das-imagens-reposituxf3rio-privado}{%
+\section{Passo 1 --- Liberar o download das imagens (repositório
+privado)}\label{passo-1-liberar-o-download-das-imagens-reposituxf3rio-privado}}
+
+Como o repositório é privado, as imagens
+\texttt{ghcr.io/incorpore/gestoreng-api} e \texttt{gestoreng-web} também
+são privadas. O ZimaOS precisa de um \textbf{token do GitHub} para
+baixá-las.
+
+\textbf{1.1 Criar o token (no navegador):}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  GitHub \textgreater{} clique na sua foto \textgreater{}
+  \textbf{Settings} \textgreater{} \textbf{Developer settings}
+  \textgreater{} \textbf{Personal access tokens} \textgreater{}
+  \textbf{Tokens (classic)}.
+\item
+  \textbf{Generate new token (classic)}.
+\item
+  \emph{Note}: \texttt{ZimaOS\ GestorEng} · \emph{Expiration}: o prazo
+  que preferir (anote para renovar).
+\item
+  Marque \textbf{somente} \texttt{read:packages}.
+\item
+  \textbf{Generate token} e copie o valor (começa com \texttt{ghp\_}).
+  Ele aparece uma única vez.
+\end{enumerate}
+
+\textbf{1.2 Fazer login no ZimaOS (terminal):}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\BuiltInTok{echo} \StringTok{"ghp\_SEU\_TOKEN"} \KeywordTok{|} \FunctionTok{sudo}\NormalTok{ docker login ghcr.io }\AttributeTok{{-}u}\NormalTok{ SEU\_USUARIO\_GITHUB }\AttributeTok{{-}{-}password{-}stdin}
+\end{Highlighting}
+\end{Shaded}
+
+Deve aparecer \texttt{Login\ Succeeded}. O login fica salvo; só repita
+se o token expirar.
+
+\textbf{1.3 Baixar as imagens:}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{sudo}\NormalTok{ docker pull ghcr.io/incorpore/gestoreng{-}api:latest}
+\FunctionTok{sudo}\NormalTok{ docker pull ghcr.io/incorpore/gestoreng{-}web:latest}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{quote}
+\textbf{Erro \texttt{lookup\ ghcr.1panel.live:\ no\ such\ host}?} O
+Docker do servidor está usando um espelho que saiu do ar. Veja a seção
+\emph{Problemas comuns} no final e repita o 1.3.
+\end{quote}
+
+\hypertarget{passo-2-criar-as-pastas-de-dados}{%
+\section{Passo 2 --- Criar as pastas de
+dados}\label{passo-2-criar-as-pastas-de-dados}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{sudo}\NormalTok{ mkdir }\AttributeTok{{-}p}\NormalTok{ /media/URSUS/AppData/GestorEng/storage}
+\FunctionTok{sudo}\NormalTok{ chown }\AttributeTok{{-}R}\NormalTok{ 10001:10001 /media/URSUS/AppData/GestorEng/storage}
+\end{Highlighting}
+\end{Shaded}
+
+Somente para \textbf{banco interno}, crie também a pasta do PostgreSQL
+(o próprio Postgres ajusta as permissões):
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{sudo}\NormalTok{ mkdir }\AttributeTok{{-}p}\NormalTok{ /media/URSUS/AppData/GestorEng/postgres}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{quote}
+Se quiser outro local (outro disco, NAS montado), troque o caminho
+\texttt{/media/URSUS/AppData/GestorEng} em \textbf{todas} as linhas
+\texttt{source:} do arquivo \texttt{.yml}.
+\end{quote}
+
+\hypertarget{passo-3-gerar-as-chaves-secretas}{%
+\section{Passo 3 --- Gerar as chaves
+secretas}\label{passo-3-gerar-as-chaves-secretas}}
+
+Execute \textbf{duas vezes} e guarde os dois resultados em local seguro
+(gerenciador de senhas):
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ExtensionTok{openssl}\NormalTok{ rand }\AttributeTok{{-}hex}\NormalTok{ 32}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{itemize}
+\tightlist
+\item
+  O primeiro valor será a \texttt{SECRET\_KEY}.
+\item
+  O segundo será a \texttt{ENCRYPTION\_KEY}.
+\end{itemize}
+
+\begin{quote}
+\textbf{Atenção:} a \texttt{ENCRYPTION\_KEY} protege as chaves do
+OpenRouter, Documenso e do backup S3 gravadas no banco. Se ela for
+perdida ou trocada, será preciso cadastrar essas integrações novamente.
+\textbf{Não troque depois.}
+\end{quote}
+
+\hypertarget{passo-4-preparar-o-banco-externo-somente-banco-externo.yml}{%
+\section{\texorpdfstring{Passo 4 --- Preparar o banco externo (somente
+\texttt{banco-externo.yml})}{Passo 4 --- Preparar o banco externo (somente banco-externo.yml)}}\label{passo-4-preparar-o-banco-externo-somente-banco-externo.yml}}
+
+Pule este passo se for usar o banco interno.
+
+\textbf{4.1 Criar usuário e banco no PostgreSQL.} Descubra o nome do
+container do seu Postgres e entre nele:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{sudo}\NormalTok{ docker ps }\AttributeTok{{-}{-}format} \StringTok{\textquotesingle{}\{\{.Names\}\}  \{\{.Image\}\}\textquotesingle{}} \KeywordTok{|} \FunctionTok{grep} \AttributeTok{{-}i}\NormalTok{ postgres}
+\FunctionTok{sudo}\NormalTok{ docker exec }\AttributeTok{{-}it}\NormalTok{ NOME\_DO\_CONTAINER\_POSTGRES psql }\AttributeTok{{-}U}\NormalTok{ postgres}
+\end{Highlighting}
+\end{Shaded}
+
+Dentro do \texttt{psql}, execute (troque a senha):
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{CREATE} \FunctionTok{USER}\NormalTok{ gestoreng }\KeywordTok{WITH} \KeywordTok{PASSWORD} \StringTok{\textquotesingle{}SUA\_SENHA\_DO\_BANCO\textquotesingle{}}\NormalTok{;}
+\KeywordTok{CREATE} \KeywordTok{DATABASE}\NormalTok{ gestoreng OWNER gestoreng;}
+\NormalTok{\textbackslash{}q}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{quote}
+Use nomes \textbf{em minúsculas} (\texttt{gestoreng}). Se você escrever
+\texttt{GestorEng} sem aspas, o PostgreSQL grava como \texttt{gestoreng}
+e a conexão com o nome em maiúsculas falha.
+\end{quote}
+
+\textbf{4.2 Testar se o servidor responde} (a partir do ZimaOS):
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{sudo}\NormalTok{ docker run }\AttributeTok{{-}{-}rm}\NormalTok{ postgres:16{-}alpine pg\_isready }\AttributeTok{{-}h}\NormalTok{ 192.168.3.100 }\AttributeTok{{-}p}\NormalTok{ 5432}
+\CommentTok{\# esperado: 192.168.3.100:5432 {-} accepting connections}
+\end{Highlighting}
+\end{Shaded}
+
+Se usar o \textbf{Redis externo}, teste também:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{sudo}\NormalTok{ docker run }\AttributeTok{{-}{-}rm}\NormalTok{ redis:7{-}alpine redis{-}cli }\AttributeTok{{-}h}\NormalTok{ 192.168.3.100 }\AttributeTok{{-}p}\NormalTok{ 6379 }\AttributeTok{{-}a} \StringTok{\textquotesingle{}SENHA\_DO\_REDIS\textquotesingle{}} \AttributeTok{{-}{-}no{-}auth{-}warning}\NormalTok{ ping}
+\CommentTok{\# esperado: PONG}
+\end{Highlighting}
+\end{Shaded}
+
+Se algum teste falhar, verifique se a porta está publicada no container
+do banco (\texttt{ports:\ 5432:5432} / \texttt{6379:6379}) e se o
+firewall permite a conexão.
+
+\hypertarget{passo-5-preencher-o-arquivo-de-instalauxe7uxe3o}{%
+\section{Passo 5 --- Preencher o arquivo de
+instalação}\label{passo-5-preencher-o-arquivo-de-instalauxe7uxe3o}}
+
+Abra o arquivo escolhido (\texttt{banco-interno.yml} ou
+\texttt{banco-externo.yml}) e altere \textbf{apenas o bloco
+CONFIGURAÇÃO}:
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{0.5000}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{0.5000}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Variável
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+O que colocar
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\texttt{POSTGRES\_PASSWORD} & Senha do banco (interno: será criada
+agora; externo: a do passo 4.1) \\
+\texttt{POSTGRES\_HOST}, \texttt{POSTGRES\_DB}, \texttt{POSTGRES\_USER}
+& Só no externo: endereço, banco e usuário do passo 4 \\
+\texttt{REDIS\_PASSWORD} & Senha do Redis (interno: escolha uma;
+externo: a existente) \\
+\texttt{REDIS\_PREFIX} & Prefixo das chaves no Redis (ex.:
+\texttt{GestorEng\_}) \\
+\texttt{SECRET\_KEY} / \texttt{ENCRYPTION\_KEY} & Os dois valores do
+passo 3 \\
+\texttt{ADMIN\_EMAIL} / \texttt{ADMIN\_PASSWORD} & Seu acesso inicial
+(10+ caracteres, misturando maiúsculas, minúsculas, números/símbolos) \\
+\texttt{COOKIE\_SECURE} & \texttt{"false"} acessando por
+\texttt{http://IP:8917}; \texttt{"true"} se usar HTTPS \\
+\texttt{CORS\_ORIGINS} & Troque \texttt{192.168.3.100} pelo IP do ZimaOS
+(e acrescente seu domínio, se tiver) \\
+\texttt{MAX\_UPLOAD\_MB} & Tamanho máximo de upload; mantenha
+\texttt{MAX\_BODY} do serviço \texttt{web} igual (ex.: \texttt{50} e
+\texttt{50m}) \\
+\end{longtable}
+
+As senhas podem conter \textbf{qualquer caractere} --- o sistema monta
+as URLs de conexão e codifica tudo sozinho.
+
+\hypertarget{passo-6-instalar-no-zimaos}{%
+\section{Passo 6 --- Instalar no
+ZimaOS}\label{passo-6-instalar-no-zimaos}}
+
+\textbf{Opção A --- pelo painel (recomendado):}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Abra o painel do ZimaOS \textgreater{} \textbf{App Store}.
+\item
+  Clique em \textbf{+} (canto superior) \textgreater{} \textbf{Install a
+  customized app} (\emph{Instalar app personalizado}).
+\item
+  Clique em \textbf{Import} (ícone no canto superior direito da janela)
+  \textgreater{} aba \textbf{Docker Compose}.
+\item
+  Cole o conteúdo \textbf{inteiro} do arquivo \texttt{.yml} já
+  preenchido \textgreater{} \textbf{Submit}.
+\item
+  Confira os dados exibidos e clique em \textbf{Install}.
+\end{enumerate}
+
+\textbf{Opção B --- pelo terminal:}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{sudo}\NormalTok{ mkdir }\AttributeTok{{-}p}\NormalTok{ /media/URSUS/AppData/GestorEng/compose}
+\FunctionTok{sudo}\NormalTok{ nano /media/URSUS/AppData/GestorEng/compose/docker{-}compose.yml   }\CommentTok{\# cole o .yml preenchido, Ctrl+O, Enter, Ctrl+X}
+\BuiltInTok{cd}\NormalTok{ /media/URSUS/AppData/GestorEng/compose}
+\FunctionTok{sudo}\NormalTok{ docker compose up }\AttributeTok{{-}d}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{quote}
+Na opção B o app não aparece com ícone no painel da mesma forma; prefira
+a opção A.
+\end{quote}
+
+\hypertarget{passo-7-conferir-se-estuxe1-tudo-funcionando}{%
+\section{Passo 7 --- Conferir se está tudo
+funcionando}\label{passo-7-conferir-se-estuxe1-tudo-funcionando}}
+
+\textbf{7.1 Acompanhar a inicialização da API} (a primeira vez leva até
+1 minuto, pois cria as tabelas):
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{sudo}\NormalTok{ docker logs }\AttributeTok{{-}f}\NormalTok{ gestoreng{-}api}
+\CommentTok{\# aguarde: "Application startup complete" (Ctrl+C para sair)}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{7.2 Diagnóstico completo} (banco, Redis, pasta de arquivos e
+backup):
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{sudo}\NormalTok{ docker exec gestoreng{-}api python }\AttributeTok{{-}m}\NormalTok{ app.manage verificar}
+\end{Highlighting}
+\end{Shaded}
+
+Saída esperada: linhas com \texttt{✓} para PostgreSQL, Redis, pasta de
+arquivos e \texttt{pg\_dump}.
+
+\textbf{7.3 Acessar:} \texttt{http://IP-DO-ZIMAOS:8917} e entrar com
+\texttt{ADMIN\_EMAIL} / \texttt{ADMIN\_PASSWORD}.
+
+\textbf{7.4 Primeiras configurações no sistema:}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \textbf{Minha conta} (canto superior direito) \textgreater{} ative a
+  \textbf{verificação em duas etapas}.
+\item
+  \textbf{Configurações \textgreater{} Empresa}: dados, logo e cor da
+  marca.
+\item
+  \textbf{Configurações \textgreater{} Papel timbrado}: envie o
+  PDF/imagem A4 e ajuste as margens.
+\item
+  \textbf{Configurações \textgreater{} Integrações}: OpenRouter e
+  Documenso.
+\item
+  \textbf{Configurações \textgreater{} Backup}: bucket S3 e horário
+  (fortemente recomendado).
+\item
+  \textbf{Usuários e acesso}: crie os usuários e atribua perfis.
+\end{enumerate}
+
+\hypertarget{comandos-de-manutenuxe7uxe3o-terminal-do-container}{%
+\section{Comandos de manutenção (terminal do
+container)}\label{comandos-de-manutenuxe7uxe3o-terminal-do-container}}
+
+Todos são executados a partir do terminal do ZimaOS com
+\texttt{sudo\ docker\ exec\ -it\ gestoreng-api\ ...}:
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{0.5000}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{0.5000}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Para\ldots{}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Comando
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Ver a ajuda &
+\texttt{sudo\ docker\ exec\ -it\ gestoreng-api\ python\ -m\ app.manage} \\
+Listar usuários &
+\texttt{sudo\ docker\ exec\ -it\ gestoreng-api\ python\ -m\ app.manage\ usuarios} \\
+Criar outro administrador &
+\texttt{sudo\ docker\ exec\ -it\ gestoreng-api\ python\ -m\ app.manage\ criar-admin\ email@velmont.com.br\ Nome\ Completo} \\
+Redefinir senha (esqueci a senha) &
+\texttt{sudo\ docker\ exec\ -it\ gestoreng-api\ python\ -m\ app.manage\ senha\ email@velmont.com.br} \\
+Desbloquear usuário &
+\texttt{sudo\ docker\ exec\ -it\ gestoreng-api\ python\ -m\ app.manage\ desbloquear\ email@velmont.com.br} \\
+Remover 2FA (perdeu o celular) &
+\texttt{sudo\ docker\ exec\ -it\ gestoreng-api\ python\ -m\ app.manage\ remover-2fa\ email@velmont.com.br} \\
+Encerrar sessões de um usuário &
+\texttt{sudo\ docker\ exec\ -it\ gestoreng-api\ python\ -m\ app.manage\ sair-todos\ email@velmont.com.br} \\
+Diagnóstico &
+\texttt{sudo\ docker\ exec\ -it\ gestoreng-api\ python\ -m\ app.manage\ verificar} \\
+Gerar nova chave &
+\texttt{sudo\ docker\ exec\ -it\ gestoreng-api\ python\ -m\ app.manage\ gerar-chave} \\
+Executar backup agora &
+\texttt{sudo\ docker\ exec\ -it\ gestoreng-api\ ./docker-entrypoint.sh\ backup\ executar} \\
+Listar backups no S3 &
+\texttt{sudo\ docker\ exec\ -it\ gestoreng-api\ ./docker-entrypoint.sh\ backup\ listar} \\
+\end{longtable}
+
+Os comandos que pedem senha a solicitam de forma oculta (não aparece no
+histórico do terminal).
+
+\textbf{Acesso direto ao banco interno} (consultas manuais):
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{sudo}\NormalTok{ docker exec }\AttributeTok{{-}it}\NormalTok{ gestoreng{-}db psql }\AttributeTok{{-}U}\NormalTok{ gestoreng }\AttributeTok{{-}d}\NormalTok{ gestoreng}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{alterar-variuxe1veis-depois-da-instalauxe7uxe3o}{%
+\section{Alterar variáveis depois da
+instalação}\label{alterar-variuxe1veis-depois-da-instalauxe7uxe3o}}
+
+\textbf{Pelo painel:} ícone do GestorEng \textgreater{} menu (⋮)
+\textgreater{} \textbf{Settings} (\emph{Configurações}) \textgreater{}
+edite o YAML \textgreater{} \textbf{Save}. O ZimaOS recria os containers
+automaticamente.
+
+\textbf{Pelo terminal (se instalou pela opção B):} edite o arquivo e
+rode \texttt{sudo\ docker\ compose\ up\ -d} na pasta dele.
+
+Efeito de cada alteração:
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3333}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Variável
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Pode trocar?
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Observação
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\texttt{COOKIE\_SECURE}, \texttt{CORS\_ORIGINS}, \texttt{TZ},
+\texttt{WEB\_CONCURRENCY}, \texttt{REDIS\_PREFIX} & Sim & Basta
+salvar. \\
+\texttt{MAX\_UPLOAD\_MB} + \texttt{MAX\_BODY} & Sim & Altere \textbf{os
+dois} juntos. \\
+Porta (\texttt{8917:8080}) & Sim & Troque o número da esquerda e também
+\texttt{port\_map} no fim do arquivo e o IP:porta em
+\texttt{CORS\_ORIGINS}. \\
+\texttt{SECRET\_KEY} & Sim & Todos os usuários serão desconectados
+(fazem login de novo). \\
+\texttt{ENCRYPTION\_KEY} & \textbf{Não} & Se trocar, recadastre
+OpenRouter, Documenso e o backup S3. \\
+\texttt{ADMIN\_EMAIL} / \texttt{ADMIN\_PASSWORD} & Sem efeito & Só valem
+na 1ª instalação. Use os comandos \texttt{criar-admin} /
+\texttt{senha}. \\
+\texttt{REDIS\_PASSWORD} (interno) & Sim & Basta salvar. \\
+\texttt{POSTGRES\_PASSWORD} (interno) & Sim, em 2 etapas & Veja
+abaixo. \\
+\texttt{POSTGRES\_PASSWORD} (externo) & Sim, em 2 etapas & Troque
+primeiro no seu PostgreSQL, depois no arquivo. \\
+Pastas (\texttt{source:}) & Com cuidado & Pare o app, \textbf{copie} os
+dados para a nova pasta, ajuste o \texttt{chown}, altere o arquivo. \\
+\end{longtable}
+
+\textbf{Trocar a senha do banco interno} (a variável só é lida na
+criação do banco):
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{sudo}\NormalTok{ docker exec }\AttributeTok{{-}it}\NormalTok{ gestoreng{-}db psql }\AttributeTok{{-}U}\NormalTok{ gestoreng }\AttributeTok{{-}d}\NormalTok{ gestoreng }\AttributeTok{{-}c} \StringTok{"ALTER USER gestoreng PASSWORD \textquotesingle{}NOVA\_SENHA\textquotesingle{};"}
+\end{Highlighting}
+\end{Shaded}
+
+Depois altere \texttt{POSTGRES\_PASSWORD} no arquivo para
+\texttt{NOVA\_SENHA} e salve.
+
+\hypertarget{atualizar-o-gestoreng-para-uma-nova-versuxe3o}{%
+\section{Atualizar o GestorEng para uma nova
+versão}\label{atualizar-o-gestoreng-para-uma-nova-versuxe3o}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{sudo}\NormalTok{ docker pull ghcr.io/incorpore/gestoreng{-}api:latest}
+\FunctionTok{sudo}\NormalTok{ docker pull ghcr.io/incorpore/gestoreng{-}web:latest}
+\end{Highlighting}
+\end{Shaded}
+
+Depois, no painel: ícone do GestorEng \textgreater{} \textbf{Restart}
+não basta --- use \textbf{Settings \textgreater{} Save} (recria os
+containers com as imagens novas). Pelo terminal:
+\texttt{sudo\ docker\ compose\ up\ -d} na pasta do arquivo. As
+atualizações do banco (migrações) são aplicadas automaticamente na
+inicialização da API. Faça um backup antes de atualizar.
+
+\hypertarget{backup-e-restaurauxe7uxe3o}{%
+\section{Backup e restauração}\label{backup-e-restaurauxe7uxe3o}}
+
+\textbf{Backup automático (recomendado):} configure em
+\emph{Configurações \textgreater{} Backup} (S3, MinIO, Backblaze,
+Cloudflare R2\ldots). Inclui banco e arquivos, roda todo dia no horário
+escolhido e apaga os antigos conforme a retenção.
+
+\textbf{Backup manual extra do banco interno} (arquivo na pasta do app):
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{sudo}\NormalTok{ docker exec gestoreng{-}db pg\_dump }\AttributeTok{{-}U}\NormalTok{ gestoreng }\AttributeTok{{-}Fc}\NormalTok{ gestoreng }\KeywordTok{|} \FunctionTok{sudo}\NormalTok{ tee /media/URSUS/AppData/GestorEng/manual{-}}\VariableTok{$(}\FunctionTok{date}\NormalTok{ +\%F}\VariableTok{)}\NormalTok{.dump }\OperatorTok{\textgreater{}}\NormalTok{ /dev/null}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{Restaurar um backup do S3} (sobrescreve os dados atuais):
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{sudo}\NormalTok{ docker stop gestoreng{-}web gestoreng{-}worker}
+\FunctionTok{sudo}\NormalTok{ docker exec }\AttributeTok{{-}it}\NormalTok{ gestoreng{-}api ./docker{-}entrypoint.sh backup listar}
+\FunctionTok{sudo}\NormalTok{ docker exec }\AttributeTok{{-}it}\NormalTok{ gestoreng{-}api ./docker{-}entrypoint.sh backup restaurar gestoreng/gestoreng{-}AAAAMMDD{-}HHMMSS.tar.gz}
+\FunctionTok{sudo}\NormalTok{ docker restart gestoreng{-}api }\KeywordTok{\&\&} \FunctionTok{sudo}\NormalTok{ docker start gestoreng{-}worker gestoreng{-}web}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{problemas-comuns}{%
+\section{Problemas comuns}\label{problemas-comuns}}
+
+\textbf{\texttt{lookup\ ghcr.1panel.live:\ no\ such\ host}} --- espelho
+de registro inválido no Docker. No 1Panel: \emph{Contêineres
+\textgreater{} Configuração \textgreater{} Espelhos de registro}, apague
+o espelho e salve. Manualmente:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{sudo}\NormalTok{ cat /etc/docker/daemon.json          }\CommentTok{\# localize "registry{-}mirrors"}
+\FunctionTok{sudo}\NormalTok{ nano /etc/docker/daemon.json         }\CommentTok{\# remova o endereço problemático}
+\FunctionTok{sudo}\NormalTok{ systemctl restart docker}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{\texttt{unauthorized} / \texttt{denied} ao baixar a imagem} ---
+faça (ou renove) o login do passo 1.2. Confira se o token tem
+\texttt{read:packages} e se sua conta tem acesso ao repositório.
+
+\textbf{\texttt{password\ authentication\ failed\ for\ user}} --- senha
+ou usuário diferentes do banco. Confira maiúsculas/minúsculas (passo
+4.1) e, no banco interno, lembre que \texttt{POSTGRES\_PASSWORD} só vale
+na primeira criação.
+
+\textbf{\texttt{connection\ refused} / \texttt{could\ not\ connect}}
+(banco externo) --- refaça os testes do passo 4.2.
+
+\textbf{Pasta de arquivos sem permissão} (aparece no \texttt{verificar}
+ou ao anexar arquivos):
+\texttt{sudo\ chown\ -R\ 10001:10001\ /media/URSUS/AppData/GestorEng/storage}
+
+\textbf{Sou desconectado ao recarregar a página} ---
+\texttt{COOKIE\_SECURE} está \texttt{"true"} mas o acesso é por
+\texttt{http://}. Use \texttt{"false"} ou configure HTTPS.
+
+\textbf{Upload de arquivo falha} --- aumente \texttt{MAX\_UPLOAD\_MB} e
+\texttt{MAX\_BODY} (iguais).
+
+\textbf{Esqueci a senha do administrador} ---
+\texttt{sudo\ docker\ exec\ -it\ gestoreng-api\ python\ -m\ app.manage\ senha\ SEU\_EMAIL}.
+
+\textbf{Worker mostrando ``Aguardando migrações\ldots{}''} --- normal
+nos primeiros segundos; se persistir, veja
+\texttt{sudo\ docker\ logs\ gestoreng-api}.
+
+\textbf{Porta 8917 já em uso} --- troque por outra livre (veja a tabela
+de variáveis).
+
+\textbf{Ver logs de qualquer parte:}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{sudo}\NormalTok{ docker logs }\AttributeTok{{-}{-}tail}\NormalTok{ 100 gestoreng{-}api}
+\FunctionTok{sudo}\NormalTok{ docker logs }\AttributeTok{{-}{-}tail}\NormalTok{ 100 gestoreng{-}worker}
+\FunctionTok{sudo}\NormalTok{ docker logs }\AttributeTok{{-}{-}tail}\NormalTok{ 100 gestoreng{-}web}
+\FunctionTok{sudo}\NormalTok{ docker logs }\AttributeTok{{-}{-}tail}\NormalTok{ 100 gestoreng{-}db      }\CommentTok{\# banco interno}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{acesso-pelo-celular-e-https-opcional}{%
+\section{Acesso pelo celular e HTTPS
+(opcional)}\label{acesso-pelo-celular-e-https-opcional}}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{App Android:} no primeiro uso informe
+  \texttt{http://IP-DO-ZIMAOS:8917} (na rede da empresa) ou o seu
+  domínio HTTPS.
+\item
+  \textbf{HTTPS / acesso externo:} coloque o GestorEng atrás do proxy
+  que você já usa (Nginx Proxy Manager, Cloudflare Tunnel, Traefik)
+  apontando para \texttt{IP-DO-ZIMAOS:8917}. Depois ajuste
+  \texttt{COOKIE\_SECURE:\ "true"} e inclua o domínio em
+  \texttt{CORS\_ORIGINS} (ex.: \texttt{https://gestor.velmont.com.br}).
+\end{itemize}
+
+\hypertarget{anexo-a-banco-interno.yml}{%
+\section{Anexo A ---
+banco-interno.yml}\label{anexo-a-banco-interno.yml}}
+
+\begin{quote}
+Para instalar, copie do arquivo \texttt{deploy/zimaos/banco-interno.yml}
+do repositório: o PDF quebra linhas longas.
+\end{quote}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# =====================================================================================}
+\CommentTok{\#  GestorEng — ZimaOS  ·  BANCO INTERNO (PostgreSQL + Redis instalados junto com o app)}
+\CommentTok{\#  Edite SOMENTE o bloco "CONFIGURAÇÃO" abaixo. Os valores TROQUE\_* são obrigatórios.}
+\CommentTok{\#  Senhas podem ter qualquer caractere (@ \# : / \%) — o sistema codifica sozinho.}
+\CommentTok{\# =====================================================================================}
+\FunctionTok{name}\KeywordTok{:}\AttributeTok{ gestoreng}
+
+\CommentTok{\# ─────────────────────────────── CONFIGURAÇÃO ───────────────────────────────}
+\FunctionTok{x{-}banco}\KeywordTok{:}\AttributeTok{ }\OtherTok{\&banco}
+\AttributeTok{  }\FunctionTok{POSTGRES\_DB}\KeywordTok{:}\AttributeTok{ gestoreng}
+\AttributeTok{  }\FunctionTok{POSTGRES\_USER}\KeywordTok{:}\AttributeTok{ gestoreng}
+\AttributeTok{  }\FunctionTok{POSTGRES\_PASSWORD}\KeywordTok{:}\AttributeTok{ TROQUE\_SENHA\_DO\_BANCO}\CommentTok{        \# vale só na 1ª instalação (para trocar depois, ver guia)}
+
+\FunctionTok{x{-}redis}\KeywordTok{:}\AttributeTok{ }\OtherTok{\&redis}
+\AttributeTok{  }\FunctionTok{REDIS\_PASSWORD}\KeywordTok{:}\AttributeTok{ TROQUE\_SENHA\_DO\_REDIS}
+
+\FunctionTok{x{-}app}\KeywordTok{:}\AttributeTok{ }\OtherTok{\&app}
+\CommentTok{  \# Gere cada chave no terminal do ZimaOS:  openssl rand {-}hex 32}
+\AttributeTok{  }\FunctionTok{SECRET\_KEY}\KeywordTok{:}\AttributeTok{ TROQUE\_CHAVE\_1}\CommentTok{                      \# trocar depois = desconecta todos os usuários}
+\AttributeTok{  }\FunctionTok{ENCRYPTION\_KEY}\KeywordTok{:}\AttributeTok{ TROQUE\_CHAVE\_2}\CommentTok{                  \# NUNCA troque depois (criptografa chaves de API/backup)}
+\AttributeTok{  }\FunctionTok{ADMIN\_EMAIL}\KeywordTok{:}\AttributeTok{ admin@velmont.com.br}\CommentTok{               \# usado só na 1ª inicialização}
+\AttributeTok{  }\FunctionTok{ADMIN\_PASSWORD}\KeywordTok{:}\AttributeTok{ TROQUE\_Senha@Forte2026}\CommentTok{          \# mín. 10 caracteres: maiúsc., minúsc., números/símbolos}
+\AttributeTok{  }\FunctionTok{ADMIN\_NAME}\KeywordTok{:}\AttributeTok{ Administrador}
+\AttributeTok{  }\FunctionTok{COOKIE\_SECURE}\KeywordTok{:}\AttributeTok{ }\StringTok{"false"}\CommentTok{                          \# "true" quando acessar por HTTPS (proxy/domínio)}
+\AttributeTok{  }\FunctionTok{CORS\_ORIGINS}\KeywordTok{:}\AttributeTok{ http://192.168.3.100:8917,https://localhost,capacitor://localhost}
+\AttributeTok{  }\FunctionTok{MAX\_UPLOAD\_MB}\KeywordTok{:}\AttributeTok{ }\StringTok{"50"}
+\AttributeTok{  }\FunctionTok{TZ}\KeywordTok{:}\AttributeTok{ America/Sao\_Paulo}
+\AttributeTok{  }\FunctionTok{WEB\_CONCURRENCY}\KeywordTok{:}\AttributeTok{ }\StringTok{"3"}
+\AttributeTok{  }\FunctionTok{REDIS\_PREFIX}\KeywordTok{:}\AttributeTok{ GestorEng\_}
+\CommentTok{\# ─────────────────────────── FIM DA CONFIGURAÇÃO ────────────────────────────}
+
+\FunctionTok{x{-}servico}\KeywordTok{:}\AttributeTok{ }\OtherTok{\&servico}
+\AttributeTok{  }\FunctionTok{image}\KeywordTok{:}\AttributeTok{ ghcr.io/incorpore/gestoreng{-}api:latest}
+\AttributeTok{  }\FunctionTok{pull\_policy}\KeywordTok{:}\AttributeTok{ missing}
+\AttributeTok{  }\FunctionTok{restart}\KeywordTok{:}\AttributeTok{ unless{-}stopped}
+\AttributeTok{  }\FunctionTok{environment}\KeywordTok{:}
+\AttributeTok{    }\FunctionTok{\textless{}\textless{}}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\OtherTok{*banco,}\AttributeTok{ }\OtherTok{*redis,}\AttributeTok{ }\OtherTok{*app]}
+\AttributeTok{    }\FunctionTok{ENVIRONMENT}\KeywordTok{:}\AttributeTok{ production}
+\AttributeTok{    POSTGRES\_HOST: db}
+\AttributeTok{    REDIS\_HOST: redis}
+\AttributeTok{    STORAGE\_DIR: /data/storage}
+\AttributeTok{  volumes:}
+\AttributeTok{    {-} type: bind}
+\AttributeTok{      source: /media/URSUS/AppData/GestorEng/storage}
+\AttributeTok{      target: /data/storage}
+\AttributeTok{  networks: [gestoreng}\KeywordTok{]}
+\AttributeTok{  }\FunctionTok{read\_only}\KeywordTok{:}\AttributeTok{ }\CharTok{true}
+\AttributeTok{  }\FunctionTok{tmpfs}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\AttributeTok{/tmp}\KeywordTok{]}
+\AttributeTok{  }\FunctionTok{security\_opt}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\AttributeTok{no{-}new{-}privileges:}\CharTok{true}\KeywordTok{]}
+\AttributeTok{  }\FunctionTok{cap\_drop}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\AttributeTok{ALL}\KeywordTok{]}
+
+\FunctionTok{services}\KeywordTok{:}
+\AttributeTok{  }\FunctionTok{db}\KeywordTok{:}
+\AttributeTok{    }\FunctionTok{image}\KeywordTok{:}\AttributeTok{ postgres:16{-}alpine}
+\AttributeTok{    }\FunctionTok{container\_name}\KeywordTok{:}\AttributeTok{ gestoreng{-}db}
+\AttributeTok{    }\FunctionTok{restart}\KeywordTok{:}\AttributeTok{ unless{-}stopped}
+\AttributeTok{    }\FunctionTok{environment}\KeywordTok{:}
+\AttributeTok{      }\FunctionTok{\textless{}\textless{}}\KeywordTok{:}\AttributeTok{ }\OtherTok{*banco}
+\AttributeTok{      }\FunctionTok{TZ}\KeywordTok{:}\AttributeTok{ America/Sao\_Paulo}
+\AttributeTok{    }\FunctionTok{volumes}\KeywordTok{:}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ }\FunctionTok{type}\KeywordTok{:}\AttributeTok{ bind}
+\AttributeTok{        }\FunctionTok{source}\KeywordTok{:}\AttributeTok{ /media/URSUS/AppData/GestorEng/postgres}
+\AttributeTok{        }\FunctionTok{target}\KeywordTok{:}\AttributeTok{ /var/lib/postgresql/data}
+\AttributeTok{    }\FunctionTok{healthcheck}\KeywordTok{:}
+\AttributeTok{      }\FunctionTok{test}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\StringTok{"CMD{-}SHELL"}\KeywordTok{,}\AttributeTok{ }\StringTok{"pg\_isready {-}U $$\{POSTGRES\_USER\} {-}d $$\{POSTGRES\_DB\}"}\KeywordTok{]}
+\AttributeTok{      }\FunctionTok{interval}\KeywordTok{:}\AttributeTok{ 10s}
+\AttributeTok{      }\FunctionTok{timeout}\KeywordTok{:}\AttributeTok{ 5s}
+\AttributeTok{      }\FunctionTok{retries}\KeywordTok{:}\AttributeTok{ }\DecValTok{10}
+\AttributeTok{    }\FunctionTok{networks}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\AttributeTok{gestoreng}\KeywordTok{]}
+\AttributeTok{    }\FunctionTok{security\_opt}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\AttributeTok{no{-}new{-}privileges:}\CharTok{true}\KeywordTok{]}
+
+\AttributeTok{  }\FunctionTok{redis}\KeywordTok{:}
+\AttributeTok{    }\FunctionTok{image}\KeywordTok{:}\AttributeTok{ redis:7{-}alpine}
+\AttributeTok{    }\FunctionTok{container\_name}\KeywordTok{:}\AttributeTok{ gestoreng{-}redis}
+\AttributeTok{    }\FunctionTok{restart}\KeywordTok{:}\AttributeTok{ unless{-}stopped}
+\AttributeTok{    }\FunctionTok{environment}\KeywordTok{:}\AttributeTok{ }\OtherTok{*redis}
+\AttributeTok{    }\FunctionTok{command}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\StringTok{"sh"}\KeywordTok{,}\AttributeTok{ }\StringTok{"{-}c"}\KeywordTok{,}\AttributeTok{ }\StringTok{"exec redis{-}server {-}{-}requirepass }\SpecialCharTok{\textbackslash{}"}\StringTok{$$REDIS\_PASSWORD}\SpecialCharTok{\textbackslash{}"}\StringTok{ {-}{-}save \textquotesingle{}\textquotesingle{} {-}{-}appendonly no"}\KeywordTok{]}
+\AttributeTok{    }\FunctionTok{healthcheck}\KeywordTok{:}
+\AttributeTok{      }\FunctionTok{test}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\StringTok{"CMD{-}SHELL"}\KeywordTok{,}\AttributeTok{ }\StringTok{"redis{-}cli {-}a }\SpecialCharTok{\textbackslash{}"}\StringTok{$$REDIS\_PASSWORD}\SpecialCharTok{\textbackslash{}"}\StringTok{ {-}{-}no{-}auth{-}warning ping | grep PONG"}\KeywordTok{]}
+\AttributeTok{      }\FunctionTok{interval}\KeywordTok{:}\AttributeTok{ 10s}
+\AttributeTok{      }\FunctionTok{timeout}\KeywordTok{:}\AttributeTok{ 3s}
+\AttributeTok{      }\FunctionTok{retries}\KeywordTok{:}\AttributeTok{ }\DecValTok{10}
+\AttributeTok{    }\FunctionTok{networks}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\AttributeTok{gestoreng}\KeywordTok{]}
+\AttributeTok{    }\FunctionTok{read\_only}\KeywordTok{:}\AttributeTok{ }\CharTok{true}
+\AttributeTok{    }\FunctionTok{security\_opt}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\AttributeTok{no{-}new{-}privileges:}\CharTok{true}\KeywordTok{]}
+
+\AttributeTok{  }\FunctionTok{api}\KeywordTok{:}
+\AttributeTok{    }\FunctionTok{\textless{}\textless{}}\KeywordTok{:}\AttributeTok{ }\OtherTok{*servico}
+\AttributeTok{    }\FunctionTok{container\_name}\KeywordTok{:}\AttributeTok{ gestoreng{-}api}
+\AttributeTok{    }\FunctionTok{command}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\StringTok{"api"}\KeywordTok{]}
+\AttributeTok{    }\FunctionTok{depends\_on}\KeywordTok{:}
+\AttributeTok{      }\FunctionTok{db}\KeywordTok{:}\AttributeTok{ }\KeywordTok{\{}\AttributeTok{ }\FunctionTok{condition}\KeywordTok{:}\AttributeTok{ service\_healthy }\KeywordTok{\}}
+\AttributeTok{      }\FunctionTok{redis}\KeywordTok{:}\AttributeTok{ }\KeywordTok{\{}\AttributeTok{ }\FunctionTok{condition}\KeywordTok{:}\AttributeTok{ service\_healthy }\KeywordTok{\}}
+
+\AttributeTok{  }\FunctionTok{worker}\KeywordTok{:}
+\AttributeTok{    }\FunctionTok{\textless{}\textless{}}\KeywordTok{:}\AttributeTok{ }\OtherTok{*servico}
+\AttributeTok{    }\FunctionTok{container\_name}\KeywordTok{:}\AttributeTok{ gestoreng{-}worker}
+\AttributeTok{    }\FunctionTok{command}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\StringTok{"worker"}\KeywordTok{]}
+\AttributeTok{    }\FunctionTok{healthcheck}\KeywordTok{:}\AttributeTok{ }\KeywordTok{\{}\AttributeTok{ }\FunctionTok{disable}\KeywordTok{:}\AttributeTok{ }\CharTok{true}\AttributeTok{ }\KeywordTok{\}}
+\AttributeTok{    }\FunctionTok{depends\_on}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\AttributeTok{api}\KeywordTok{]}
+
+\AttributeTok{  }\FunctionTok{web}\KeywordTok{:}
+\AttributeTok{    }\FunctionTok{image}\KeywordTok{:}\AttributeTok{ ghcr.io/incorpore/gestoreng{-}web:latest}
+\AttributeTok{    }\FunctionTok{pull\_policy}\KeywordTok{:}\AttributeTok{ missing}
+\AttributeTok{    }\FunctionTok{container\_name}\KeywordTok{:}\AttributeTok{ gestoreng{-}web}
+\AttributeTok{    }\FunctionTok{restart}\KeywordTok{:}\AttributeTok{ unless{-}stopped}
+\AttributeTok{    }\FunctionTok{environment}\KeywordTok{:}
+\AttributeTok{      }\FunctionTok{API\_UPSTREAM}\KeywordTok{:}\AttributeTok{ api:8000}
+\AttributeTok{      }\FunctionTok{MAX\_BODY}\KeywordTok{:}\AttributeTok{ 50m}\CommentTok{                               \# mantenha igual a MAX\_UPLOAD\_MB (+ "m")}
+\AttributeTok{    }\FunctionTok{ports}\KeywordTok{:}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ }\StringTok{"8917:8080"}\CommentTok{                               \# acesso: http://IP{-}DO{-}ZIMAOS:8917}
+\AttributeTok{    }\FunctionTok{depends\_on}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\AttributeTok{api}\KeywordTok{]}
+\AttributeTok{    }\FunctionTok{networks}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\AttributeTok{gestoreng}\KeywordTok{]}
+\AttributeTok{    }\FunctionTok{read\_only}\KeywordTok{:}\AttributeTok{ }\CharTok{true}
+\AttributeTok{    }\FunctionTok{tmpfs}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\AttributeTok{/tmp}\KeywordTok{,}\AttributeTok{ /etc/nginx/conf.d}\KeywordTok{,}\AttributeTok{ /var/cache/nginx}\KeywordTok{]}
+\AttributeTok{    }\FunctionTok{security\_opt}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\AttributeTok{no{-}new{-}privileges:}\CharTok{true}\KeywordTok{]}
+\AttributeTok{    }\FunctionTok{cap\_drop}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\AttributeTok{ALL}\KeywordTok{]}
+
+\FunctionTok{networks}\KeywordTok{:}
+\AttributeTok{  }\FunctionTok{gestoreng}\KeywordTok{:}
+\AttributeTok{    }\FunctionTok{driver}\KeywordTok{:}\AttributeTok{ bridge}
+
+\FunctionTok{x{-}casaos}\KeywordTok{:}
+\AttributeTok{  }\FunctionTok{main}\KeywordTok{:}\AttributeTok{ web}
+\AttributeTok{  }\FunctionTok{index}\KeywordTok{:}\AttributeTok{ /}
+\AttributeTok{  }\FunctionTok{port\_map}\KeywordTok{:}\AttributeTok{ }\StringTok{"8917"}
+\AttributeTok{  }\FunctionTok{scheme}\KeywordTok{:}\AttributeTok{ http}
+\AttributeTok{  }\FunctionTok{category}\KeywordTok{:}\AttributeTok{ Productivity}
+\AttributeTok{  }\FunctionTok{author}\KeywordTok{:}\AttributeTok{ Velmont}
+\AttributeTok{  }\FunctionTok{title}\KeywordTok{:}
+\AttributeTok{    }\FunctionTok{custom}\KeywordTok{:}\AttributeTok{ GestorEng}
+\AttributeTok{  }\FunctionTok{description}\KeywordTok{:}
+\AttributeTok{    }\FunctionTok{custom}\KeywordTok{:}\AttributeTok{ Sistema de Gestão de Engenharia — obras, licitações, financeiro e documentos}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{anexo-b-banco-externo.yml}{%
+\section{Anexo B ---
+banco-externo.yml}\label{anexo-b-banco-externo.yml}}
+
+\begin{quote}
+Para instalar, copie do arquivo \texttt{deploy/zimaos/banco-externo.yml}
+do repositório: o PDF quebra linhas longas.
+\end{quote}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# =====================================================================================}
+\CommentTok{\#  GestorEng — ZimaOS  ·  BANCO EXTERNO (PostgreSQL e Redis já existentes na rede)}
+\CommentTok{\#  Edite SOMENTE o bloco "CONFIGURAÇÃO" abaixo. Os valores TROQUE\_* são obrigatórios.}
+\CommentTok{\#  Senhas podem ter qualquer caractere (@ \# : / \%) — o sistema codifica sozinho.}
+\CommentTok{\# =====================================================================================}
+\FunctionTok{name}\KeywordTok{:}\AttributeTok{ gestoreng}
+
+\CommentTok{\# ─────────────────────────────── CONFIGURAÇÃO ───────────────────────────────}
+\FunctionTok{x{-}app}\KeywordTok{:}\AttributeTok{ }\OtherTok{\&app}
+\CommentTok{  \# PostgreSQL existente (versão 13 a 18) — crie o banco e o usuário antes (ver guia)}
+\AttributeTok{  }\FunctionTok{POSTGRES\_HOST}\KeywordTok{:}\AttributeTok{ }\FloatTok{192.168.3.100}
+\AttributeTok{  }\FunctionTok{POSTGRES\_PORT}\KeywordTok{:}\AttributeTok{ }\StringTok{"5432"}
+\AttributeTok{  }\FunctionTok{POSTGRES\_DB}\KeywordTok{:}\AttributeTok{ gestoreng}
+\AttributeTok{  }\FunctionTok{POSTGRES\_USER}\KeywordTok{:}\AttributeTok{ gestoreng}
+\AttributeTok{  }\FunctionTok{POSTGRES\_PASSWORD}\KeywordTok{:}\AttributeTok{ TROQUE\_SENHA\_DO\_BANCO}
+
+\CommentTok{  \# Redis existente (opcional — para não usar, apague as 5 linhas REDIS\_*)}
+\AttributeTok{  }\FunctionTok{REDIS\_HOST}\KeywordTok{:}\AttributeTok{ }\FloatTok{192.168.3.100}
+\AttributeTok{  }\FunctionTok{REDIS\_PORT}\KeywordTok{:}\AttributeTok{ }\StringTok{"6379"}
+\AttributeTok{  }\FunctionTok{REDIS\_PASSWORD}\KeywordTok{:}\AttributeTok{ TROQUE\_SENHA\_DO\_REDIS}
+\AttributeTok{  }\FunctionTok{REDIS\_DB}\KeywordTok{:}\AttributeTok{ }\StringTok{"0"}
+\AttributeTok{  }\FunctionTok{REDIS\_PREFIX}\KeywordTok{:}\AttributeTok{ GestorEng\_}
+
+\CommentTok{  \# Gere cada chave no terminal do ZimaOS:  openssl rand {-}hex 32}
+\AttributeTok{  }\FunctionTok{SECRET\_KEY}\KeywordTok{:}\AttributeTok{ TROQUE\_CHAVE\_1}\CommentTok{                      \# trocar depois = desconecta todos os usuários}
+\AttributeTok{  }\FunctionTok{ENCRYPTION\_KEY}\KeywordTok{:}\AttributeTok{ TROQUE\_CHAVE\_2}\CommentTok{                  \# NUNCA troque depois (criptografa chaves de API/backup)}
+\AttributeTok{  }\FunctionTok{ADMIN\_EMAIL}\KeywordTok{:}\AttributeTok{ admin@velmont.com.br}\CommentTok{               \# usado só na 1ª inicialização}
+\AttributeTok{  }\FunctionTok{ADMIN\_PASSWORD}\KeywordTok{:}\AttributeTok{ TROQUE\_Senha@Forte2026}\CommentTok{          \# mín. 10 caracteres: maiúsc., minúsc., números/símbolos}
+\AttributeTok{  }\FunctionTok{ADMIN\_NAME}\KeywordTok{:}\AttributeTok{ Administrador}
+\AttributeTok{  }\FunctionTok{COOKIE\_SECURE}\KeywordTok{:}\AttributeTok{ }\StringTok{"false"}\CommentTok{                          \# "true" quando acessar por HTTPS (proxy/domínio)}
+\AttributeTok{  }\FunctionTok{CORS\_ORIGINS}\KeywordTok{:}\AttributeTok{ http://192.168.3.100:8917,https://localhost,capacitor://localhost}
+\AttributeTok{  }\FunctionTok{MAX\_UPLOAD\_MB}\KeywordTok{:}\AttributeTok{ }\StringTok{"50"}
+\AttributeTok{  }\FunctionTok{TZ}\KeywordTok{:}\AttributeTok{ America/Sao\_Paulo}
+\AttributeTok{  }\FunctionTok{WEB\_CONCURRENCY}\KeywordTok{:}\AttributeTok{ }\StringTok{"3"}
+\CommentTok{\# ─────────────────────────── FIM DA CONFIGURAÇÃO ────────────────────────────}
+
+\FunctionTok{x{-}servico}\KeywordTok{:}\AttributeTok{ }\OtherTok{\&servico}
+\AttributeTok{  }\FunctionTok{image}\KeywordTok{:}\AttributeTok{ ghcr.io/incorpore/gestoreng{-}api:latest}
+\AttributeTok{  }\FunctionTok{pull\_policy}\KeywordTok{:}\AttributeTok{ missing}
+\AttributeTok{  }\FunctionTok{restart}\KeywordTok{:}\AttributeTok{ unless{-}stopped}
+\AttributeTok{  }\FunctionTok{environment}\KeywordTok{:}
+\AttributeTok{    }\FunctionTok{\textless{}\textless{}}\KeywordTok{:}\AttributeTok{ }\OtherTok{*app}
+\AttributeTok{    }\FunctionTok{ENVIRONMENT}\KeywordTok{:}\AttributeTok{ production}
+\AttributeTok{    }\FunctionTok{STORAGE\_DIR}\KeywordTok{:}\AttributeTok{ /data/storage}
+\AttributeTok{  }\FunctionTok{volumes}\KeywordTok{:}
+\AttributeTok{    }\KeywordTok{{-}}\AttributeTok{ }\FunctionTok{type}\KeywordTok{:}\AttributeTok{ bind}
+\AttributeTok{      }\FunctionTok{source}\KeywordTok{:}\AttributeTok{ /media/URSUS/AppData/GestorEng/storage}
+\AttributeTok{      }\FunctionTok{target}\KeywordTok{:}\AttributeTok{ /data/storage}
+\AttributeTok{  }\FunctionTok{networks}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\AttributeTok{gestoreng}\KeywordTok{]}
+\AttributeTok{  }\FunctionTok{read\_only}\KeywordTok{:}\AttributeTok{ }\CharTok{true}
+\AttributeTok{  }\FunctionTok{tmpfs}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\AttributeTok{/tmp}\KeywordTok{]}
+\AttributeTok{  }\FunctionTok{security\_opt}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\AttributeTok{no{-}new{-}privileges:}\CharTok{true}\KeywordTok{]}
+\AttributeTok{  }\FunctionTok{cap\_drop}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\AttributeTok{ALL}\KeywordTok{]}
+
+\FunctionTok{services}\KeywordTok{:}
+\AttributeTok{  }\FunctionTok{api}\KeywordTok{:}
+\AttributeTok{    }\FunctionTok{\textless{}\textless{}}\KeywordTok{:}\AttributeTok{ }\OtherTok{*servico}
+\AttributeTok{    }\FunctionTok{container\_name}\KeywordTok{:}\AttributeTok{ gestoreng{-}api}
+\AttributeTok{    }\FunctionTok{command}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\StringTok{"api"}\KeywordTok{]}
+
+\AttributeTok{  }\FunctionTok{worker}\KeywordTok{:}
+\AttributeTok{    }\FunctionTok{\textless{}\textless{}}\KeywordTok{:}\AttributeTok{ }\OtherTok{*servico}
+\AttributeTok{    }\FunctionTok{container\_name}\KeywordTok{:}\AttributeTok{ gestoreng{-}worker}
+\AttributeTok{    }\FunctionTok{command}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\StringTok{"worker"}\KeywordTok{]}
+\AttributeTok{    }\FunctionTok{healthcheck}\KeywordTok{:}\AttributeTok{ }\KeywordTok{\{}\AttributeTok{ }\FunctionTok{disable}\KeywordTok{:}\AttributeTok{ }\CharTok{true}\AttributeTok{ }\KeywordTok{\}}
+\AttributeTok{    }\FunctionTok{depends\_on}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\AttributeTok{api}\KeywordTok{]}
+
+\AttributeTok{  }\FunctionTok{web}\KeywordTok{:}
+\AttributeTok{    }\FunctionTok{image}\KeywordTok{:}\AttributeTok{ ghcr.io/incorpore/gestoreng{-}web:latest}
+\AttributeTok{    }\FunctionTok{pull\_policy}\KeywordTok{:}\AttributeTok{ missing}
+\AttributeTok{    }\FunctionTok{container\_name}\KeywordTok{:}\AttributeTok{ gestoreng{-}web}
+\AttributeTok{    }\FunctionTok{restart}\KeywordTok{:}\AttributeTok{ unless{-}stopped}
+\AttributeTok{    }\FunctionTok{environment}\KeywordTok{:}
+\AttributeTok{      }\FunctionTok{API\_UPSTREAM}\KeywordTok{:}\AttributeTok{ api:8000}
+\AttributeTok{      }\FunctionTok{MAX\_BODY}\KeywordTok{:}\AttributeTok{ 50m}\CommentTok{                               \# mantenha igual a MAX\_UPLOAD\_MB (+ "m")}
+\AttributeTok{    }\FunctionTok{ports}\KeywordTok{:}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ }\StringTok{"8917:8080"}\CommentTok{                               \# acesso: http://IP{-}DO{-}ZIMAOS:8917}
+\AttributeTok{    }\FunctionTok{depends\_on}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\AttributeTok{api}\KeywordTok{]}
+\AttributeTok{    }\FunctionTok{networks}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\AttributeTok{gestoreng}\KeywordTok{]}
+\AttributeTok{    }\FunctionTok{read\_only}\KeywordTok{:}\AttributeTok{ }\CharTok{true}
+\AttributeTok{    }\FunctionTok{tmpfs}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\AttributeTok{/tmp}\KeywordTok{,}\AttributeTok{ /etc/nginx/conf.d}\KeywordTok{,}\AttributeTok{ /var/cache/nginx}\KeywordTok{]}
+\AttributeTok{    }\FunctionTok{security\_opt}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\AttributeTok{no{-}new{-}privileges:}\CharTok{true}\KeywordTok{]}
+\AttributeTok{    }\FunctionTok{cap\_drop}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\AttributeTok{ALL}\KeywordTok{]}
+
+\FunctionTok{networks}\KeywordTok{:}
+\AttributeTok{  }\FunctionTok{gestoreng}\KeywordTok{:}
+\AttributeTok{    }\FunctionTok{driver}\KeywordTok{:}\AttributeTok{ bridge}
+
+\FunctionTok{x{-}casaos}\KeywordTok{:}
+\AttributeTok{  }\FunctionTok{main}\KeywordTok{:}\AttributeTok{ web}
+\AttributeTok{  }\FunctionTok{index}\KeywordTok{:}\AttributeTok{ /}
+\AttributeTok{  }\FunctionTok{port\_map}\KeywordTok{:}\AttributeTok{ }\StringTok{"8917"}
+\AttributeTok{  }\FunctionTok{scheme}\KeywordTok{:}\AttributeTok{ http}
+\AttributeTok{  }\FunctionTok{category}\KeywordTok{:}\AttributeTok{ Productivity}
+\AttributeTok{  }\FunctionTok{author}\KeywordTok{:}\AttributeTok{ Velmont}
+\AttributeTok{  }\FunctionTok{title}\KeywordTok{:}
+\AttributeTok{    }\FunctionTok{custom}\KeywordTok{:}\AttributeTok{ GestorEng}
+\AttributeTok{  }\FunctionTok{description}\KeywordTok{:}
+\AttributeTok{    }\FunctionTok{custom}\KeywordTok{:}\AttributeTok{ Sistema de Gestão de Engenharia — obras, licitações, financeiro e documentos}
+\end{Highlighting}
+\end{Shaded}
+
+
+\end{document}

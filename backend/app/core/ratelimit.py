@@ -4,7 +4,6 @@ Usa Redis (REDIS_URL) quando disponível — compartilhado entre workers/réplic
 e cai para janela deslizante em memória caso contrário.
 """
 import logging
-import os
 import time
 from collections import defaultdict, deque
 from threading import Lock
@@ -13,6 +12,7 @@ from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from fastapi import HTTPException, Request
 
 from .audit import client_ip
+from .config import get_settings
 
 log = logging.getLogger(__name__)
 
@@ -33,11 +33,12 @@ def parse_redis_url(url: str, env_prefix: str | None = None) -> tuple[str, str]:
 
 _redis = None
 PREFIX = "gestoreng:"
-if os.getenv("REDIS_URL"):
+_cfg = get_settings()
+if _cfg.redis_url:
     try:
         import redis
 
-        _url, PREFIX = parse_redis_url(os.environ["REDIS_URL"], os.getenv("REDIS_PREFIX"))
+        _url, PREFIX = parse_redis_url(_cfg.redis_url, _cfg.redis_prefix)
         _redis = redis.Redis.from_url(_url, socket_timeout=1, socket_connect_timeout=1)
     except Exception:  # noqa: BLE001
         log.warning("Redis indisponível; usando limitador em memória")

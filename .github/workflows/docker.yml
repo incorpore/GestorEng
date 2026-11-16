@@ -3,12 +3,17 @@ name: Imagens Docker
 on:
   push:
     branches: [main, "ccr-*"]
+    paths-ignore: ["**.md", "docs/**", "deploy/**", ".github/workflows/ci.yml", ".github/workflows/android.yml"]
     tags: ["v*"]
   workflow_dispatch:
 
 permissions:
   contents: read
   packages: write
+
+concurrency:
+  group: docker-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:

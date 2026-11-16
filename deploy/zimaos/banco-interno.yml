@@ -1,0 +1,133 @@
+# =====================================================================================
+#  GestorEng — ZimaOS  ·  BANCO INTERNO (PostgreSQL + Redis instalados junto com o app)
+#  Edite SOMENTE o bloco "CONFIGURAÇÃO" abaixo. Os valores TROQUE_* são obrigatórios.
+#  Senhas podem ter qualquer caractere (@ # : / %) — o sistema codifica sozinho.
+# =====================================================================================
+name: gestoreng
+
+# ─────────────────────────────── CONFIGURAÇÃO ───────────────────────────────
+x-banco: &banco
+  POSTGRES_DB: gestoreng
+  POSTGRES_USER: gestoreng
+  POSTGRES_PASSWORD: TROQUE_SENHA_DO_BANCO        # vale só na 1ª instalação (para trocar depois, ver guia)
+
+x-redis: &redis
+  REDIS_PASSWORD: TROQUE_SENHA_DO_REDIS
+
+x-app: &app
+  # Gere cada chave no terminal do ZimaOS:  openssl rand -hex 32
+  SECRET_KEY: TROQUE_CHAVE_1                      # trocar depois = desconecta todos os usuários
+  ENCRYPTION_KEY: TROQUE_CHAVE_2                  # NUNCA troque depois (criptografa chaves de API/backup)
+  ADMIN_EMAIL: admin@velmont.com.br               # usado só na 1ª inicialização
+  ADMIN_PASSWORD: TROQUE_Senha@Forte2026          # mín. 10 caracteres: maiúsc., minúsc., números/símbolos
+  ADMIN_NAME: Administrador
+  COOKIE_SECURE: "false"                          # "true" quando acessar por HTTPS (proxy/domínio)
+  CORS_ORIGINS: http://192.168.3.100:8917,https://localhost,capacitor://localhost
+  MAX_UPLOAD_MB: "50"
+  TZ: America/Sao_Paulo
+  WEB_CONCURRENCY: "3"
+  REDIS_PREFIX: GestorEng_
+# ─────────────────────────── FIM DA CONFIGURAÇÃO ────────────────────────────
+
+x-servico: &servico
+  image: ghcr.io/incorpore/gestoreng-api:latest
+  pull_policy: missing
+  restart: unless-stopped
+  environment:
+    <<: [*banco, *redis, *app]
+    ENVIRONMENT: production
+    POSTGRES_HOST: db
+    REDIS_HOST: redis
+    STORAGE_DIR: /data/storage
+  volumes:
+    - type: bind
+      source: /media/URSUS/AppData/GestorEng/storage
+      target: /data/storage
+  networks: [gestoreng]
+  read_only: true
+  tmpfs: [/tmp]
+  security_opt: [no-new-privileges:true]
+  cap_drop: [ALL]
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: gestoreng-db
+    restart: unless-stopped
+    environment:
+      <<: *banco
+      TZ: America/Sao_Paulo
+    volumes:
+      - type: bind
+        source: /media/URSUS/AppData/GestorEng/postgres
+        target: /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [gestoreng]
+    security_opt: [no-new-privileges:true]
+
+  redis:
+    image: redis:7-alpine
+    container_name: gestoreng-redis
+    restart: unless-stopped
+    environment: *redis
+    command: ["sh", "-c", "exec redis-server --requirepass \"$$REDIS_PASSWORD\" --save '' --appendonly no"]
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" --no-auth-warning ping | grep PONG"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    networks: [gestoreng]
+    read_only: true
+    security_opt: [no-new-privileges:true]
+
+  api:
+    <<: *servico
+    container_name: gestoreng-api
+    command: ["api"]
+    depends_on:
+      db: { condition: service_healthy }
+      redis: { condition: service_healthy }
+
+  worker:
+    <<: *servico
+    container_name: gestoreng-worker
+    command: ["worker"]
+    healthcheck: { disable: true }
+    depends_on: [api]
+
+  web:
+    image: ghcr.io/incorpore/gestoreng-web:latest
+    pull_policy: missing
+    container_name: gestoreng-web
+    restart: unless-stopped
+    environment:
+      API_UPSTREAM: api:8000
+      MAX_BODY: 50m                               # mantenha igual a MAX_UPLOAD_MB (+ "m")
+    ports:
+      - "8917:8080"                               # acesso: http://IP-DO-ZIMAOS:8917
+    depends_on: [api]
+    networks: [gestoreng]
+    read_only: true
+    tmpfs: [/tmp, /etc/nginx/conf.d, /var/cache/nginx]
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+
+networks:
+  gestoreng:
+    driver: bridge
+
+x-casaos:
+  main: web
+  index: /
+  port_map: "8917"
+  scheme: http
+  category: Productivity
+  author: Velmont
+  title:
+    custom: GestorEng
+  description:
+    custom: Sistema de Gestão de Engenharia — obras, licitações, financeiro e documentos

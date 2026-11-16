@@ -12,7 +12,7 @@ import tarfile
 import tempfile
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import unquote, urlparse
 
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
@@ -49,8 +49,9 @@ def _client(cfg: dict, secret: str | None):
 
 def _pg_env() -> tuple[list[str], dict]:
     u = urlparse(get_settings().database_url.replace("postgresql+psycopg", "postgresql"))
-    env = {**os.environ, "PGPASSWORD": u.password or ""}
-    args = ["-h", u.hostname or "localhost", "-p", str(u.port or 5432), "-U", u.username or "postgres", "-d", u.path.lstrip("/")]
+    env = {**os.environ, "PGPASSWORD": unquote(u.password or "")}
+    args = ["-h", u.hostname or "localhost", "-p", str(u.port or 5432), "-U", unquote(u.username or "postgres"),
+            "-d", unquote(u.path.lstrip("/"))]
     return args, env
 
 

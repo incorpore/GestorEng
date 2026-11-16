@@ -105,16 +105,13 @@ Depois teste com `docker pull ghcr.io/home-assistant/home-assistant:stable` (ou 
 
 ### 1.6 ZimaOS / CasaOS
 
-Use o modelo pronto [`deploy/zimaos/docker-compose.yml`](deploy/zimaos/docker-compose.yml) (Postgres/Redis externos por IP).
-Antes de instalar, dê permissão à pasta de dados (o container roda como UID 10001):
-```bash
-sudo mkdir -p /media/URSUS/AppData/GestorEng/storage && sudo chown -R 10001:10001 /media/URSUS/AppData/GestorEng/storage
-```
+Arquivos prontos em [`deploy/zimaos/`](deploy/zimaos/):
 
-
-Em **App Store › Custom Install › Import** cole o conteúdo do compose desejado (e as variáveis do `.env`), ou use o terminal
-do ZimaOS com os comandos acima. Para HTTPS, coloque o GestorEng atrás do proxy reverso que você já usa (Nginx Proxy Manager,
-Traefik, Caddy, Cloudflare Tunnel) apontando para a porta `8080`.
+- [`banco-interno.yml`](deploy/zimaos/banco-interno.yml) — instala PostgreSQL e Redis junto com o app;
+- [`banco-externo.yml`](deploy/zimaos/banco-externo.yml) — usa PostgreSQL/Redis já existentes;
+- [`INSTALACAO.md`](deploy/zimaos/INSTALACAO.md) e [`GestorEng-ZimaOS.pdf`](deploy/zimaos/GestorEng-ZimaOS.pdf) — guia
+  passo a passo (login no registro privado, pastas, chaves, banco, instalação, manutenção, atualização e problemas comuns).
+  Regenere o PDF/LaTeX com `deploy/zimaos/gerar-pdf.sh`.
 
 ### 1.7 Atualização
 

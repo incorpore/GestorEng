@@ -1,0 +1,20 @@
+\usepackage{fvextra}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,breakanywhere,commandchars=\\\{\}}
+\usepackage{newunicodechar}
+\usepackage{amssymb}
+\newunicodechar{✓}{\ensuremath{\checkmark}}
+\newunicodechar{⋮}{\ensuremath{\vdots}}
+\newunicodechar{→}{\ensuremath{\rightarrow}}
+\usepackage{xcolor}
+\definecolor{velmont}{HTML}{1D4ED8}
+\usepackage{sectsty}
+\allsectionsfont{\color{velmont}\sffamily}
+\usepackage{fancyhdr}
+\pagestyle{fancy}\fancyhf{}
+\lhead{\small\sffamily GestorEng · ZimaOS}\rhead{\small\sffamily Velmont}
+\cfoot{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\let\oldquote\quote\let\endoldquote\endquote
+\renewenvironment{quote}{\begin{oldquote}\small\itshape}{\end{oldquote}}
+\setlength{\parskip}{0.5em}
+\newunicodechar{─}{-}
