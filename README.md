@@ -103,7 +103,14 @@ Depois teste com `docker pull ghcr.io/home-assistant/home-assistant:stable` (ou 
 **A instalação tenta baixar `gestoreng/api:local`:** confirme que o `.env` não tem `PULL_POLICY=always` sem as variáveis
 `IMAGE_*` e rode `docker compose up -d --build`.
 
-### 1.6 ZimaOS
+### 1.6 ZimaOS / CasaOS
+
+Use o modelo pronto [`deploy/zimaos/docker-compose.yml`](deploy/zimaos/docker-compose.yml) (Postgres/Redis externos por IP).
+Antes de instalar, dê permissão à pasta de dados (o container roda como UID 10001):
+```bash
+sudo mkdir -p /media/URSUS/AppData/GestorEng/storage && sudo chown -R 10001:10001 /media/URSUS/AppData/GestorEng/storage
+```
+
 
 Em **App Store › Custom Install › Import** cole o conteúdo do compose desejado (e as variáveis do `.env`), ou use o terminal
 do ZimaOS com os comandos acima. Para HTTPS, coloque o GestorEng atrás do proxy reverso que você já usa (Nginx Proxy Manager,

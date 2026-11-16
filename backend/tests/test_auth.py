@@ -120,3 +120,4 @@ def test_redis_url_prefixo():
     assert parse_redis_url("redis://:x@r:6379/2?prefix=a&ssl_cert_reqs=none")[0] == "redis://:x@r:6379/2?ssl_cert_reqs=none"
     assert parse_redis_url("redis://r:6379/0", "env") == ("redis://r:6379/0", "env:")
     assert parse_redis_url("redis://r:6379/0")[1] == "gestoreng:"
+    assert parse_redis_url("redis://r:6379/0?prefix=GestorEng_")[1] == "GestorEng_"

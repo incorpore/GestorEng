@@ -1,0 +1,87 @@
+# GestorEng para ZimaOS / CasaOS (Postgres e Redis já existentes em 192.168.3.100)
+# Substitua TODOS os valores TROQUE_*. Senhas com @ # : / % devem ser codificadas na URL (@ -> %40, # -> %23 ...).
+name: gestoreng
+
+services:
+  api:
+    image: ghcr.io/incorpore/gestoreng-api:latest
+    container_name: gestoreng-api
+    command: ["api"]
+    restart: unless-stopped
+    environment: &env
+      ENVIRONMENT: production
+      TZ: America/Sao_Paulo
+      DATABASE_URL: postgresql+psycopg://gestoreng:TROQUE_SENHA_DB@192.168.3.100:5432/gestoreng
+      REDIS_URL: redis://:TROQUE_SENHA_REDIS@192.168.3.100:6379/0?prefix=GestorEng_
+      # Obrigatórios — gere cada um com: openssl rand -base64 48   (API e worker DEVEM usar os mesmos valores)
+      SECRET_KEY: TROQUE_POR_VALOR_ALEATORIO_1
+      ENCRYPTION_KEY: TROQUE_POR_VALOR_ALEATORIO_2
+      # Primeiro acesso (usado só se o banco estiver vazio)
+      ADMIN_EMAIL: admin@velmont.com.br
+      ADMIN_PASSWORD: TROQUE_Senha@Forte2026
+      ADMIN_NAME: Administrador
+      # Acesso por http://IP:8917 (sem HTTPS) exige COOKIE_SECURE=false. Com HTTPS no proxy, use true.
+      COOKIE_SECURE: "false"
+      CORS_ORIGINS: http://192.168.3.100:8917,https://localhost,capacitor://localhost
+      MAX_UPLOAD_MB: "50"
+      WEB_CONCURRENCY: "3"
+      STORAGE_DIR: /data/storage
+    volumes:
+      - type: bind
+        source: /media/URSUS/AppData/GestorEng/storage
+        target: /data/storage
+    networks: [gestoreng]
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+
+  worker:
+    image: ghcr.io/incorpore/gestoreng-api:latest
+    container_name: gestoreng-worker
+    command: ["worker"]
+    restart: unless-stopped
+    environment: *env
+    volumes:
+      - type: bind
+        source: /media/URSUS/AppData/GestorEng/storage
+        target: /data/storage
+    depends_on: [api]
+    healthcheck:
+      disable: true
+    networks: [gestoreng]
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+
+  web:
+    image: ghcr.io/incorpore/gestoreng-web:latest
+    container_name: gestoreng-web
+    restart: unless-stopped
+    environment:
+      API_UPSTREAM: api:8000
+      MAX_BODY: 50m
+    ports:
+      - "8917:8080"
+    depends_on: [api]
+    networks: [gestoreng]
+    read_only: true
+    tmpfs: [/tmp, /etc/nginx/conf.d, /var/cache/nginx]
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+
+networks:
+  gestoreng:
+    driver: bridge
+
+x-casaos:
+  main: web
+  index: /
+  port_map: "8917"
+  scheme: http
+  category: Productivity
+  title:
+    custom: GestorEng
+  description:
+    custom: Sistema de Gestão de Engenharia

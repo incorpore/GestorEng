@@ -27,7 +27,8 @@ def parse_redis_url(url: str, env_prefix: str | None = None) -> tuple[str, str]:
     query = parse_qsl(parts.query, keep_blank_values=True)
     prefix = next((v for k, v in query if k == "prefix"), None) or env_prefix or "gestoreng"
     clean = urlunsplit(parts._replace(query=urlencode([(k, v) for k, v in query if k != "prefix"])))
-    return clean, prefix if prefix.endswith(":") else f"{prefix}:"
+    # separador ":" só é acrescentado se o prefixo não terminar em ":", "_", "-" ou "."
+    return clean, prefix if prefix[-1] in ":_-." else f"{prefix}:"
 
 
 _redis = None
