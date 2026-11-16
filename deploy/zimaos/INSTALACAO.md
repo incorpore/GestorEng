@@ -53,6 +53,20 @@ sudo docker pull ghcr.io/incorpore/gestoreng-api:latest
 sudo docker pull ghcr.io/incorpore/gestoreng-web:latest
 ```
 
+**Alternativa — tornar somente as imagens públicas** (o repositório e o código no GitHub continuam privados; o ZimaOS
+baixa sem login, e os passos 1.1 e 1.2 deixam de ser necessários):
+
+1. GitHub > organização/perfil **incorpore** > aba **Packages** > **gestoreng-api**.
+2. **Package settings** (lateral direita) > *Danger Zone* > **Change visibility** > **Public** > digite o nome para confirmar.
+3. Repita para **gestoreng-web**.
+
+Se a opção *Public* estiver bloqueada (conta de organização): *Settings* da organização > **Packages** > em
+*Package creation*, permita pacotes **Public**.
+
+> Com a imagem pública, qualquer pessoa pode baixá-la e ler o código do sistema que vai dentro dela. Nenhuma senha
+> ou chave fica na imagem (elas ficam só no seu arquivo `.yml`), mas, se o código for sigiloso, mantenha as imagens
+> privadas e use o login dos passos 1.1 e 1.2.
+
 > **Erro `lookup ghcr.1panel.live: no such host`?** O Docker do servidor está usando um espelho que saiu do ar.
 > Veja a seção *Problemas comuns* no final e repita o 1.3.
 

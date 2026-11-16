@@ -263,6 +263,38 @@ se o token expirar.
 \end{Highlighting}
 \end{Shaded}
 
+\textbf{Alternativa --- tornar somente as imagens públicas} (o
+repositório e o código no GitHub continuam privados; o ZimaOS baixa sem
+login, e os passos 1.1 e 1.2 deixam de ser necessários):
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  GitHub \textgreater{} organização/perfil \textbf{incorpore}
+  \textgreater{} aba \textbf{Packages} \textgreater{}
+  \textbf{gestoreng-api}.
+\item
+  \textbf{Package settings} (lateral direita) \textgreater{}
+  \emph{Danger Zone} \textgreater{} \textbf{Change visibility}
+  \textgreater{} \textbf{Public} \textgreater{} digite o nome para
+  confirmar.
+\item
+  Repita para \textbf{gestoreng-web}.
+\end{enumerate}
+
+Se a opção \emph{Public} estiver bloqueada (conta de organização):
+\emph{Settings} da organização \textgreater{} \textbf{Packages}
+\textgreater{} em \emph{Package creation}, permita pacotes
+\textbf{Public}.
+
+\begin{quote}
+Com a imagem pública, qualquer pessoa pode baixá-la e ler o código do
+sistema que vai dentro dela. Nenhuma senha ou chave fica na imagem (elas
+ficam só no seu arquivo \texttt{.yml}), mas, se o código for sigiloso,
+mantenha as imagens privadas e use o login dos passos 1.1 e 1.2.
+\end{quote}
+
 \begin{quote}
 \textbf{Erro \texttt{lookup\ ghcr.1panel.live:\ no\ such\ host}?} O
 Docker do servidor está usando um espelho que saiu do ar. Veja a seção
