@@ -13,7 +13,8 @@ lang: pt-BR
 | `banco-interno.yml` | Instalação nova e independente (**recomendado** se você não tem um Postgres dedicado) | PostgreSQL 16, Redis, API, worker e web |
 | `banco-externo.yml` | Você **já tem** PostgreSQL (13 a 18) e/ou Redis rodando na rede | API, worker e web |
 
-Os dois estão em `deploy/zimaos/` no repositório. Em ambos você edita **somente o bloco CONFIGURAÇÃO** no topo do arquivo.
+Os dois estão em `deploy/zimaos/` no repositório. As variáveis ficam **direto em cada serviço** (`environment:`), então
+aparecem e podem ser alteradas no próprio painel do ZimaOS.
 
 ## O que você vai precisar
 
@@ -141,19 +142,25 @@ e se o firewall permite a conexão.
 
 # Passo 5 — Preencher o arquivo de instalação
 
-Abra o arquivo escolhido (`banco-interno.yml` ou `banco-externo.yml`) e altere **apenas o bloco CONFIGURAÇÃO**:
+Abra o arquivo escolhido (`banco-interno.yml` ou `banco-externo.yml`) e troque todos os valores `TROQUE_*`.
+
+> **Regra de ouro:** os serviços **`api` e `worker` têm as mesmas variáveis e elas devem ficar iguais** (principalmente
+> senhas, `SECRET_KEY` e `ENCRYPTION_KEY`). No banco interno, a senha do banco também aparece no serviço `db`
+> (`POSTGRES_PASSWORD`) e a do Redis aparece no `command` do serviço `redis` (linha após `--requirepass`).
+> Dica: use *Localizar e substituir* do editor de texto para trocar cada `TROQUE_*` em todos os lugares de uma vez.
 
 | Variável | O que colocar |
 |---|---|
 | `POSTGRES_PASSWORD` | Senha do banco (interno: será criada agora; externo: a do passo 4.1) |
 | `POSTGRES_HOST`, `POSTGRES_DB`, `POSTGRES_USER` | Só no externo: endereço, banco e usuário do passo 4 |
-| `REDIS_PASSWORD` | Senha do Redis (interno: escolha uma; externo: a existente) |
+| `REDIS_PASSWORD` | Senha do Redis (interno: escolha uma e repita no `command` do serviço `redis`; externo: a existente) |
 | `REDIS_PREFIX` | Prefixo das chaves no Redis (ex.: `GestorEng_`) |
 | `SECRET_KEY` / `ENCRYPTION_KEY` | Os dois valores do passo 3 |
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Seu acesso inicial (10+ caracteres, misturando maiúsculas, minúsculas, números/símbolos) |
 | `COOKIE_SECURE` | `"false"` acessando por `http://IP:8917`; `"true"` se usar HTTPS |
 | `CORS_ORIGINS` | Troque `192.168.3.100` pelo IP do ZimaOS (e acrescente seu domínio, se tiver) |
 | `MAX_UPLOAD_MB` | Tamanho máximo de upload; mantenha `MAX_BODY` do serviço `web` igual (ex.: `50` e `50m`) |
+| Porta `published: "8917"` (serviço `web`) | Porta de acesso; mantenha igual a `port_map` no final do arquivo |
 
 As senhas podem conter **qualquer caractere** — o sistema monta as URLs de conexão e codifica tudo sozinho.
 
@@ -234,8 +241,9 @@ sudo docker exec -it gestoreng-db psql -U gestoreng -d gestoreng
 
 # Alterar variáveis depois da instalação
 
-**Pelo painel:** ícone do GestorEng > menu (⋮) > **Settings** (*Configurações*) > edite o YAML > **Save**.
-O ZimaOS recria os containers automaticamente.
+**Pelo painel:** ícone do GestorEng > menu (⋮) > **Settings** (*Configurações*). Cada container (`api`, `worker`,
+`web`, `db`, `redis`) tem sua aba com as **variáveis de ambiente** — altere o valor e clique em **Save**; o ZimaOS recria
+o container. **Ao mudar algo na `api`, faça a mesma alteração no `worker`.**
 
 **Pelo terminal (se instalou pela opção B):** edite o arquivo e rode `sudo docker compose up -d` na pasta dele.
 
@@ -245,11 +253,11 @@ Efeito de cada alteração:
 |---|---|---|
 | `COOKIE_SECURE`, `CORS_ORIGINS`, `TZ`, `WEB_CONCURRENCY`, `REDIS_PREFIX` | Sim | Basta salvar. |
 | `MAX_UPLOAD_MB` + `MAX_BODY` | Sim | Altere **os dois** juntos. |
-| Porta (`8917:8080`) | Sim | Troque o número da esquerda e também `port_map` no fim do arquivo e o IP:porta em `CORS_ORIGINS`. |
+| Porta (`published: "8917"`) | Sim | Troque também `port_map` no fim do arquivo e o IP:porta em `CORS_ORIGINS`. |
 | `SECRET_KEY` | Sim | Todos os usuários serão desconectados (fazem login de novo). |
 | `ENCRYPTION_KEY` | **Não** | Se trocar, recadastre OpenRouter, Documenso e o backup S3. |
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Sem efeito | Só valem na 1ª instalação. Use os comandos `criar-admin` / `senha`. |
-| `REDIS_PASSWORD` (interno) | Sim | Basta salvar. |
+| Senha do Redis (interno) | Sim | Troque no `command` do `redis` e em `REDIS_PASSWORD` de `api` e `worker`. |
 | `POSTGRES_PASSWORD` (interno) | Sim, em 2 etapas | Veja abaixo. |
 | `POSTGRES_PASSWORD` (externo) | Sim, em 2 etapas | Troque primeiro no seu PostgreSQL, depois no arquivo. |
 | Pastas (`source:`) | Com cuidado | Pare o app, **copie** os dados para a nova pasta, ajuste o `chown`, altere o arquivo. |
@@ -260,7 +268,7 @@ Efeito de cada alteração:
 sudo docker exec -it gestoreng-db psql -U gestoreng -d gestoreng -c "ALTER USER gestoreng PASSWORD 'NOVA_SENHA';"
 ```
 
-Depois altere `POSTGRES_PASSWORD` no arquivo para `NOVA_SENHA` e salve.
+Depois altere `POSTGRES_PASSWORD` para `NOVA_SENHA` nos serviços `db`, `api` e `worker` e salve.
 
 # Atualizar o GestorEng para uma nova versão
 
@@ -294,6 +302,10 @@ sudo docker restart gestoreng-api && sudo docker start gestoreng-worker gestoren
 ```
 
 # Problemas comuns
+
+**`invalid user override: generated override does not reproduce submitted Compose`** — o ZimaOS não aceita
+compose com atalhos YAML (`&`, `*`, `<<:`) nem blocos `x-` além do `x-casaos`. Use os arquivos atuais de
+`deploy/zimaos/` (já sem atalhos) e cole o conteúdo inteiro, sem reformatar.
 
 **`lookup ghcr.1panel.live: no such host`** — espelho de registro inválido no Docker.
 No 1Panel: *Contêineres > Configuração > Espelhos de registro*, apague o espelho e salve. Manualmente:

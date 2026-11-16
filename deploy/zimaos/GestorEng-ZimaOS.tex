@@ -186,8 +186,9 @@ O que sobe
 e/ou Redis rodando na rede & API, worker e web \\
 \end{longtable}
 
-Os dois estão em \texttt{deploy/zimaos/} no repositório. Em ambos você
-edita \textbf{somente o bloco CONFIGURAÇÃO} no topo do arquivo.
+Os dois estão em \texttt{deploy/zimaos/} no repositório. As variáveis
+ficam \textbf{direto em cada serviço} (\texttt{environment:}), então
+aparecem e podem ser alteradas no próprio painel do ZimaOS.
 
 \hypertarget{o-que-vocuxea-vai-precisar}{%
 \subsection{O que você vai precisar}\label{o-que-vocuxea-vai-precisar}}
@@ -414,8 +415,20 @@ firewall permite a conexão.
 instalação}\label{passo-5-preencher-o-arquivo-de-instalauxe7uxe3o}}
 
 Abra o arquivo escolhido (\texttt{banco-interno.yml} ou
-\texttt{banco-externo.yml}) e altere \textbf{apenas o bloco
-CONFIGURAÇÃO}:
+\texttt{banco-externo.yml}) e troque todos os valores
+\texttt{TROQUE\_*}.
+
+\begin{quote}
+\textbf{Regra de ouro:} os serviços \textbf{\texttt{api} e
+\texttt{worker} têm as mesmas variáveis e elas devem ficar iguais}
+(principalmente senhas, \texttt{SECRET\_KEY} e
+\texttt{ENCRYPTION\_KEY}). No banco interno, a senha do banco também
+aparece no serviço \texttt{db} (\texttt{POSTGRES\_PASSWORD}) e a do
+Redis aparece no \texttt{command} do serviço \texttt{redis} (linha após
+\texttt{-\/-requirepass}). Dica: use \emph{Localizar e substituir} do
+editor de texto para trocar cada \texttt{TROQUE\_*} em todos os lugares
+de uma vez.
+\end{quote}
 
 \begin{longtable}[]{@{}
   >{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{0.5000}}
@@ -434,8 +447,8 @@ O que colocar
 agora; externo: a do passo 4.1) \\
 \texttt{POSTGRES\_HOST}, \texttt{POSTGRES\_DB}, \texttt{POSTGRES\_USER}
 & Só no externo: endereço, banco e usuário do passo 4 \\
-\texttt{REDIS\_PASSWORD} & Senha do Redis (interno: escolha uma;
-externo: a existente) \\
+\texttt{REDIS\_PASSWORD} & Senha do Redis (interno: escolha uma e repita
+no \texttt{command} do serviço \texttt{redis}; externo: a existente) \\
 \texttt{REDIS\_PREFIX} & Prefixo das chaves no Redis (ex.:
 \texttt{GestorEng\_}) \\
 \texttt{SECRET\_KEY} / \texttt{ENCRYPTION\_KEY} & Os dois valores do
@@ -449,6 +462,8 @@ passo 3 \\
 \texttt{MAX\_UPLOAD\_MB} & Tamanho máximo de upload; mantenha
 \texttt{MAX\_BODY} do serviço \texttt{web} igual (ex.: \texttt{50} e
 \texttt{50m}) \\
+Porta \texttt{published:\ "8917"} (serviço \texttt{web}) & Porta de
+acesso; mantenha igual a \texttt{port\_map} no final do arquivo \\
 \end{longtable}
 
 As senhas podem conter \textbf{qualquer caractere} --- o sistema monta
@@ -607,9 +622,12 @@ histórico do terminal).
 instalação}\label{alterar-variuxe1veis-depois-da-instalauxe7uxe3o}}
 
 \textbf{Pelo painel:} ícone do GestorEng \textgreater{} menu (⋮)
-\textgreater{} \textbf{Settings} (\emph{Configurações}) \textgreater{}
-edite o YAML \textgreater{} \textbf{Save}. O ZimaOS recria os containers
-automaticamente.
+\textgreater{} \textbf{Settings} (\emph{Configurações}). Cada container
+(\texttt{api}, \texttt{worker}, \texttt{web}, \texttt{db},
+\texttt{redis}) tem sua aba com as \textbf{variáveis de ambiente} ---
+altere o valor e clique em \textbf{Save}; o ZimaOS recria o container.
+\textbf{Ao mudar algo na \texttt{api}, faça a mesma alteração no
+\texttt{worker}.}
 
 \textbf{Pelo terminal (se instalou pela opção B):} edite o arquivo e
 rode \texttt{sudo\ docker\ compose\ up\ -d} na pasta dele.
@@ -637,7 +655,7 @@ Observação
 salvar. \\
 \texttt{MAX\_UPLOAD\_MB} + \texttt{MAX\_BODY} & Sim & Altere \textbf{os
 dois} juntos. \\
-Porta (\texttt{8917:8080}) & Sim & Troque o número da esquerda e também
+Porta (\texttt{published:\ "8917"}) & Sim & Troque também
 \texttt{port\_map} no fim do arquivo e o IP:porta em
 \texttt{CORS\_ORIGINS}. \\
 \texttt{SECRET\_KEY} & Sim & Todos os usuários serão desconectados
@@ -647,7 +665,9 @@ OpenRouter, Documenso e o backup S3. \\
 \texttt{ADMIN\_EMAIL} / \texttt{ADMIN\_PASSWORD} & Sem efeito & Só valem
 na 1ª instalação. Use os comandos \texttt{criar-admin} /
 \texttt{senha}. \\
-\texttt{REDIS\_PASSWORD} (interno) & Sim & Basta salvar. \\
+Senha do Redis (interno) & Sim & Troque no \texttt{command} do
+\texttt{redis} e em \texttt{REDIS\_PASSWORD} de \texttt{api} e
+\texttt{worker}. \\
 \texttt{POSTGRES\_PASSWORD} (interno) & Sim, em 2 etapas & Veja
 abaixo. \\
 \texttt{POSTGRES\_PASSWORD} (externo) & Sim, em 2 etapas & Troque
@@ -665,8 +685,8 @@ criação do banco):
 \end{Highlighting}
 \end{Shaded}
 
-Depois altere \texttt{POSTGRES\_PASSWORD} no arquivo para
-\texttt{NOVA\_SENHA} e salve.
+Depois altere \texttt{POSTGRES\_PASSWORD} para \texttt{NOVA\_SENHA} nos
+serviços \texttt{db}, \texttt{api} e \texttt{worker} e salve.
 
 \hypertarget{atualizar-o-gestoreng-para-uma-nova-versuxe3o}{%
 \section{Atualizar o GestorEng para uma nova
@@ -715,6 +735,13 @@ escolhido e apaga os antigos conforme a retenção.
 
 \hypertarget{problemas-comuns}{%
 \section{Problemas comuns}\label{problemas-comuns}}
+
+\textbf{\texttt{invalid\ user\ override:\ generated\ override\ does\ not\ reproduce\ submitted\ Compose}}
+--- o ZimaOS não aceita compose com atalhos YAML (\texttt{\&},
+\texttt{*}, \texttt{\textless{}\textless{}:}) nem blocos \texttt{x-}
+além do \texttt{x-casaos}. Use os arquivos atuais de
+\texttt{deploy/zimaos/} (já sem atalhos) e cole o conteúdo inteiro, sem
+reformatar.
 
 \textbf{\texttt{lookup\ ghcr.1panel.live:\ no\ such\ host}} --- espelho
 de registro inválido no Docker. No 1Panel: \emph{Contêineres
@@ -802,139 +829,178 @@ do repositório: o PDF quebra linhas longas.
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\CommentTok{\# =====================================================================================}
-\CommentTok{\#  GestorEng — ZimaOS  ·  BANCO INTERNO (PostgreSQL + Redis instalados junto com o app)}
-\CommentTok{\#  Edite SOMENTE o bloco "CONFIGURAÇÃO" abaixo. Os valores TROQUE\_* são obrigatórios.}
-\CommentTok{\#  Senhas podem ter qualquer caractere (@ \# : / \%) — o sistema codifica sozinho.}
-\CommentTok{\# =====================================================================================}
+\CommentTok{\# GestorEng — ZimaOS · BANCO INTERNO (PostgreSQL + Redis instalados junto com o app)}
+\CommentTok{\# Troque todos os valores TROQUE\_*. As variáveis de "api" e "worker" devem ser IGUAIS.}
+\CommentTok{\# POSTGRES\_PASSWORD deve ser igual em "db", "api" e "worker"; a senha do Redis igual no "command" do redis e em REDIS\_PASSWORD.}
+\CommentTok{\# Senhas podem ter qualquer caractere — o sistema codifica sozinho. Chaves: openssl rand {-}hex 32}
 \FunctionTok{name}\KeywordTok{:}\AttributeTok{ gestoreng}
-
-\CommentTok{\# ─────────────────────────────── CONFIGURAÇÃO ───────────────────────────────}
-\FunctionTok{x{-}banco}\KeywordTok{:}\AttributeTok{ }\OtherTok{\&banco}
-\AttributeTok{  }\FunctionTok{POSTGRES\_DB}\KeywordTok{:}\AttributeTok{ gestoreng}
-\AttributeTok{  }\FunctionTok{POSTGRES\_USER}\KeywordTok{:}\AttributeTok{ gestoreng}
-\AttributeTok{  }\FunctionTok{POSTGRES\_PASSWORD}\KeywordTok{:}\AttributeTok{ TROQUE\_SENHA\_DO\_BANCO}\CommentTok{        \# vale só na 1ª instalação (para trocar depois, ver guia)}
-
-\FunctionTok{x{-}redis}\KeywordTok{:}\AttributeTok{ }\OtherTok{\&redis}
-\AttributeTok{  }\FunctionTok{REDIS\_PASSWORD}\KeywordTok{:}\AttributeTok{ TROQUE\_SENHA\_DO\_REDIS}
-
-\FunctionTok{x{-}app}\KeywordTok{:}\AttributeTok{ }\OtherTok{\&app}
-\CommentTok{  \# Gere cada chave no terminal do ZimaOS:  openssl rand {-}hex 32}
-\AttributeTok{  }\FunctionTok{SECRET\_KEY}\KeywordTok{:}\AttributeTok{ TROQUE\_CHAVE\_1}\CommentTok{                      \# trocar depois = desconecta todos os usuários}
-\AttributeTok{  }\FunctionTok{ENCRYPTION\_KEY}\KeywordTok{:}\AttributeTok{ TROQUE\_CHAVE\_2}\CommentTok{                  \# NUNCA troque depois (criptografa chaves de API/backup)}
-\AttributeTok{  }\FunctionTok{ADMIN\_EMAIL}\KeywordTok{:}\AttributeTok{ admin@velmont.com.br}\CommentTok{               \# usado só na 1ª inicialização}
-\AttributeTok{  }\FunctionTok{ADMIN\_PASSWORD}\KeywordTok{:}\AttributeTok{ TROQUE\_Senha@Forte2026}\CommentTok{          \# mín. 10 caracteres: maiúsc., minúsc., números/símbolos}
-\AttributeTok{  }\FunctionTok{ADMIN\_NAME}\KeywordTok{:}\AttributeTok{ Administrador}
-\AttributeTok{  }\FunctionTok{COOKIE\_SECURE}\KeywordTok{:}\AttributeTok{ }\StringTok{"false"}\CommentTok{                          \# "true" quando acessar por HTTPS (proxy/domínio)}
-\AttributeTok{  }\FunctionTok{CORS\_ORIGINS}\KeywordTok{:}\AttributeTok{ http://192.168.3.100:8917,https://localhost,capacitor://localhost}
-\AttributeTok{  }\FunctionTok{MAX\_UPLOAD\_MB}\KeywordTok{:}\AttributeTok{ }\StringTok{"50"}
-\AttributeTok{  }\FunctionTok{TZ}\KeywordTok{:}\AttributeTok{ America/Sao\_Paulo}
-\AttributeTok{  }\FunctionTok{WEB\_CONCURRENCY}\KeywordTok{:}\AttributeTok{ }\StringTok{"3"}
-\AttributeTok{  }\FunctionTok{REDIS\_PREFIX}\KeywordTok{:}\AttributeTok{ GestorEng\_}
-\CommentTok{\# ─────────────────────────── FIM DA CONFIGURAÇÃO ────────────────────────────}
-
-\FunctionTok{x{-}servico}\KeywordTok{:}\AttributeTok{ }\OtherTok{\&servico}
-\AttributeTok{  }\FunctionTok{image}\KeywordTok{:}\AttributeTok{ ghcr.io/incorpore/gestoreng{-}api:latest}
-\AttributeTok{  }\FunctionTok{pull\_policy}\KeywordTok{:}\AttributeTok{ missing}
-\AttributeTok{  }\FunctionTok{restart}\KeywordTok{:}\AttributeTok{ unless{-}stopped}
-\AttributeTok{  }\FunctionTok{environment}\KeywordTok{:}
-\AttributeTok{    }\FunctionTok{\textless{}\textless{}}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\OtherTok{*banco,}\AttributeTok{ }\OtherTok{*redis,}\AttributeTok{ }\OtherTok{*app]}
-\AttributeTok{    }\FunctionTok{ENVIRONMENT}\KeywordTok{:}\AttributeTok{ production}
-\AttributeTok{    POSTGRES\_HOST: db}
-\AttributeTok{    REDIS\_HOST: redis}
-\AttributeTok{    STORAGE\_DIR: /data/storage}
-\AttributeTok{  volumes:}
-\AttributeTok{    {-} type: bind}
-\AttributeTok{      source: /media/URSUS/AppData/GestorEng/storage}
-\AttributeTok{      target: /data/storage}
-\AttributeTok{  networks: [gestoreng}\KeywordTok{]}
-\AttributeTok{  }\FunctionTok{read\_only}\KeywordTok{:}\AttributeTok{ }\CharTok{true}
-\AttributeTok{  }\FunctionTok{tmpfs}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\AttributeTok{/tmp}\KeywordTok{]}
-\AttributeTok{  }\FunctionTok{security\_opt}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\AttributeTok{no{-}new{-}privileges:}\CharTok{true}\KeywordTok{]}
-\AttributeTok{  }\FunctionTok{cap\_drop}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\AttributeTok{ALL}\KeywordTok{]}
-
 \FunctionTok{services}\KeywordTok{:}
 \AttributeTok{  }\FunctionTok{db}\KeywordTok{:}
-\AttributeTok{    }\FunctionTok{image}\KeywordTok{:}\AttributeTok{ postgres:16{-}alpine}
 \AttributeTok{    }\FunctionTok{container\_name}\KeywordTok{:}\AttributeTok{ gestoreng{-}db}
+\AttributeTok{    }\FunctionTok{image}\KeywordTok{:}\AttributeTok{ postgres:16{-}alpine}
 \AttributeTok{    }\FunctionTok{restart}\KeywordTok{:}\AttributeTok{ unless{-}stopped}
 \AttributeTok{    }\FunctionTok{environment}\KeywordTok{:}
-\AttributeTok{      }\FunctionTok{\textless{}\textless{}}\KeywordTok{:}\AttributeTok{ }\OtherTok{*banco}
+\AttributeTok{      }\FunctionTok{POSTGRES\_DB}\KeywordTok{:}\AttributeTok{ gestoreng}
+\AttributeTok{      }\FunctionTok{POSTGRES\_USER}\KeywordTok{:}\AttributeTok{ gestoreng}
+\AttributeTok{      }\FunctionTok{POSTGRES\_PASSWORD}\KeywordTok{:}\AttributeTok{ TROQUE\_SENHA\_DO\_BANCO}
 \AttributeTok{      }\FunctionTok{TZ}\KeywordTok{:}\AttributeTok{ America/Sao\_Paulo}
 \AttributeTok{    }\FunctionTok{volumes}\KeywordTok{:}
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ }\FunctionTok{type}\KeywordTok{:}\AttributeTok{ bind}
 \AttributeTok{        }\FunctionTok{source}\KeywordTok{:}\AttributeTok{ /media/URSUS/AppData/GestorEng/postgres}
 \AttributeTok{        }\FunctionTok{target}\KeywordTok{:}\AttributeTok{ /var/lib/postgresql/data}
-\AttributeTok{    }\FunctionTok{healthcheck}\KeywordTok{:}
-\AttributeTok{      }\FunctionTok{test}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\StringTok{"CMD{-}SHELL"}\KeywordTok{,}\AttributeTok{ }\StringTok{"pg\_isready {-}U $$\{POSTGRES\_USER\} {-}d $$\{POSTGRES\_DB\}"}\KeywordTok{]}
-\AttributeTok{      }\FunctionTok{interval}\KeywordTok{:}\AttributeTok{ 10s}
-\AttributeTok{      }\FunctionTok{timeout}\KeywordTok{:}\AttributeTok{ 5s}
-\AttributeTok{      }\FunctionTok{retries}\KeywordTok{:}\AttributeTok{ }\DecValTok{10}
-\AttributeTok{    }\FunctionTok{networks}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\AttributeTok{gestoreng}\KeywordTok{]}
-\AttributeTok{    }\FunctionTok{security\_opt}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\AttributeTok{no{-}new{-}privileges:}\CharTok{true}\KeywordTok{]}
+\AttributeTok{    }\FunctionTok{networks}\KeywordTok{:}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ gestoreng}
+\AttributeTok{    }\FunctionTok{security\_opt}\KeywordTok{:}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ no{-}new{-}privileges:true}
 
 \AttributeTok{  }\FunctionTok{redis}\KeywordTok{:}
-\AttributeTok{    }\FunctionTok{image}\KeywordTok{:}\AttributeTok{ redis:7{-}alpine}
 \AttributeTok{    }\FunctionTok{container\_name}\KeywordTok{:}\AttributeTok{ gestoreng{-}redis}
+\AttributeTok{    }\FunctionTok{image}\KeywordTok{:}\AttributeTok{ redis:7{-}alpine}
 \AttributeTok{    }\FunctionTok{restart}\KeywordTok{:}\AttributeTok{ unless{-}stopped}
-\AttributeTok{    }\FunctionTok{environment}\KeywordTok{:}\AttributeTok{ }\OtherTok{*redis}
-\AttributeTok{    }\FunctionTok{command}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\StringTok{"sh"}\KeywordTok{,}\AttributeTok{ }\StringTok{"{-}c"}\KeywordTok{,}\AttributeTok{ }\StringTok{"exec redis{-}server {-}{-}requirepass }\SpecialCharTok{\textbackslash{}"}\StringTok{$$REDIS\_PASSWORD}\SpecialCharTok{\textbackslash{}"}\StringTok{ {-}{-}save \textquotesingle{}\textquotesingle{} {-}{-}appendonly no"}\KeywordTok{]}
-\AttributeTok{    }\FunctionTok{healthcheck}\KeywordTok{:}
-\AttributeTok{      }\FunctionTok{test}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\StringTok{"CMD{-}SHELL"}\KeywordTok{,}\AttributeTok{ }\StringTok{"redis{-}cli {-}a }\SpecialCharTok{\textbackslash{}"}\StringTok{$$REDIS\_PASSWORD}\SpecialCharTok{\textbackslash{}"}\StringTok{ {-}{-}no{-}auth{-}warning ping | grep PONG"}\KeywordTok{]}
-\AttributeTok{      }\FunctionTok{interval}\KeywordTok{:}\AttributeTok{ 10s}
-\AttributeTok{      }\FunctionTok{timeout}\KeywordTok{:}\AttributeTok{ 3s}
-\AttributeTok{      }\FunctionTok{retries}\KeywordTok{:}\AttributeTok{ }\DecValTok{10}
-\AttributeTok{    }\FunctionTok{networks}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\AttributeTok{gestoreng}\KeywordTok{]}
+\AttributeTok{    }\FunctionTok{command}\KeywordTok{:}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ redis{-}server}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ {-}{-}requirepass}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ TROQUE\_SENHA\_DO\_REDIS}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ {-}{-}save}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ }\StringTok{""}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ {-}{-}appendonly}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ }\StringTok{"no"}
+\AttributeTok{    }\FunctionTok{networks}\KeywordTok{:}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ gestoreng}
 \AttributeTok{    }\FunctionTok{read\_only}\KeywordTok{:}\AttributeTok{ }\CharTok{true}
-\AttributeTok{    }\FunctionTok{security\_opt}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\AttributeTok{no{-}new{-}privileges:}\CharTok{true}\KeywordTok{]}
+\AttributeTok{    }\FunctionTok{security\_opt}\KeywordTok{:}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ no{-}new{-}privileges:true}
 
 \AttributeTok{  }\FunctionTok{api}\KeywordTok{:}
-\AttributeTok{    }\FunctionTok{\textless{}\textless{}}\KeywordTok{:}\AttributeTok{ }\OtherTok{*servico}
 \AttributeTok{    }\FunctionTok{container\_name}\KeywordTok{:}\AttributeTok{ gestoreng{-}api}
-\AttributeTok{    }\FunctionTok{command}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\StringTok{"api"}\KeywordTok{]}
+\AttributeTok{    }\FunctionTok{image}\KeywordTok{:}\AttributeTok{ ghcr.io/incorpore/gestoreng{-}api:latest}
+\AttributeTok{    }\FunctionTok{restart}\KeywordTok{:}\AttributeTok{ unless{-}stopped}
+\AttributeTok{    }\FunctionTok{command}\KeywordTok{:}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ api}
+\AttributeTok{    }\FunctionTok{environment}\KeywordTok{:}
+\AttributeTok{      }\FunctionTok{ENVIRONMENT}\KeywordTok{:}\AttributeTok{ production}
+\AttributeTok{      }\FunctionTok{POSTGRES\_HOST}\KeywordTok{:}\AttributeTok{ db}
+\AttributeTok{      }\FunctionTok{POSTGRES\_PORT}\KeywordTok{:}\AttributeTok{ }\StringTok{"5432"}
+\AttributeTok{      }\FunctionTok{POSTGRES\_DB}\KeywordTok{:}\AttributeTok{ gestoreng}
+\AttributeTok{      }\FunctionTok{POSTGRES\_USER}\KeywordTok{:}\AttributeTok{ gestoreng}
+\AttributeTok{      }\FunctionTok{POSTGRES\_PASSWORD}\KeywordTok{:}\AttributeTok{ TROQUE\_SENHA\_DO\_BANCO}
+\AttributeTok{      }\FunctionTok{REDIS\_HOST}\KeywordTok{:}\AttributeTok{ redis}
+\AttributeTok{      }\FunctionTok{REDIS\_PORT}\KeywordTok{:}\AttributeTok{ }\StringTok{"6379"}
+\AttributeTok{      }\FunctionTok{REDIS\_PASSWORD}\KeywordTok{:}\AttributeTok{ TROQUE\_SENHA\_DO\_REDIS}
+\AttributeTok{      }\FunctionTok{REDIS\_DB}\KeywordTok{:}\AttributeTok{ }\StringTok{"0"}
+\AttributeTok{      }\FunctionTok{REDIS\_PREFIX}\KeywordTok{:}\AttributeTok{ GestorEng\_}
+\AttributeTok{      }\FunctionTok{SECRET\_KEY}\KeywordTok{:}\AttributeTok{ TROQUE\_CHAVE\_1}
+\AttributeTok{      }\FunctionTok{ENCRYPTION\_KEY}\KeywordTok{:}\AttributeTok{ TROQUE\_CHAVE\_2}
+\AttributeTok{      }\FunctionTok{ADMIN\_EMAIL}\KeywordTok{:}\AttributeTok{ admin@velmont.com.br}
+\AttributeTok{      }\FunctionTok{ADMIN\_PASSWORD}\KeywordTok{:}\AttributeTok{ TROQUE\_Senha@Forte2026}
+\AttributeTok{      }\FunctionTok{ADMIN\_NAME}\KeywordTok{:}\AttributeTok{ Administrador}
+\AttributeTok{      }\FunctionTok{COOKIE\_SECURE}\KeywordTok{:}\AttributeTok{ }\StringTok{"false"}
+\AttributeTok{      }\FunctionTok{CORS\_ORIGINS}\KeywordTok{:}\AttributeTok{ http://192.168.3.100:8917,https://localhost,capacitor://localhost}
+\AttributeTok{      }\FunctionTok{MAX\_UPLOAD\_MB}\KeywordTok{:}\AttributeTok{ }\StringTok{"50"}
+\AttributeTok{      }\FunctionTok{TZ}\KeywordTok{:}\AttributeTok{ America/Sao\_Paulo}
+\AttributeTok{      }\FunctionTok{WEB\_CONCURRENCY}\KeywordTok{:}\AttributeTok{ }\StringTok{"3"}
+\AttributeTok{      }\FunctionTok{STORAGE\_DIR}\KeywordTok{:}\AttributeTok{ /data/storage}
+\AttributeTok{    }\FunctionTok{volumes}\KeywordTok{:}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ }\FunctionTok{type}\KeywordTok{:}\AttributeTok{ bind}
+\AttributeTok{        }\FunctionTok{source}\KeywordTok{:}\AttributeTok{ /media/URSUS/AppData/GestorEng/storage}
+\AttributeTok{        }\FunctionTok{target}\KeywordTok{:}\AttributeTok{ /data/storage}
 \AttributeTok{    }\FunctionTok{depends\_on}\KeywordTok{:}
-\AttributeTok{      }\FunctionTok{db}\KeywordTok{:}\AttributeTok{ }\KeywordTok{\{}\AttributeTok{ }\FunctionTok{condition}\KeywordTok{:}\AttributeTok{ service\_healthy }\KeywordTok{\}}
-\AttributeTok{      }\FunctionTok{redis}\KeywordTok{:}\AttributeTok{ }\KeywordTok{\{}\AttributeTok{ }\FunctionTok{condition}\KeywordTok{:}\AttributeTok{ service\_healthy }\KeywordTok{\}}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ db}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ redis}
+\AttributeTok{    }\FunctionTok{networks}\KeywordTok{:}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ gestoreng}
+\AttributeTok{    }\FunctionTok{read\_only}\KeywordTok{:}\AttributeTok{ }\CharTok{true}
+\AttributeTok{    }\FunctionTok{tmpfs}\KeywordTok{:}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ /tmp}
+\AttributeTok{    }\FunctionTok{security\_opt}\KeywordTok{:}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ no{-}new{-}privileges:true}
+\AttributeTok{    }\FunctionTok{cap\_drop}\KeywordTok{:}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ ALL}
 
 \AttributeTok{  }\FunctionTok{worker}\KeywordTok{:}
-\AttributeTok{    }\FunctionTok{\textless{}\textless{}}\KeywordTok{:}\AttributeTok{ }\OtherTok{*servico}
 \AttributeTok{    }\FunctionTok{container\_name}\KeywordTok{:}\AttributeTok{ gestoreng{-}worker}
-\AttributeTok{    }\FunctionTok{command}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\StringTok{"worker"}\KeywordTok{]}
-\AttributeTok{    }\FunctionTok{healthcheck}\KeywordTok{:}\AttributeTok{ }\KeywordTok{\{}\AttributeTok{ }\FunctionTok{disable}\KeywordTok{:}\AttributeTok{ }\CharTok{true}\AttributeTok{ }\KeywordTok{\}}
-\AttributeTok{    }\FunctionTok{depends\_on}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\AttributeTok{api}\KeywordTok{]}
+\AttributeTok{    }\FunctionTok{image}\KeywordTok{:}\AttributeTok{ ghcr.io/incorpore/gestoreng{-}api:latest}
+\AttributeTok{    }\FunctionTok{restart}\KeywordTok{:}\AttributeTok{ unless{-}stopped}
+\AttributeTok{    }\FunctionTok{command}\KeywordTok{:}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ worker}
+\AttributeTok{    }\FunctionTok{environment}\KeywordTok{:}
+\AttributeTok{      }\FunctionTok{ENVIRONMENT}\KeywordTok{:}\AttributeTok{ production}
+\AttributeTok{      }\FunctionTok{POSTGRES\_HOST}\KeywordTok{:}\AttributeTok{ db}
+\AttributeTok{      }\FunctionTok{POSTGRES\_PORT}\KeywordTok{:}\AttributeTok{ }\StringTok{"5432"}
+\AttributeTok{      }\FunctionTok{POSTGRES\_DB}\KeywordTok{:}\AttributeTok{ gestoreng}
+\AttributeTok{      }\FunctionTok{POSTGRES\_USER}\KeywordTok{:}\AttributeTok{ gestoreng}
+\AttributeTok{      }\FunctionTok{POSTGRES\_PASSWORD}\KeywordTok{:}\AttributeTok{ TROQUE\_SENHA\_DO\_BANCO}
+\AttributeTok{      }\FunctionTok{REDIS\_HOST}\KeywordTok{:}\AttributeTok{ redis}
+\AttributeTok{      }\FunctionTok{REDIS\_PORT}\KeywordTok{:}\AttributeTok{ }\StringTok{"6379"}
+\AttributeTok{      }\FunctionTok{REDIS\_PASSWORD}\KeywordTok{:}\AttributeTok{ TROQUE\_SENHA\_DO\_REDIS}
+\AttributeTok{      }\FunctionTok{REDIS\_DB}\KeywordTok{:}\AttributeTok{ }\StringTok{"0"}
+\AttributeTok{      }\FunctionTok{REDIS\_PREFIX}\KeywordTok{:}\AttributeTok{ GestorEng\_}
+\AttributeTok{      }\FunctionTok{SECRET\_KEY}\KeywordTok{:}\AttributeTok{ TROQUE\_CHAVE\_1}
+\AttributeTok{      }\FunctionTok{ENCRYPTION\_KEY}\KeywordTok{:}\AttributeTok{ TROQUE\_CHAVE\_2}
+\AttributeTok{      }\FunctionTok{COOKIE\_SECURE}\KeywordTok{:}\AttributeTok{ }\StringTok{"false"}
+\AttributeTok{      }\FunctionTok{CORS\_ORIGINS}\KeywordTok{:}\AttributeTok{ http://192.168.3.100:8917,https://localhost,capacitor://localhost}
+\AttributeTok{      }\FunctionTok{MAX\_UPLOAD\_MB}\KeywordTok{:}\AttributeTok{ }\StringTok{"50"}
+\AttributeTok{      }\FunctionTok{TZ}\KeywordTok{:}\AttributeTok{ America/Sao\_Paulo}
+\AttributeTok{      }\FunctionTok{STORAGE\_DIR}\KeywordTok{:}\AttributeTok{ /data/storage}
+\AttributeTok{    }\FunctionTok{volumes}\KeywordTok{:}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ }\FunctionTok{type}\KeywordTok{:}\AttributeTok{ bind}
+\AttributeTok{        }\FunctionTok{source}\KeywordTok{:}\AttributeTok{ /media/URSUS/AppData/GestorEng/storage}
+\AttributeTok{        }\FunctionTok{target}\KeywordTok{:}\AttributeTok{ /data/storage}
+\AttributeTok{    }\FunctionTok{depends\_on}\KeywordTok{:}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ api}
+\AttributeTok{    }\FunctionTok{healthcheck}\KeywordTok{:}
+\AttributeTok{      }\FunctionTok{disable}\KeywordTok{:}\AttributeTok{ }\CharTok{true}
+\AttributeTok{    }\FunctionTok{networks}\KeywordTok{:}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ gestoreng}
+\AttributeTok{    }\FunctionTok{read\_only}\KeywordTok{:}\AttributeTok{ }\CharTok{true}
+\AttributeTok{    }\FunctionTok{tmpfs}\KeywordTok{:}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ /tmp}
+\AttributeTok{    }\FunctionTok{security\_opt}\KeywordTok{:}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ no{-}new{-}privileges:true}
+\AttributeTok{    }\FunctionTok{cap\_drop}\KeywordTok{:}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ ALL}
 
 \AttributeTok{  }\FunctionTok{web}\KeywordTok{:}
-\AttributeTok{    }\FunctionTok{image}\KeywordTok{:}\AttributeTok{ ghcr.io/incorpore/gestoreng{-}web:latest}
-\AttributeTok{    }\FunctionTok{pull\_policy}\KeywordTok{:}\AttributeTok{ missing}
 \AttributeTok{    }\FunctionTok{container\_name}\KeywordTok{:}\AttributeTok{ gestoreng{-}web}
+\AttributeTok{    }\FunctionTok{image}\KeywordTok{:}\AttributeTok{ ghcr.io/incorpore/gestoreng{-}web:latest}
 \AttributeTok{    }\FunctionTok{restart}\KeywordTok{:}\AttributeTok{ unless{-}stopped}
 \AttributeTok{    }\FunctionTok{environment}\KeywordTok{:}
 \AttributeTok{      }\FunctionTok{API\_UPSTREAM}\KeywordTok{:}\AttributeTok{ api:8000}
-\AttributeTok{      }\FunctionTok{MAX\_BODY}\KeywordTok{:}\AttributeTok{ 50m}\CommentTok{                               \# mantenha igual a MAX\_UPLOAD\_MB (+ "m")}
+\AttributeTok{      }\FunctionTok{MAX\_BODY}\KeywordTok{:}\AttributeTok{ 50m}
 \AttributeTok{    }\FunctionTok{ports}\KeywordTok{:}
-\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ }\StringTok{"8917:8080"}\CommentTok{                               \# acesso: http://IP{-}DO{-}ZIMAOS:8917}
-\AttributeTok{    }\FunctionTok{depends\_on}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\AttributeTok{api}\KeywordTok{]}
-\AttributeTok{    }\FunctionTok{networks}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\AttributeTok{gestoreng}\KeywordTok{]}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ }\FunctionTok{target}\KeywordTok{:}\AttributeTok{ }\DecValTok{8080}
+\AttributeTok{        }\FunctionTok{published}\KeywordTok{:}\AttributeTok{ }\StringTok{"8917"}
+\AttributeTok{        }\FunctionTok{protocol}\KeywordTok{:}\AttributeTok{ tcp}
+\AttributeTok{    }\FunctionTok{depends\_on}\KeywordTok{:}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ api}
+\AttributeTok{    }\FunctionTok{networks}\KeywordTok{:}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ gestoreng}
 \AttributeTok{    }\FunctionTok{read\_only}\KeywordTok{:}\AttributeTok{ }\CharTok{true}
-\AttributeTok{    }\FunctionTok{tmpfs}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\AttributeTok{/tmp}\KeywordTok{,}\AttributeTok{ /etc/nginx/conf.d}\KeywordTok{,}\AttributeTok{ /var/cache/nginx}\KeywordTok{]}
-\AttributeTok{    }\FunctionTok{security\_opt}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\AttributeTok{no{-}new{-}privileges:}\CharTok{true}\KeywordTok{]}
-\AttributeTok{    }\FunctionTok{cap\_drop}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\AttributeTok{ALL}\KeywordTok{]}
+\AttributeTok{    }\FunctionTok{tmpfs}\KeywordTok{:}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ /tmp}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ /etc/nginx/conf.d}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ /var/cache/nginx}
+\AttributeTok{    }\FunctionTok{security\_opt}\KeywordTok{:}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ no{-}new{-}privileges:true}
+\AttributeTok{    }\FunctionTok{cap\_drop}\KeywordTok{:}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ ALL}
 
 \FunctionTok{networks}\KeywordTok{:}
 \AttributeTok{  }\FunctionTok{gestoreng}\KeywordTok{:}
+\AttributeTok{    }\FunctionTok{name}\KeywordTok{:}\AttributeTok{ gestoreng}
 \AttributeTok{    }\FunctionTok{driver}\KeywordTok{:}\AttributeTok{ bridge}
 
 \FunctionTok{x{-}casaos}\KeywordTok{:}
-\AttributeTok{  }\FunctionTok{main}\KeywordTok{:}\AttributeTok{ web}
-\AttributeTok{  }\FunctionTok{index}\KeywordTok{:}\AttributeTok{ /}
-\AttributeTok{  }\FunctionTok{port\_map}\KeywordTok{:}\AttributeTok{ }\StringTok{"8917"}
-\AttributeTok{  }\FunctionTok{scheme}\KeywordTok{:}\AttributeTok{ http}
-\AttributeTok{  }\FunctionTok{category}\KeywordTok{:}\AttributeTok{ Productivity}
 \AttributeTok{  }\FunctionTok{author}\KeywordTok{:}\AttributeTok{ Velmont}
-\AttributeTok{  }\FunctionTok{title}\KeywordTok{:}
-\AttributeTok{    }\FunctionTok{custom}\KeywordTok{:}\AttributeTok{ GestorEng}
+\AttributeTok{  }\FunctionTok{category}\KeywordTok{:}\AttributeTok{ Productivity}
 \AttributeTok{  }\FunctionTok{description}\KeywordTok{:}
 \AttributeTok{    }\FunctionTok{custom}\KeywordTok{:}\AttributeTok{ Sistema de Gestão de Engenharia — obras, licitações, financeiro e documentos}
+\AttributeTok{  }\FunctionTok{index}\KeywordTok{:}\AttributeTok{ /}
+\AttributeTok{  }\FunctionTok{main}\KeywordTok{:}\AttributeTok{ web}
+\AttributeTok{  }\FunctionTok{port\_map}\KeywordTok{:}\AttributeTok{ }\StringTok{"8917"}
+\AttributeTok{  }\FunctionTok{scheme}\KeywordTok{:}\AttributeTok{ http}
+\AttributeTok{  }\FunctionTok{title}\KeywordTok{:}
+\AttributeTok{    }\FunctionTok{custom}\KeywordTok{:}\AttributeTok{ GestorEng}
 \end{Highlighting}
 \end{Shaded}
 
@@ -949,105 +1015,139 @@ do repositório: o PDF quebra linhas longas.
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\CommentTok{\# =====================================================================================}
-\CommentTok{\#  GestorEng — ZimaOS  ·  BANCO EXTERNO (PostgreSQL e Redis já existentes na rede)}
-\CommentTok{\#  Edite SOMENTE o bloco "CONFIGURAÇÃO" abaixo. Os valores TROQUE\_* são obrigatórios.}
-\CommentTok{\#  Senhas podem ter qualquer caractere (@ \# : / \%) — o sistema codifica sozinho.}
-\CommentTok{\# =====================================================================================}
+\CommentTok{\# GestorEng — ZimaOS · BANCO EXTERNO (PostgreSQL e Redis já existentes na rede)}
+\CommentTok{\# Troque todos os valores TROQUE\_*. As variáveis de "api" e "worker" devem ser IGUAIS.}
+\CommentTok{\# Redis é opcional: para não usar, apague as linhas REDIS\_* de "api" e "worker".}
+\CommentTok{\# Senhas podem ter qualquer caractere — o sistema codifica sozinho. Chaves: openssl rand {-}hex 32}
 \FunctionTok{name}\KeywordTok{:}\AttributeTok{ gestoreng}
-
-\CommentTok{\# ─────────────────────────────── CONFIGURAÇÃO ───────────────────────────────}
-\FunctionTok{x{-}app}\KeywordTok{:}\AttributeTok{ }\OtherTok{\&app}
-\CommentTok{  \# PostgreSQL existente (versão 13 a 18) — crie o banco e o usuário antes (ver guia)}
-\AttributeTok{  }\FunctionTok{POSTGRES\_HOST}\KeywordTok{:}\AttributeTok{ }\FloatTok{192.168.3.100}
-\AttributeTok{  }\FunctionTok{POSTGRES\_PORT}\KeywordTok{:}\AttributeTok{ }\StringTok{"5432"}
-\AttributeTok{  }\FunctionTok{POSTGRES\_DB}\KeywordTok{:}\AttributeTok{ gestoreng}
-\AttributeTok{  }\FunctionTok{POSTGRES\_USER}\KeywordTok{:}\AttributeTok{ gestoreng}
-\AttributeTok{  }\FunctionTok{POSTGRES\_PASSWORD}\KeywordTok{:}\AttributeTok{ TROQUE\_SENHA\_DO\_BANCO}
-
-\CommentTok{  \# Redis existente (opcional — para não usar, apague as 5 linhas REDIS\_*)}
-\AttributeTok{  }\FunctionTok{REDIS\_HOST}\KeywordTok{:}\AttributeTok{ }\FloatTok{192.168.3.100}
-\AttributeTok{  }\FunctionTok{REDIS\_PORT}\KeywordTok{:}\AttributeTok{ }\StringTok{"6379"}
-\AttributeTok{  }\FunctionTok{REDIS\_PASSWORD}\KeywordTok{:}\AttributeTok{ TROQUE\_SENHA\_DO\_REDIS}
-\AttributeTok{  }\FunctionTok{REDIS\_DB}\KeywordTok{:}\AttributeTok{ }\StringTok{"0"}
-\AttributeTok{  }\FunctionTok{REDIS\_PREFIX}\KeywordTok{:}\AttributeTok{ GestorEng\_}
-
-\CommentTok{  \# Gere cada chave no terminal do ZimaOS:  openssl rand {-}hex 32}
-\AttributeTok{  }\FunctionTok{SECRET\_KEY}\KeywordTok{:}\AttributeTok{ TROQUE\_CHAVE\_1}\CommentTok{                      \# trocar depois = desconecta todos os usuários}
-\AttributeTok{  }\FunctionTok{ENCRYPTION\_KEY}\KeywordTok{:}\AttributeTok{ TROQUE\_CHAVE\_2}\CommentTok{                  \# NUNCA troque depois (criptografa chaves de API/backup)}
-\AttributeTok{  }\FunctionTok{ADMIN\_EMAIL}\KeywordTok{:}\AttributeTok{ admin@velmont.com.br}\CommentTok{               \# usado só na 1ª inicialização}
-\AttributeTok{  }\FunctionTok{ADMIN\_PASSWORD}\KeywordTok{:}\AttributeTok{ TROQUE\_Senha@Forte2026}\CommentTok{          \# mín. 10 caracteres: maiúsc., minúsc., números/símbolos}
-\AttributeTok{  }\FunctionTok{ADMIN\_NAME}\KeywordTok{:}\AttributeTok{ Administrador}
-\AttributeTok{  }\FunctionTok{COOKIE\_SECURE}\KeywordTok{:}\AttributeTok{ }\StringTok{"false"}\CommentTok{                          \# "true" quando acessar por HTTPS (proxy/domínio)}
-\AttributeTok{  }\FunctionTok{CORS\_ORIGINS}\KeywordTok{:}\AttributeTok{ http://192.168.3.100:8917,https://localhost,capacitor://localhost}
-\AttributeTok{  }\FunctionTok{MAX\_UPLOAD\_MB}\KeywordTok{:}\AttributeTok{ }\StringTok{"50"}
-\AttributeTok{  }\FunctionTok{TZ}\KeywordTok{:}\AttributeTok{ America/Sao\_Paulo}
-\AttributeTok{  }\FunctionTok{WEB\_CONCURRENCY}\KeywordTok{:}\AttributeTok{ }\StringTok{"3"}
-\CommentTok{\# ─────────────────────────── FIM DA CONFIGURAÇÃO ────────────────────────────}
-
-\FunctionTok{x{-}servico}\KeywordTok{:}\AttributeTok{ }\OtherTok{\&servico}
-\AttributeTok{  }\FunctionTok{image}\KeywordTok{:}\AttributeTok{ ghcr.io/incorpore/gestoreng{-}api:latest}
-\AttributeTok{  }\FunctionTok{pull\_policy}\KeywordTok{:}\AttributeTok{ missing}
-\AttributeTok{  }\FunctionTok{restart}\KeywordTok{:}\AttributeTok{ unless{-}stopped}
-\AttributeTok{  }\FunctionTok{environment}\KeywordTok{:}
-\AttributeTok{    }\FunctionTok{\textless{}\textless{}}\KeywordTok{:}\AttributeTok{ }\OtherTok{*app}
-\AttributeTok{    }\FunctionTok{ENVIRONMENT}\KeywordTok{:}\AttributeTok{ production}
-\AttributeTok{    }\FunctionTok{STORAGE\_DIR}\KeywordTok{:}\AttributeTok{ /data/storage}
-\AttributeTok{  }\FunctionTok{volumes}\KeywordTok{:}
-\AttributeTok{    }\KeywordTok{{-}}\AttributeTok{ }\FunctionTok{type}\KeywordTok{:}\AttributeTok{ bind}
-\AttributeTok{      }\FunctionTok{source}\KeywordTok{:}\AttributeTok{ /media/URSUS/AppData/GestorEng/storage}
-\AttributeTok{      }\FunctionTok{target}\KeywordTok{:}\AttributeTok{ /data/storage}
-\AttributeTok{  }\FunctionTok{networks}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\AttributeTok{gestoreng}\KeywordTok{]}
-\AttributeTok{  }\FunctionTok{read\_only}\KeywordTok{:}\AttributeTok{ }\CharTok{true}
-\AttributeTok{  }\FunctionTok{tmpfs}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\AttributeTok{/tmp}\KeywordTok{]}
-\AttributeTok{  }\FunctionTok{security\_opt}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\AttributeTok{no{-}new{-}privileges:}\CharTok{true}\KeywordTok{]}
-\AttributeTok{  }\FunctionTok{cap\_drop}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\AttributeTok{ALL}\KeywordTok{]}
-
 \FunctionTok{services}\KeywordTok{:}
 \AttributeTok{  }\FunctionTok{api}\KeywordTok{:}
-\AttributeTok{    }\FunctionTok{\textless{}\textless{}}\KeywordTok{:}\AttributeTok{ }\OtherTok{*servico}
 \AttributeTok{    }\FunctionTok{container\_name}\KeywordTok{:}\AttributeTok{ gestoreng{-}api}
-\AttributeTok{    }\FunctionTok{command}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\StringTok{"api"}\KeywordTok{]}
+\AttributeTok{    }\FunctionTok{image}\KeywordTok{:}\AttributeTok{ ghcr.io/incorpore/gestoreng{-}api:latest}
+\AttributeTok{    }\FunctionTok{restart}\KeywordTok{:}\AttributeTok{ unless{-}stopped}
+\AttributeTok{    }\FunctionTok{command}\KeywordTok{:}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ api}
+\AttributeTok{    }\FunctionTok{environment}\KeywordTok{:}
+\AttributeTok{      }\FunctionTok{ENVIRONMENT}\KeywordTok{:}\AttributeTok{ production}
+\AttributeTok{      }\FunctionTok{POSTGRES\_HOST}\KeywordTok{:}\AttributeTok{ }\FloatTok{192.168.3.100}
+\AttributeTok{      }\FunctionTok{POSTGRES\_PORT}\KeywordTok{:}\AttributeTok{ }\StringTok{"5432"}
+\AttributeTok{      }\FunctionTok{POSTGRES\_DB}\KeywordTok{:}\AttributeTok{ gestoreng}
+\AttributeTok{      }\FunctionTok{POSTGRES\_USER}\KeywordTok{:}\AttributeTok{ gestoreng}
+\AttributeTok{      }\FunctionTok{POSTGRES\_PASSWORD}\KeywordTok{:}\AttributeTok{ TROQUE\_SENHA\_DO\_BANCO}
+\AttributeTok{      }\FunctionTok{REDIS\_HOST}\KeywordTok{:}\AttributeTok{ }\FloatTok{192.168.3.100}
+\AttributeTok{      }\FunctionTok{REDIS\_PORT}\KeywordTok{:}\AttributeTok{ }\StringTok{"6379"}
+\AttributeTok{      }\FunctionTok{REDIS\_PASSWORD}\KeywordTok{:}\AttributeTok{ TROQUE\_SENHA\_DO\_REDIS}
+\AttributeTok{      }\FunctionTok{REDIS\_DB}\KeywordTok{:}\AttributeTok{ }\StringTok{"0"}
+\AttributeTok{      }\FunctionTok{REDIS\_PREFIX}\KeywordTok{:}\AttributeTok{ GestorEng\_}
+\AttributeTok{      }\FunctionTok{SECRET\_KEY}\KeywordTok{:}\AttributeTok{ TROQUE\_CHAVE\_1}
+\AttributeTok{      }\FunctionTok{ENCRYPTION\_KEY}\KeywordTok{:}\AttributeTok{ TROQUE\_CHAVE\_2}
+\AttributeTok{      }\FunctionTok{ADMIN\_EMAIL}\KeywordTok{:}\AttributeTok{ admin@velmont.com.br}
+\AttributeTok{      }\FunctionTok{ADMIN\_PASSWORD}\KeywordTok{:}\AttributeTok{ TROQUE\_Senha@Forte2026}
+\AttributeTok{      }\FunctionTok{ADMIN\_NAME}\KeywordTok{:}\AttributeTok{ Administrador}
+\AttributeTok{      }\FunctionTok{COOKIE\_SECURE}\KeywordTok{:}\AttributeTok{ }\StringTok{"false"}
+\AttributeTok{      }\FunctionTok{CORS\_ORIGINS}\KeywordTok{:}\AttributeTok{ http://192.168.3.100:8917,https://localhost,capacitor://localhost}
+\AttributeTok{      }\FunctionTok{MAX\_UPLOAD\_MB}\KeywordTok{:}\AttributeTok{ }\StringTok{"50"}
+\AttributeTok{      }\FunctionTok{TZ}\KeywordTok{:}\AttributeTok{ America/Sao\_Paulo}
+\AttributeTok{      }\FunctionTok{WEB\_CONCURRENCY}\KeywordTok{:}\AttributeTok{ }\StringTok{"3"}
+\AttributeTok{      }\FunctionTok{STORAGE\_DIR}\KeywordTok{:}\AttributeTok{ /data/storage}
+\AttributeTok{    }\FunctionTok{volumes}\KeywordTok{:}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ }\FunctionTok{type}\KeywordTok{:}\AttributeTok{ bind}
+\AttributeTok{        }\FunctionTok{source}\KeywordTok{:}\AttributeTok{ /media/URSUS/AppData/GestorEng/storage}
+\AttributeTok{        }\FunctionTok{target}\KeywordTok{:}\AttributeTok{ /data/storage}
+\AttributeTok{    }\FunctionTok{networks}\KeywordTok{:}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ gestoreng}
+\AttributeTok{    }\FunctionTok{read\_only}\KeywordTok{:}\AttributeTok{ }\CharTok{true}
+\AttributeTok{    }\FunctionTok{tmpfs}\KeywordTok{:}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ /tmp}
+\AttributeTok{    }\FunctionTok{security\_opt}\KeywordTok{:}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ no{-}new{-}privileges:true}
+\AttributeTok{    }\FunctionTok{cap\_drop}\KeywordTok{:}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ ALL}
 
 \AttributeTok{  }\FunctionTok{worker}\KeywordTok{:}
-\AttributeTok{    }\FunctionTok{\textless{}\textless{}}\KeywordTok{:}\AttributeTok{ }\OtherTok{*servico}
 \AttributeTok{    }\FunctionTok{container\_name}\KeywordTok{:}\AttributeTok{ gestoreng{-}worker}
-\AttributeTok{    }\FunctionTok{command}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\StringTok{"worker"}\KeywordTok{]}
-\AttributeTok{    }\FunctionTok{healthcheck}\KeywordTok{:}\AttributeTok{ }\KeywordTok{\{}\AttributeTok{ }\FunctionTok{disable}\KeywordTok{:}\AttributeTok{ }\CharTok{true}\AttributeTok{ }\KeywordTok{\}}
-\AttributeTok{    }\FunctionTok{depends\_on}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\AttributeTok{api}\KeywordTok{]}
+\AttributeTok{    }\FunctionTok{image}\KeywordTok{:}\AttributeTok{ ghcr.io/incorpore/gestoreng{-}api:latest}
+\AttributeTok{    }\FunctionTok{restart}\KeywordTok{:}\AttributeTok{ unless{-}stopped}
+\AttributeTok{    }\FunctionTok{command}\KeywordTok{:}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ worker}
+\AttributeTok{    }\FunctionTok{environment}\KeywordTok{:}
+\AttributeTok{      }\FunctionTok{ENVIRONMENT}\KeywordTok{:}\AttributeTok{ production}
+\AttributeTok{      }\FunctionTok{POSTGRES\_HOST}\KeywordTok{:}\AttributeTok{ }\FloatTok{192.168.3.100}
+\AttributeTok{      }\FunctionTok{POSTGRES\_PORT}\KeywordTok{:}\AttributeTok{ }\StringTok{"5432"}
+\AttributeTok{      }\FunctionTok{POSTGRES\_DB}\KeywordTok{:}\AttributeTok{ gestoreng}
+\AttributeTok{      }\FunctionTok{POSTGRES\_USER}\KeywordTok{:}\AttributeTok{ gestoreng}
+\AttributeTok{      }\FunctionTok{POSTGRES\_PASSWORD}\KeywordTok{:}\AttributeTok{ TROQUE\_SENHA\_DO\_BANCO}
+\AttributeTok{      }\FunctionTok{REDIS\_HOST}\KeywordTok{:}\AttributeTok{ }\FloatTok{192.168.3.100}
+\AttributeTok{      }\FunctionTok{REDIS\_PORT}\KeywordTok{:}\AttributeTok{ }\StringTok{"6379"}
+\AttributeTok{      }\FunctionTok{REDIS\_PASSWORD}\KeywordTok{:}\AttributeTok{ TROQUE\_SENHA\_DO\_REDIS}
+\AttributeTok{      }\FunctionTok{REDIS\_DB}\KeywordTok{:}\AttributeTok{ }\StringTok{"0"}
+\AttributeTok{      }\FunctionTok{REDIS\_PREFIX}\KeywordTok{:}\AttributeTok{ GestorEng\_}
+\AttributeTok{      }\FunctionTok{SECRET\_KEY}\KeywordTok{:}\AttributeTok{ TROQUE\_CHAVE\_1}
+\AttributeTok{      }\FunctionTok{ENCRYPTION\_KEY}\KeywordTok{:}\AttributeTok{ TROQUE\_CHAVE\_2}
+\AttributeTok{      }\FunctionTok{COOKIE\_SECURE}\KeywordTok{:}\AttributeTok{ }\StringTok{"false"}
+\AttributeTok{      }\FunctionTok{CORS\_ORIGINS}\KeywordTok{:}\AttributeTok{ http://192.168.3.100:8917,https://localhost,capacitor://localhost}
+\AttributeTok{      }\FunctionTok{MAX\_UPLOAD\_MB}\KeywordTok{:}\AttributeTok{ }\StringTok{"50"}
+\AttributeTok{      }\FunctionTok{TZ}\KeywordTok{:}\AttributeTok{ America/Sao\_Paulo}
+\AttributeTok{      }\FunctionTok{STORAGE\_DIR}\KeywordTok{:}\AttributeTok{ /data/storage}
+\AttributeTok{    }\FunctionTok{volumes}\KeywordTok{:}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ }\FunctionTok{type}\KeywordTok{:}\AttributeTok{ bind}
+\AttributeTok{        }\FunctionTok{source}\KeywordTok{:}\AttributeTok{ /media/URSUS/AppData/GestorEng/storage}
+\AttributeTok{        }\FunctionTok{target}\KeywordTok{:}\AttributeTok{ /data/storage}
+\AttributeTok{    }\FunctionTok{depends\_on}\KeywordTok{:}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ api}
+\AttributeTok{    }\FunctionTok{healthcheck}\KeywordTok{:}
+\AttributeTok{      }\FunctionTok{disable}\KeywordTok{:}\AttributeTok{ }\CharTok{true}
+\AttributeTok{    }\FunctionTok{networks}\KeywordTok{:}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ gestoreng}
+\AttributeTok{    }\FunctionTok{read\_only}\KeywordTok{:}\AttributeTok{ }\CharTok{true}
+\AttributeTok{    }\FunctionTok{tmpfs}\KeywordTok{:}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ /tmp}
+\AttributeTok{    }\FunctionTok{security\_opt}\KeywordTok{:}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ no{-}new{-}privileges:true}
+\AttributeTok{    }\FunctionTok{cap\_drop}\KeywordTok{:}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ ALL}
 
 \AttributeTok{  }\FunctionTok{web}\KeywordTok{:}
-\AttributeTok{    }\FunctionTok{image}\KeywordTok{:}\AttributeTok{ ghcr.io/incorpore/gestoreng{-}web:latest}
-\AttributeTok{    }\FunctionTok{pull\_policy}\KeywordTok{:}\AttributeTok{ missing}
 \AttributeTok{    }\FunctionTok{container\_name}\KeywordTok{:}\AttributeTok{ gestoreng{-}web}
+\AttributeTok{    }\FunctionTok{image}\KeywordTok{:}\AttributeTok{ ghcr.io/incorpore/gestoreng{-}web:latest}
 \AttributeTok{    }\FunctionTok{restart}\KeywordTok{:}\AttributeTok{ unless{-}stopped}
 \AttributeTok{    }\FunctionTok{environment}\KeywordTok{:}
 \AttributeTok{      }\FunctionTok{API\_UPSTREAM}\KeywordTok{:}\AttributeTok{ api:8000}
-\AttributeTok{      }\FunctionTok{MAX\_BODY}\KeywordTok{:}\AttributeTok{ 50m}\CommentTok{                               \# mantenha igual a MAX\_UPLOAD\_MB (+ "m")}
+\AttributeTok{      }\FunctionTok{MAX\_BODY}\KeywordTok{:}\AttributeTok{ 50m}
 \AttributeTok{    }\FunctionTok{ports}\KeywordTok{:}
-\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ }\StringTok{"8917:8080"}\CommentTok{                               \# acesso: http://IP{-}DO{-}ZIMAOS:8917}
-\AttributeTok{    }\FunctionTok{depends\_on}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\AttributeTok{api}\KeywordTok{]}
-\AttributeTok{    }\FunctionTok{networks}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\AttributeTok{gestoreng}\KeywordTok{]}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ }\FunctionTok{target}\KeywordTok{:}\AttributeTok{ }\DecValTok{8080}
+\AttributeTok{        }\FunctionTok{published}\KeywordTok{:}\AttributeTok{ }\StringTok{"8917"}
+\AttributeTok{        }\FunctionTok{protocol}\KeywordTok{:}\AttributeTok{ tcp}
+\AttributeTok{    }\FunctionTok{depends\_on}\KeywordTok{:}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ api}
+\AttributeTok{    }\FunctionTok{networks}\KeywordTok{:}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ gestoreng}
 \AttributeTok{    }\FunctionTok{read\_only}\KeywordTok{:}\AttributeTok{ }\CharTok{true}
-\AttributeTok{    }\FunctionTok{tmpfs}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\AttributeTok{/tmp}\KeywordTok{,}\AttributeTok{ /etc/nginx/conf.d}\KeywordTok{,}\AttributeTok{ /var/cache/nginx}\KeywordTok{]}
-\AttributeTok{    }\FunctionTok{security\_opt}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\AttributeTok{no{-}new{-}privileges:}\CharTok{true}\KeywordTok{]}
-\AttributeTok{    }\FunctionTok{cap\_drop}\KeywordTok{:}\AttributeTok{ }\KeywordTok{[}\AttributeTok{ALL}\KeywordTok{]}
+\AttributeTok{    }\FunctionTok{tmpfs}\KeywordTok{:}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ /tmp}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ /etc/nginx/conf.d}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ /var/cache/nginx}
+\AttributeTok{    }\FunctionTok{security\_opt}\KeywordTok{:}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ no{-}new{-}privileges:true}
+\AttributeTok{    }\FunctionTok{cap\_drop}\KeywordTok{:}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ ALL}
 
 \FunctionTok{networks}\KeywordTok{:}
 \AttributeTok{  }\FunctionTok{gestoreng}\KeywordTok{:}
+\AttributeTok{    }\FunctionTok{name}\KeywordTok{:}\AttributeTok{ gestoreng}
 \AttributeTok{    }\FunctionTok{driver}\KeywordTok{:}\AttributeTok{ bridge}
 
 \FunctionTok{x{-}casaos}\KeywordTok{:}
-\AttributeTok{  }\FunctionTok{main}\KeywordTok{:}\AttributeTok{ web}
-\AttributeTok{  }\FunctionTok{index}\KeywordTok{:}\AttributeTok{ /}
-\AttributeTok{  }\FunctionTok{port\_map}\KeywordTok{:}\AttributeTok{ }\StringTok{"8917"}
-\AttributeTok{  }\FunctionTok{scheme}\KeywordTok{:}\AttributeTok{ http}
-\AttributeTok{  }\FunctionTok{category}\KeywordTok{:}\AttributeTok{ Productivity}
 \AttributeTok{  }\FunctionTok{author}\KeywordTok{:}\AttributeTok{ Velmont}
-\AttributeTok{  }\FunctionTok{title}\KeywordTok{:}
-\AttributeTok{    }\FunctionTok{custom}\KeywordTok{:}\AttributeTok{ GestorEng}
+\AttributeTok{  }\FunctionTok{category}\KeywordTok{:}\AttributeTok{ Productivity}
 \AttributeTok{  }\FunctionTok{description}\KeywordTok{:}
 \AttributeTok{    }\FunctionTok{custom}\KeywordTok{:}\AttributeTok{ Sistema de Gestão de Engenharia — obras, licitações, financeiro e documentos}
+\AttributeTok{  }\FunctionTok{index}\KeywordTok{:}\AttributeTok{ /}
+\AttributeTok{  }\FunctionTok{main}\KeywordTok{:}\AttributeTok{ web}
+\AttributeTok{  }\FunctionTok{port\_map}\KeywordTok{:}\AttributeTok{ }\StringTok{"8917"}
+\AttributeTok{  }\FunctionTok{scheme}\KeywordTok{:}\AttributeTok{ http}
+\AttributeTok{  }\FunctionTok{title}\KeywordTok{:}
+\AttributeTok{    }\FunctionTok{custom}\KeywordTok{:}\AttributeTok{ GestorEng}
 \end{Highlighting}
 \end{Shaded}
 
