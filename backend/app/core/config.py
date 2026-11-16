@@ -1,9 +1,10 @@
 """Configuração central lida de variáveis de ambiente."""
 from functools import lru_cache
+from typing import Annotated
 from urllib.parse import quote
 
 from pydantic import Field, field_validator, model_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -34,7 +35,8 @@ class Settings(BaseSettings):
     refresh_token_days: int = 14
     login_max_attempts: int = 5
     login_lock_minutes: int = 15
-    cors_origins: list[str] = ["http://localhost:5173", "capacitor://localhost", "https://localhost", "http://localhost"]
+    # aceitos como lista separada por vírgula ("a,b,c") ou JSON (["a","b"])
+    cors_origins: Annotated[list[str], NoDecode] = ["http://localhost:5173", "capacitor://localhost", "https://localhost", "http://localhost"]
     cookie_secure: bool = True
 
     # Primeiro administrador (criado se não houver usuários)
@@ -47,12 +49,17 @@ class Settings(BaseSettings):
     max_upload_mb: int = 25
 
     # Módulos habilitados ("*" = todos)
-    enabled_modules: list[str] = ["*"]
+    enabled_modules: Annotated[list[str], NoDecode] = ["*"]
 
     @field_validator("cors_origins", "enabled_modules", mode="before")
     @classmethod
     def _split(cls, v):
         if isinstance(v, str):
+            v = v.strip()
+            if v.startswith("["):
+                import json
+
+                return [str(x).strip() for x in json.loads(v)]
             return [s.strip() for s in v.split(",") if s.strip()]
         return v
 

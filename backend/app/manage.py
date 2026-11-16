@@ -119,6 +119,7 @@ def _verificar(db) -> None:
     else:
         print("• Redis não configurado (opcional)")
     try:
+        os.makedirs(s.storage_dir, exist_ok=True)
         p = os.path.join(s.storage_dir, ".teste-escrita")
         with open(p, "w") as f:
             f.write("ok")

@@ -23,3 +23,15 @@ def test_pg_dump_recebe_senha_decodificada(monkeypatch):
     monkeypatch.setattr(config.get_settings(), "database_url", "postgresql+psycopg://GestorEng:p%40ss%231@db:5432/GestorEng")
     args, env = service._pg_env()
     assert env["PGPASSWORD"] == "p@ss#1" and args[args.index("-U") + 1] == "GestorEng"
+
+
+def test_cors_por_variavel_de_ambiente(monkeypatch):
+    monkeypatch.setenv("CORS_ORIGINS", "http://192.168.3.100:8917, https://localhost,capacitor://localhost")
+    monkeypatch.setenv("ENABLED_MODULES", "obras,financeiro")
+    s = Settings(**BASE, _env_file=None)
+    assert s.cors_origins == ["http://192.168.3.100:8917", "https://localhost", "capacitor://localhost"]
+    assert s.enabled_modules == ["obras", "financeiro"]
+    monkeypatch.setenv("CORS_ORIGINS", '["https://a.com", "https://b.com"]')
+    assert Settings(**BASE, _env_file=None).cors_origins == ["https://a.com", "https://b.com"]
+    monkeypatch.setenv("CORS_ORIGINS", "https://unico.com")
+    assert Settings(**BASE, _env_file=None).cors_origins == ["https://unico.com"]
