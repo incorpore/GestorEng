@@ -8,18 +8,36 @@ import os
 import time
 from collections import defaultdict, deque
 from threading import Lock
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from fastapi import HTTPException, Request
 
 from .audit import client_ip
 
 log = logging.getLogger(__name__)
+
+
+def parse_redis_url(url: str, env_prefix: str | None = None) -> tuple[str, str]:
+    """Separa o parâmetro `prefix` (não suportado pelo Redis) da URL.
+
+    Ex.: redis://:senha@redis:6379/0?prefix=velmont  ->  ("redis://:senha@redis:6379/0", "velmont:")
+    Precedência: ?prefix= na URL > REDIS_PREFIX > "gestoreng:".
+    """
+    parts = urlsplit(url)
+    query = parse_qsl(parts.query, keep_blank_values=True)
+    prefix = next((v for k, v in query if k == "prefix"), None) or env_prefix or "gestoreng"
+    clean = urlunsplit(parts._replace(query=urlencode([(k, v) for k, v in query if k != "prefix"])))
+    return clean, prefix if prefix.endswith(":") else f"{prefix}:"
+
+
 _redis = None
+PREFIX = "gestoreng:"
 if os.getenv("REDIS_URL"):
     try:
         import redis
 
-        _redis = redis.Redis.from_url(os.environ["REDIS_URL"], socket_timeout=1, socket_connect_timeout=1)
+        _url, PREFIX = parse_redis_url(os.environ["REDIS_URL"], os.getenv("REDIS_PREFIX"))
+        _redis = redis.Redis.from_url(_url, socket_timeout=1, socket_connect_timeout=1)
     except Exception:  # noqa: BLE001
         log.warning("Redis indisponível; usando limitador em memória")
 
@@ -35,7 +53,7 @@ class RateLimiter:
         if _redis is None:
             return None
         try:
-            k = f"rl:{key}:{int(time.time() // self.window)}"
+            k = f"{PREFIX}rl:{key}:{int(time.time() // self.window)}"
             pipe = _redis.pipeline()
             pipe.incr(k)
             pipe.expire(k, self.window + 5)

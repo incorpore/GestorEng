@@ -61,6 +61,16 @@ Acesse `http://IP-DO-SERVIDOR:8080` com o `ADMIN_EMAIL` / `ADMIN_PASSWORD` do `.
    # STORAGE_PATH=/DATA/AppData/gestoreng/storage  # opcional: pasta do host/NAS para anexos
    ```
    (`postgres`/`redis` são os nomes dos containers nessa rede.)
+
+   **Redis com senha e prefixo** — tudo pode ir na URL:
+   ```env
+   REDIS_URL=redis://:minha%40senha@redis:6379/2?prefix=velmont
+   ```
+   - Caracteres especiais da senha devem ser codificados (`@`→`%40`, `#`→`%23`, `:`→`%3A`, `/`→`%2F`, `%`→`%25`).
+     Para gerar: `python3 -c "import urllib.parse;print(urllib.parse.quote('SUA_SENHA', safe=''))"`.
+   - Com usuário ACL (Redis 6+): `redis://usuario:senha@redis:6379/0`; com TLS use `rediss://`.
+   - `/2` é o número do banco do Redis (0–15) — outra forma de isolar o GestorEng de outros sistemas.
+   - `?prefix=velmont` faz todas as chaves começarem com `velmont:` (padrão `gestoreng:`). Alternativa: `REDIS_PREFIX=velmont`.
 4. `docker compose -f docker-compose.external.yml up -d`
 
 > **Redis** é opcional: quando presente, o limite de tentativas de login é compartilhado entre processos/réplicas.

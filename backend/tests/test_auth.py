@@ -110,3 +110,13 @@ def test_auditoria(admin):
     r = admin.get("/api/auditoria", params={"entity": "obra"})
     assert r.status_code == 200
     assert any(i["action"] == "criar" for i in r.json()["items"])
+
+
+def test_redis_url_prefixo():
+    from app.core.ratelimit import parse_redis_url
+
+    assert parse_redis_url("redis://:s%40nha@redis:6379/0?prefix=velmont") == ("redis://:s%40nha@redis:6379/0", "velmont:")
+    assert parse_redis_url("redis://:x@r:6379/2?prefix=a:b:&ssl_cert_reqs=none")[1] == "a:b:"
+    assert parse_redis_url("redis://:x@r:6379/2?prefix=a&ssl_cert_reqs=none")[0] == "redis://:x@r:6379/2?ssl_cert_reqs=none"
+    assert parse_redis_url("redis://r:6379/0", "env") == ("redis://r:6379/0", "env:")
+    assert parse_redis_url("redis://r:6379/0")[1] == "gestoreng:"
