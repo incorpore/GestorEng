@@ -268,3 +268,39 @@ def test_pasta_automatica_erp_cliente_obra_tipo(admin, monkeypatch):
     assert [c[1]["name"] for c in chamadas if c[0] == "v2/folder/create"] == ["Documentos"]
     titulo = next(c[1] for c in chamadas if c[0] == "v1/documents")["title"]
     assert titulo.startswith("Ofício nº") and titulo.endswith(" - Pedido de aditivo.pdf") and "/" not in titulo
+
+
+def test_documenso_inacessivel_e_resposta_html_dao_mensagem_clara(admin, monkeypatch):
+    import time
+
+    import httpx
+
+    from app.modules.documentos import documenso
+
+    admin.put("/api/configuracoes/empresa", json={"responsavel": "Jorge", "email_responsavel": "jorge@empresa.com.br"})
+    modelo = admin.get("/api/modelos-documento", params={"tipo": "oficio"}).json()["items"][0]
+    doc = admin.post("/api/documentos-acoes/gerar", json={"modelo_id": modelo["id"], "titulo": "Teste conexão"}).json()
+    admin.post(f"/api/documentos-acoes/{doc['id']}/emitir")
+    url = f"/api/documentos-acoes/{doc['id']}/assinatura"
+    corpo = {"assinantes": [{"nome": "Jorge", "email": "jorge@empresa.com.br"}]}
+
+    # porta fechada: falha rápida, sem tentar criar o documento, e diz o que fazer
+    monkeypatch.setattr(documenso, "_cfg", lambda db: ("http://127.0.0.1:9", "t", {}))
+    t0 = time.monotonic()
+    r = admin.post(url, json=corpo)
+    assert r.status_code == 502 and "não conseguiu conectar ao Documenso em 127.0.0.1:9" in r.json()["detail"]
+    assert time.monotonic() - t0 < 15
+    assert admin.get(f"/api/documentos/{doc['id']}").json()["status"] == "emitido"
+
+    # Documenso devolvendo página HTML (URL errada): 502 com explicação, nunca 500
+    class Html:
+        def __init__(self, *a, **k): ...
+        def __enter__(self): return self
+        def __exit__(self, *a): ...
+
+        def request(self, method, u, **kw):
+            return httpx.Response(200, text="<!doctype html><html>login</html>", request=httpx.Request(method, u))
+
+    monkeypatch.setattr(documenso.httpx, "Client", Html)
+    r = admin.post(url, json=corpo)
+    assert r.status_code == 502 and "não é JSON" in r.json()["detail"]

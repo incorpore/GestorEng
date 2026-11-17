@@ -59,7 +59,12 @@ async function parseError(r: Response): Promise<ApiError> {
     if (typeof data.detail === 'string') msg = data.detail
     erros = data.erros
   } catch { /* corpo vazio */ }
-  if (r.status === 0 || r.status >= 500) msg = msg === `Erro ${r.status}` ? 'Erro no servidor. Tente novamente.' : msg
+  if (msg === `Erro ${r.status}`) {
+    // sem detalhe da API: resposta do proxy (nginx/Cloudflare), normalmente tempo esgotado ou API fora do ar
+    if ([504, 522, 524].includes(r.status)) msg = 'O servidor demorou demais para responder (tempo esgotado). Tente novamente; se persistir, verifique as integrações.'
+    else if ([502, 503, 521].includes(r.status)) msg = 'O servidor do Struvia não respondeu (pode estar reiniciando). Tente novamente em instantes.'
+    else if (r.status === 0 || r.status >= 500) msg = `Erro no servidor (${r.status}). Tente novamente.`
+  }
   return new ApiError(r.status, msg, erros)
 }
 

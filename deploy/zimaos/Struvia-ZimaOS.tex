@@ -858,6 +858,17 @@ rode:
 \texttt{sudo\ chown\ -R\ 10001:10001\ /media/URSUS/AppData/Struvia/storage}
 e reinicie a \texttt{api}.
 
+\textbf{Erro ao enviar para assinatura / ``tempo esgotado''} --- o
+endereço do Documenso em \emph{Configurações \textgreater{} Integrações}
+precisa ser acessível \textbf{de dentro do servidor} (do contêiner
+\texttt{struvia-api}), não só do seu navegador. Com o Documenso no mesmo
+ZimaOS, use o IP local e a porta dele (ex.:
+\texttt{http://192.168.3.100:3000}), sem \texttt{localhost} e sem passar
+pelo Cloudflare. Clique em \textbf{Testar} na integração: a mensagem diz
+se a conexão ou o token falharam. Para conferir pelo terminal:
+\texttt{sudo\ docker\ exec\ struvia-api\ curl\ -sS\ -o\ /dev/null\ -w\ "\%\{http\_code\}\textbackslash{}n"\ http://192.168.3.100:3000/api/v1/documents}
+(401 = alcançou o Documenso; erro de conexão = endereço inacessível).
+
 \textbf{Sou desconectado ao recarregar a página} ---
 \texttt{COOKIE\_SECURE} está \texttt{"true"} mas o acesso é por
 \texttt{http://}. Use \texttt{"false"} ou configure HTTPS.

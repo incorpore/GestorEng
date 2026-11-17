@@ -379,6 +379,13 @@ sudo systemctl restart docker
 Se o log da `api` mostrar `ERRO: a pasta de arquivos ... não permite gravação`, rode:
 `sudo chown -R 10001:10001 /media/URSUS/AppData/Struvia/storage` e reinicie a `api`.
 
+**Erro ao enviar para assinatura / "tempo esgotado"** — o endereço do Documenso em *Configurações > Integrações*
+precisa ser acessível **de dentro do servidor** (do contêiner `struvia-api`), não só do seu navegador. Com o Documenso
+no mesmo ZimaOS, use o IP local e a porta dele (ex.: `http://192.168.3.100:3000`), sem `localhost` e sem passar pelo
+Cloudflare. Clique em **Testar** na integração: a mensagem diz se a conexão ou o token falharam. Para conferir pelo
+terminal: `sudo docker exec struvia-api curl -sS -o /dev/null -w "%{http_code}\n" http://192.168.3.100:3000/api/v1/documents`
+(401 = alcançou o Documenso; erro de conexão = endereço inacessível).
+
 **Sou desconectado ao recarregar a página** — `COOKIE_SECURE` está `"true"` mas o acesso é por `http://`.
 Use `"false"` ou configure HTTPS.
 

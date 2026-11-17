@@ -14,15 +14,47 @@ def _cfg(db: Session) -> tuple[str, str, dict]:
     return base, token, cfg
 
 
-def _req(method: str, url: str, token: str, **kw) -> httpx.Response:
+# conectar rápido (o Cloudflare/proxy corta requisições longas); ler com folga para PDFs grandes
+TEMPO = httpx.Timeout(45, connect=8)
+
+
+class DocumensoFora(HTTPException):
+    """O Documenso não respondeu (endereço inacessível a partir do servidor do Struvia)."""
+
+
+class _Resp:
+    """Resposta do Documenso com leitura segura do JSON."""
+
+    def __init__(self, r: httpx.Response, rota: str):
+        self.r, self.rota, self.status_code, self.text = r, rota, r.status_code, r.text
+
+    def json(self) -> dict:
+        try:
+            dados = self.r.json()
+        except ValueError:
+            raise HTTPException(502, f"Resposta inesperada do Documenso em {self.rota} (não é JSON). "
+                                     "Confira a URL do Documenso em Configurações > Integrações.")
+        return dados if isinstance(dados, dict) else {"data": dados}
+
+
+def _req(method: str, url: str, token: str, **kw) -> _Resp:
+    rota = "/" + url.split("/", 3)[-1] if "://" in url else url
     try:
-        with httpx.Client(timeout=60) as c:
+        with httpx.Client(timeout=TEMPO) as c:
             r = c.request(method, url, headers={"Authorization": token, "Accept": "application/json"}, **kw)
+    except (httpx.ConnectError, httpx.ConnectTimeout) as e:
+        host = url.split("/")[2] if "://" in url else url
+        raise DocumensoFora(502, f"O servidor do Struvia não conseguiu conectar ao Documenso em {host} "
+                                 f"({e.__class__.__name__}). Use um endereço acessível a partir do servidor "
+                                 "(ex.: http://IP-DO-ZIMAOS:PORTA) em Configurações > Integrações e clique em Testar.")
     except httpx.HTTPError as e:
         raise HTTPException(502, f"Falha de comunicação com o Documenso: {e.__class__.__name__}")
+    if r.status_code in (401, 403):
+        raise HTTPException(502, "O Documenso recusou o token da API (401/403). Gere um novo token e salve em "
+                                 "Configurações > Integrações.")
     if r.status_code >= 400:
-        raise HTTPException(502, f"Documenso retornou {r.status_code}: {r.text[:300]}")
-    return r
+        raise HTTPException(502, f"Documenso retornou {r.status_code} em {rota}: {r.text[:300]}")
+    return _Resp(r, rota)
 
 
 def testar(db: Session) -> dict:
@@ -39,12 +71,15 @@ def pastas(db: Session) -> list[dict]:
     while True:
         try:
             r = _req("GET", f"{base}/api/v2/folder", token, params={"type": "DOCUMENT", "page": pagina, "perPage": 100})
+        except DocumensoFora:
+            raise
         except HTTPException as e:
             if " 404" in str(e.detail):
                 raise HTTPException(400, "Este Documenso não oferece pastas pela API. Atualize o Documenso para usar pastas.")
             raise
         dados = r.json()
-        itens += [{"id": f["id"], "nome": f["name"], "parent_id": f.get("parentId")} for f in dados.get("data", [])]
+        itens += [{"id": str(f["id"]), "nome": f.get("name") or "", "parent_id": f.get("parentId")}
+                  for f in dados.get("data", []) if isinstance(f, dict) and f.get("id")]
         if pagina >= (dados.get("totalPages") or 1) or pagina >= 20:
             break
         pagina += 1
@@ -55,7 +90,9 @@ def criar_pasta(db: Session, nome: str, parent_id: str | None = None) -> dict:
     base, token, _ = _cfg(db)
     body = {"name": nome, "type": "DOCUMENT", **({"parentId": parent_id} if parent_id else {})}
     f = _req("POST", f"{base}/api/v2/folder/create", token, json=body).json()
-    return {"id": f["id"], "nome": f["name"], "parent_id": f.get("parentId")}
+    if not f.get("id"):
+        raise HTTPException(502, "Resposta inesperada do Documenso ao criar pasta")
+    return {"id": str(f["id"]), "nome": f.get("name") or nome, "parent_id": f.get("parentId")}
 
 
 PASTA_PADRAO = "ERP/{{cliente}}/{{obra}}/{{tipo}}"
@@ -106,7 +143,7 @@ def enviar(db: Session, *, titulo: str, pdf: bytes, assinantes: list[dict], mens
     if not doc_id or not upload_url:
         raise HTTPException(502, "Resposta inesperada do Documenso")
     try:
-        with httpx.Client(timeout=120) as c:
+        with httpx.Client(timeout=httpx.Timeout(90, connect=8)) as c:
             up = c.put(upload_url, content=pdf, headers={"Content-Type": "application/pdf"})
         if up.status_code >= 400:
             raise HTTPException(502, f"Falha ao enviar PDF ao Documenso ({up.status_code})")
@@ -127,6 +164,8 @@ def enviar(db: Session, *, titulo: str, pdf: bytes, assinantes: list[dict], mens
     if pasta_id:
         try:
             mover_para_pasta(db, str(doc_id), pasta_id)
+        except DocumensoFora:
+            raise
         except HTTPException as e:  # o envio continua; só não fica organizado na pasta
             aviso = f"Enviado, mas não foi possível colocar na pasta: {e.detail}"
     _req("POST", f"{base}/api/v1/documents/{doc_id}/send", token, json={"sendEmail": True})

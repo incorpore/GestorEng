@@ -462,6 +462,8 @@ def enviar_assinatura(did: int, body: AssinaturaIn, request: Request, db: Sessio
     if not pasta_id and body.pasta_auto:
         try:
             pasta_id = documenso.garantir_caminho(db, caminho_auto(db, doc))
+        except documenso.DocumensoFora:
+            raise  # sem conexão: não adianta tentar enviar
         except HTTPException as e:  # o envio segue, apenas fora da pasta padrão
             aviso_pasta = f"Enviado, mas sem organizar em pastas: {e.detail}"
     res = documenso.enviar(db, titulo=nome_pdf(db, doc), pdf=storage.read_bytes(a.uuid),
