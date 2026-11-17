@@ -7,7 +7,8 @@ import { useAuth } from '@/core/auth'
 import type { FrontModule } from '../types'
 import { diariosCfg } from './config'
 
-const DiarioForm = lazy(() => import('./DiarioForm'))
+const DiarioVisualizar = lazy(() => import('./DiarioVisualizar'))
+const DiarioEditar = lazy(() => import('./DiarioEditar'))
 
 function DiarioList() {
   const nav = useNavigate()
@@ -18,6 +19,7 @@ function DiarioList() {
 const mod: FrontModule = {
   key: 'diario', group: 'Operação',
   nav: [{ label: 'Diário de obras', path: '/diario', icon: NotebookPen, perm: ['diario.ver'], mobile: true }],
-  routes: [{ path: '/diario', element: <DiarioList /> }, { path: '/diario/:id', element: <DiarioForm /> }],
+  routes: [{ path: '/diario', element: <DiarioList /> }, { path: '/diario/novo', element: <DiarioEditar /> },
+    { path: '/diario/:id', element: <DiarioVisualizar /> }, { path: '/diario/:id/editar', element: <DiarioEditar /> }],
 }
 export default mod

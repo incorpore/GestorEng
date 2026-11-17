@@ -4,18 +4,19 @@ import { PageHeader, Tabs } from '@/components/ui'
 import { useAuth } from '@/core/auth'
 import type { FrontModule } from '../types'
 import { Auditoria } from './Auditoria'
+import { LinksPublicos } from './LinksPublicos'
 import { Perfis } from './Perfis'
 import { Usuarios } from './Usuarios'
 
 function Admin() {
   const { can } = useAuth()
-  const [tab, setTab] = useState<'u' | 'p' | 'a'>(can('usuarios.ver') ? 'u' : can('perfis.ver') ? 'p' : 'a')
+  const [tab, setTab] = useState<'u' | 'p' | 'a' | 'l'>(can('usuarios.ver') ? 'u' : can('perfis.ver') ? 'p' : 'a')
   return (
     <div className="space-y-4">
       <PageHeader title="Usuários e permissões" />
       <Tabs value={tab} onChange={setTab} tabs={[{ key: 'u', label: 'Usuários', hidden: !can('usuarios.ver') }, { key: 'p', label: 'Perfis de acesso', hidden: !can('perfis.ver') },
-        { key: 'a', label: 'Auditoria', hidden: !can('auditoria.ver') }]} />
-      {tab === 'u' && <Usuarios />}{tab === 'p' && <Perfis />}{tab === 'a' && <Auditoria />}
+        { key: 'a', label: 'Auditoria', hidden: !can('auditoria.ver') }, { key: 'l', label: 'Links públicos', hidden: !can('auditoria.ver') }]} />
+      {tab === 'u' && <Usuarios />}{tab === 'p' && <Perfis />}{tab === 'a' && <Auditoria />}{tab === 'l' && <LinksPublicos />}
     </div>
   )
 }

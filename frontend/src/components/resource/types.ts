@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 
 export type FieldType = 'text' | 'textarea' | 'number' | 'money' | 'percent' | 'date' | 'datetime' | 'select'
-  | 'relation' | 'boolean' | 'email' | 'tel' | 'uf' | 'color'
+  | 'relation' | 'boolean' | 'email' | 'tel' | 'uf' | 'color' | 'municipio' | 'geo'
 
 export interface Option { value: string | number; label: string; tone?: string }
 
@@ -21,6 +21,11 @@ export interface FieldDef {
   readOnly?: boolean
   step?: string
   section?: string
+  /** municipio: campo que guarda a UF; ibgeField: onde gravar o código IBGE (opcional) */
+  ufField?: string
+  ibgeField?: string
+  /** geo (latitude): campo da longitude preenchido junto */
+  lonField?: string
 }
 
 export interface ColumnDef<T = any> {

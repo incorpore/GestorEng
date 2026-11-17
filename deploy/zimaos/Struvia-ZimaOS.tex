@@ -877,6 +877,31 @@ de variáveis).
 \end{Highlighting}
 \end{Shaded}
 
+\hypertarget{integrauxe7uxf5es-e-links-puxfablicos}{%
+\section{Integrações e links
+públicos}\label{integrauxe7uxf5es-e-links-puxfablicos}}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{OpenWeather (clima)}: crie uma conta gratuita em
+  openweathermap.org, copie a \emph{API key} e cadastre em
+  \emph{Configurações \textgreater{} Integrações \textgreater{}
+  OpenWeather}. A chave pode levar até 2 horas para ser ativada pelo
+  OpenWeather.
+\item
+  \textbf{Links públicos (pedir fotos / visualizar diário)}: funcionam
+  sem login, mas o navegador do visitante \textbf{só fornece a
+  localização em HTTPS}. Pelo endereço \texttt{http://IP:8917} o sistema
+  registra o IP e o aparelho, mas não as coordenadas. Para registrar as
+  coordenadas, publique o Struvia com HTTPS (seção abaixo).
+\item
+  \textbf{IP real atrás de proxy}: se usar Nginx Proxy Manager, Traefik
+  ou Cloudflare Tunnel, acrescente na \texttt{api} e no \texttt{worker}
+  a variável \texttt{TRUSTED\_PROXIES} com o IP do proxy (ex.:
+  \texttt{TRUSTED\_PROXIES:\ 192.168.3.100}).
+\end{itemize}
+
 \hypertarget{acesso-pelo-celular-e-https-opcional}{%
 \section{Acesso pelo celular e HTTPS
 (opcional)}\label{acesso-pelo-celular-e-https-opcional}}

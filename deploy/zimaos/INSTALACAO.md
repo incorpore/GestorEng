@@ -396,6 +396,16 @@ sudo docker logs --tail 100 struvia-web
 sudo docker logs --tail 100 struvia-db      # banco interno
 ```
 
+# Integrações e links públicos
+
+- **OpenWeather (clima)**: crie uma conta gratuita em openweathermap.org, copie a *API key* e cadastre em
+  *Configurações > Integrações > OpenWeather*. A chave pode levar até 2 horas para ser ativada pelo OpenWeather.
+- **Links públicos (pedir fotos / visualizar diário)**: funcionam sem login, mas o navegador do visitante **só fornece a
+  localização em HTTPS**. Pelo endereço `http://IP:8917` o sistema registra o IP e o aparelho, mas não as coordenadas.
+  Para registrar as coordenadas, publique o Struvia com HTTPS (seção abaixo).
+- **IP real atrás de proxy**: se usar Nginx Proxy Manager, Traefik ou Cloudflare Tunnel, acrescente na `api` e no
+  `worker` a variável `TRUSTED_PROXIES` com o IP do proxy (ex.: `TRUSTED_PROXIES: 192.168.3.100`).
+
 # Acesso pelo celular e HTTPS (opcional)
 
 - **App Android:** no primeiro uso informe `http://IP-DO-ZIMAOS:8917` (na rede da empresa) ou o seu domínio HTTPS.

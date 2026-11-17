@@ -196,9 +196,29 @@ do diário de obra e anexos. Adicione `https://localhost` e `capacitor://localho
 | **PNCP** | — (API pública) | Licitações › Buscar no PNCP: propostas abertas / publicadas, filtros por UF, modalidade e palavras-chave, buscas salvas e importação com um clique. |
 | **OpenRouter** | Configurações › Integrações | Assistente IA e "Redigir com IA" nos documentos; qualquer modelo do OpenRouter. |
 | **Documenso** | Configurações › Integrações | URL da sua instância (ZimaOS) + API token. Documento emitido › *Enviar p/ assinatura*. Webhook opcional em `/api/webhooks/documenso` com o cabeçalho `X-Documenso-Secret`. |
+| **OpenWeather** | Configurações › Integrações | API key gratuita (openweathermap.org). Clima atual da obra e preenchimento automático de manhã/tarde no diário (hoje e próximos 5 dias). |
+| **IBGE** | — (API pública) | Estados e municípios nos cadastros (obra, clientes, licitações, empresa), com cache no banco. |
 | **S3** | Configurações › Backup | Ver seção 2. |
 
 ---
+
+## 5.1 Diário de obra, cronograma, fotos e cartilha
+
+- **Diário**: clima (manhã/tarde com condição, temperaturas, umidade e vento — preenchimento automático pelo OpenWeather),
+  equipe (da lista de funcionários), máquinas (da frota), materiais, serviços (do cronograma, com % executado), visitas,
+  ocorrências, pendências e providências. Ao criar um novo diário, são copiados do anterior: equipe, máquinas, serviços
+  não concluídos e **somente as pendências ainda não resolvidas**.
+- **Cronograma (Gantt)**: aba *Cronograma* da obra. O avanço de cada serviço é atualizado pelo diário mais recente.
+- **Fotos**: corrigidas pela orientação da câmera e marcadas com **coordenadas e data/hora** ("Seg 14 de set de 2026 ·
+  14:32"). Ordem das coordenadas: GPS da foto → localização do aparelho → coordenadas da obra (indicado "(obra)").
+  O arquivo original é guardado (download pelo visualizador).
+- **Links públicos** (sem login): *Pedir foto* (a pessoa envia pelo celular) e *Visualizar diário* (com PDF). Cada acesso
+  registra **IP, aparelho, data/hora e coordenadas**. Navegadores **só fornecem a localização em HTTPS** — sem HTTPS, o
+  IP é registrado e a localização fica como "recusada/indisponível". Atrás de um proxy reverso, informe `TRUSTED_PROXIES`.
+- **PDF do diário** e **Cartilha** (obra › *Cartilha PDF*, período de datas): capa, resumo da obra, sumário, todos os
+  diários com fotos organizadas (horizontais e verticais sem distorção) e assinaturas, nas cores e logo da empresa.
+  Formatos: **livreto** (A5 montado em A4 — imprima frente e verso virando na borda curta, dobre e grampeie), A5 digital
+  ou A4. Os PDFs viram documentos numerados e podem ser **enviados para assinatura no Documenso**.
 
 ## 6. Documentos, timbrado e variáveis
 

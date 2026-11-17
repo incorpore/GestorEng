@@ -1,10 +1,13 @@
 import { Input, Select, Textarea, Toggle } from '@/components/ui'
+import { GeoInput, MunicipioSelect, UfSelect } from './LocalidadeInputs'
 import { RelationSelect } from './RelationSelect'
 import type { FieldDef } from './types'
 
 export const UFS = ['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO']
 
-export function FieldInput({ f, value, onChange }: { f: FieldDef; value: any; onChange: (v: any) => void }) {
+export function FieldInput({ f, value, onChange, values = {}, set }: {
+  f: FieldDef; value: any; onChange: (v: any) => void; values?: Record<string, any>; set?: (k: string, v: any) => void
+}) {
   const t = f.type || 'text'
   const common = { id: f.name, required: f.required, readOnly: f.readOnly, placeholder: f.placeholder }
   switch (t) {
@@ -35,12 +38,13 @@ export function FieldInput({ f, value, onChange }: { f: FieldDef; value: any; on
         </Select>
       )
     case 'uf':
-      return (
-        <Select {...common} value={value ?? ''} onChange={(e) => onChange(e.target.value || null)}>
-          <option value="">—</option>
-          {UFS.map((u) => <option key={u}>{u}</option>)}
-        </Select>
-      )
+      return <UfSelect disabled={f.readOnly} value={value ?? null} onChange={onChange} />
+    case 'municipio':
+      return <MunicipioSelect disabled={f.readOnly} uf={f.ufField ? values[f.ufField] : null} value={value ?? null}
+        onChange={(nome, ibge) => { onChange(nome); if (f.ibgeField && set) set(f.ibgeField, ibge ? String(ibge) : null) }} />
+    case 'geo':
+      return <GeoInput disabled={f.readOnly} value={value ?? null} onChange={onChange}
+        onCoords={(lat, lon) => { onChange(lat); if (f.lonField && set) set(f.lonField, lon) }} />
     case 'relation':
       return <RelationSelect endpoint={f.relation!.endpoint} labelKey={f.relation!.labelKey} params={f.relation!.params}
         value={value} onChange={(v) => onChange(v)} disabled={f.readOnly} />

@@ -31,7 +31,7 @@ export function FormGrid({ fields, values, set }: { fields: FieldDef[]; values: 
             {s.items.filter((f) => !f.hidden?.(values)).map((f) => (
               <Field key={f.name} label={f.label} required={f.required} hint={f.hint}
                 className={spanCls[f.span || (f.type === 'textarea' ? 4 : 2)]}>
-                <FieldInput f={f} value={values[f.name]} onChange={(v) => set(f.name, v)} />
+                <FieldInput f={f} value={values[f.name]} onChange={(v) => set(f.name, v)} values={values} set={set} />
               </Field>
             ))}
           </div>

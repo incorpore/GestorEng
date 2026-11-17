@@ -71,9 +71,10 @@ export const TIPO_DOC: Option[] = [
   { value: 'oficio', label: 'Ofício' }, { value: 'boletim_medicao', label: 'Boletim de medição' },
   { value: 'recibo', label: 'Recibo' }, { value: 'declaracao', label: 'Declaração' }, { value: 'contrato', label: 'Contrato' },
   { value: 'relatorio', label: 'Relatório' }, { value: 'memorando', label: 'Memorando' }, { value: 'proposta', label: 'Proposta' },
-  { value: 'ata', label: 'Ata' }, { value: 'notificacao', label: 'Notificação' }, { value: 'outro', label: 'Outro' },
+  { value: 'ata', label: 'Ata' }, { value: 'notificacao', label: 'Notificação' }, { value: 'cartilha', label: 'Cartilha' }, { value: 'outro', label: 'Outro' },
 ]
 export const STATUS_DOC: Option[] = [
+  { value: 'gerando', label: 'Gerando...', tone: 'blue' }, { value: 'erro', label: 'Falha ao gerar', tone: 'red' },
   { value: 'rascunho', label: 'Rascunho', tone: 'gray' }, { value: 'emitido', label: 'Emitido', tone: 'blue' },
   { value: 'aguardando_assinatura', label: 'Aguardando assinatura', tone: 'yellow' },
   { value: 'assinado', label: 'Assinado', tone: 'green' }, { value: 'assinatura_recusada', label: 'Assinatura recusada', tone: 'red' },

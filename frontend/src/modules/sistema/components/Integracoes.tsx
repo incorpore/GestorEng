@@ -52,6 +52,9 @@ export function Integracoes() {
       <IntegracaoCard chave="documenso" titulo="Documenso (assinatura eletrônica)" dados={q.data.documenso} testar="/documentos-acoes/integracao/documenso/testar"
         segredoLabel="API token" webhook descricao="Instância self-hosted (ex.: no ZimaOS). Gere o token em Configurações > API Tokens do Documenso."
         campos={[{ k: 'base_url', l: 'URL do Documenso', ph: 'http://192.168.0.10:3000' }]} />
+      <IntegracaoCard chave="openweather" titulo="OpenWeather (clima)" dados={q.data.openweather} testar="/clima/testar" segredoLabel="API key"
+        descricao="Clima atual da obra e preenchimento automático das condições de manhã/tarde no diário. Crie a chave gratuita em openweathermap.org (pode levar até 2 h para ativar)."
+        campos={[{ k: 'base_url', l: 'URL da API' }]} />
       <Card title="PNCP"><p className="text-sm text-slate-500">A API de consulta do PNCP é pública e não requer credenciais. Use Licitações › Buscar no PNCP.</p></Card>
     </div>
   )

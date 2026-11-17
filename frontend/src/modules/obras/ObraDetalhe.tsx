@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Calendar, FilePlus2, MapPin, Pencil, Plus, User } from 'lucide-react'
+import { BookOpen, Calendar, ClipboardList, FilePlus2, MapPin, Pencil, Plus, Send, User } from 'lucide-react'
 import { Badge, Button, Card, Empty, Loading, PageHeader, Stat, Tabs } from '@/components/ui'
 import { Attachments } from '@/components/resource/Attachments'
 import { ResourceForm } from '@/components/resource/ResourceForm'
@@ -15,8 +15,12 @@ import { documentosCfg } from '../documentos/config'
 import { lancamentosCfg } from '../financeiro/config'
 import { medicaoStatus, obrasCfg, Progress } from './config'
 import { MedicaoEditor } from './MedicaoEditor'
+import { CartilhaModal } from './components/CartilhaModal'
+import { ClimaHoje } from './components/ClimaHoje'
+import { Cronograma } from './components/Cronograma'
+import { LinkPublicoModal } from '@/components/links/LinkPublicoModal'
 
-type Tab = 'resumo' | 'medicoes' | 'diario' | 'financeiro' | 'documentos' | 'anexos'
+type Tab = 'resumo' | 'cronograma' | 'medicoes' | 'diario' | 'financeiro' | 'documentos' | 'anexos'
 
 export default function ObraDetalhe() {
   const { id } = useParams()
@@ -27,6 +31,8 @@ export default function ObraDetalhe() {
   const [tab, setTab] = useState<Tab>('resumo')
   const [edit, setEdit] = useState(false)
   const [med, setMed] = useState<any | null | undefined>(undefined)
+  const [cartilha, setCartilha] = useState(false)
+  const [pedirFotos, setPedirFotos] = useState(false)
   const obra = useQuery({ queryKey: ['/obras', obraId], queryFn: () => api.get(`/obras/${obraId}`) })
   const resumo = useQuery({ queryKey: ['obra-resumo', obraId], queryFn: () => api.get(`/obras/${obraId}/resumo`) })
   const medicoes = useQuery({ queryKey: ['/medicoes', { obra_id: obraId }], queryFn: () => api.get('/medicoes', { obra_id: obraId, page_size: 200 }), enabled: tab === 'medicoes' })
@@ -45,10 +51,15 @@ export default function ObraDetalhe() {
           <Badge tone="gray">{label(TIPO_OBRA, o.tipo)}</Badge>
           {o.numero_contrato && <span>Contrato {o.numero_contrato}</span>}
         </span>}
-        actions={can('obras.editar') && <Button variant="secondary" icon={<Pencil className="h-4 w-4" />} onClick={() => setEdit(true)}>Editar</Button>} />
+        actions={<>
+          {modules.has('diario') && can('diario.ver', 'documentos.criar') && <Button variant="secondary" icon={<BookOpen className="h-4 w-4" />} onClick={() => setCartilha(true)}>Cartilha PDF</Button>}
+          {can('obras.editar') && <Button variant="secondary" icon={<Send className="h-4 w-4" />} onClick={() => setPedirFotos(true)}>Pedir fotos</Button>}
+          {can('obras.editar') && <Button variant="secondary" icon={<Pencil className="h-4 w-4" />} onClick={() => setEdit(true)}>Editar</Button>}
+        </>} />
 
       <Tabs value={tab} onChange={setTab} tabs={[
         { key: 'resumo', label: 'Resumo' },
+        { key: 'cronograma', label: 'Cronograma' },
         { key: 'medicoes', label: 'Medições' },
         { key: 'diario', label: 'Diário de obra', hidden: !modules.has('diario') || !can('diario.ver') },
         { key: 'financeiro', label: 'Financeiro', hidden: !modules.has('financeiro') || !can('financeiro.ver') },
@@ -56,13 +67,26 @@ export default function ObraDetalhe() {
         { key: 'anexos', label: 'Anexos' },
       ]} />
 
+      {tab === 'cronograma' && <Cronograma obraId={obraId} />}
       {tab === 'resumo' && (
         <div className="space-y-4">
+          <div className="grid gap-4 lg:grid-cols-2">
+            <ClimaHoje obraId={obraId} />
+            <Card title={<span className="flex items-center gap-2"><ClipboardList className="h-4 w-4 text-orange-500" />Pendências em aberto
+              <span className="rounded-full bg-slate-100 px-2 text-xs font-normal dark:bg-slate-800">{r.pendencias?.length ?? 0}</span></span>}>
+              {!r.pendencias?.length ? <p className="text-sm text-slate-400">Nenhuma pendência em aberto no último diário.</p> : (
+                <ul className="space-y-2 text-sm">{r.pendencias.map((p: any) => (
+                  <li key={p.id} className="rounded-lg bg-orange-50 p-2 dark:bg-orange-950/30"><p>{p.descricao}</p>
+                    <p className="text-xs text-slate-500">{[p.responsavel, p.prazo && `prazo ${data(p.prazo)}`, p.origem_data && `desde ${data(p.origem_data)}`].filter(Boolean).join(' · ')}</p></li>
+                ))}</ul>
+              )}
+            </Card>
+          </div>
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             <Stat label="Valor do contrato" value={moeda(o.valor_total)} hint={Number(o.valor_aditivos) ? `inclui ${moeda(o.valor_aditivos)} de aditivos` : undefined} />
             <Stat label="Medido acumulado" value={moeda(r.medido_acumulado)} hint={`${r.medicoes ?? 0} medição(ões)`} />
             <Stat label="Saldo contratual" value={moeda(saldoContrato)} />
-            <Stat label="Avanço físico" value={`${Number(o.progresso || 0).toFixed(1)}%`} />
+            <Stat label="Avanço físico" value={`${Number(r.avanco_cronograma ?? o.progresso ?? 0).toFixed(1)}%`} hint={r.avanco_cronograma != null ? 'pelo cronograma' : undefined} onClick={() => setTab('cronograma')} />
           </div>
           {r.financeiro && (
             <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -124,6 +148,8 @@ export default function ObraDetalhe() {
 
       <ResourceForm open={edit} onClose={() => setEdit(false)} endpoint="/obras" fields={obrasCfg.fields} row={o} title="Editar obra" size="xl"
         onSaved={() => { setEdit(false); qc.invalidateQueries({ queryKey: ['/obras'] }); qc.invalidateQueries({ queryKey: ['obra-resumo', obraId] }) }} />
+      <CartilhaModal obraId={obraId} open={cartilha} onClose={() => setCartilha(false)} />
+      <LinkPublicoModal entidade="obra" entidadeId={obraId} tipoInicial="fotos" open={pedirFotos} onClose={() => setPedirFotos(false)} />
       {med !== undefined && <MedicaoEditor obraId={obraId} medicao={med} onClose={() => setMed(undefined)}
         onSaved={() => { qc.invalidateQueries({ queryKey: ['/medicoes'] }); qc.invalidateQueries({ queryKey: ['obra-resumo', obraId] }) }} />}
     </div>

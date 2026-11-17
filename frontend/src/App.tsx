@@ -12,6 +12,9 @@ import ForcePassword from '@/pages/ForcePassword'
 import Login from '@/pages/Login'
 import NotFound from '@/pages/NotFound'
 import ServerSetup from '@/pages/ServerSetup'
+import { lazy, Suspense } from 'react'
+
+const LinkPublico = lazy(() => import('@/pages/publico/LinkPublico'))
 
 function Authenticated() {
   const { modules } = useAuth()
@@ -30,6 +33,13 @@ function Branding() {
 }
 
 export default function App() {
+  // link público (sem login): /p/<token>
+  const publico = !isNative && /^\/p\/([\w-]{10,100})$/.exec(window.location.pathname)
+  if (publico) return <Suspense fallback={<Loading />}><LinkPublico token={publico[1]} /></Suspense>
+  return <AppPrivado />
+}
+
+function AppPrivado() {
   const [server, setServer] = useState<string | null | undefined>(isNative ? undefined : '')
   const [editServer, setEditServer] = useState(false)
 

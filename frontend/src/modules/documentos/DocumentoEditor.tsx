@@ -8,6 +8,7 @@ import { errMsg, useToast } from '@/core/toast'
 import { AiDraftButton } from './components/AiDraft'
 import { DocActions } from './components/DocActions'
 import { DocMeta } from './components/DocMeta'
+import { PdfGerado } from './components/PdfGerado'
 import { PdfPreview } from './components/PdfPreview'
 import { RichEditor } from './RichEditor'
 
@@ -21,7 +22,8 @@ export default function DocumentoEditor() {
   const nav = useNavigate()
   const qc = useQueryClient()
   const toast = useToast()
-  const q = useQuery({ queryKey: ['/documentos', Number(id)], queryFn: () => api.get(`/documentos/${id}`) })
+  const q = useQuery({ queryKey: ['/documentos', Number(id)], queryFn: () => api.get(`/documentos/${id}`),
+    refetchInterval: (qq) => (qq.state.data?.status === 'gerando' ? 3000 : false) })
   const [v, setV] = useState<any>(null)
   const [dirty, setDirty] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -30,6 +32,20 @@ export default function DocumentoEditor() {
   if (!v) return <Loading />
 
   const readOnly = v.status !== 'rascunho'
+  const gerado = !v.conteudo && (v.pdf_arquivo_id || ['gerando', 'erro'].includes(v.status))
+  if (gerado) return (
+    <div className="space-y-4">
+      <PageHeader back={() => nav('/documentos')} title={v.titulo} subtitle={v.numero}
+        actions={!['gerando', 'erro'].includes(v.status) && <DocActions doc={v} dirty={false} onSave={async () => true}
+          onChange={(d) => { setV(d); qc.invalidateQueries({ queryKey: ['/documentos'] }) }} onPreview={() => null} />} />
+      <PdfGerado doc={v} />
+      {v.assinantes?.length > 0 && (
+        <Card title="Assinaturas"><ul className="divide-y divide-slate-100 text-sm dark:divide-slate-800">
+          {v.assinantes.map((a: any, i: number) => <li key={i} className="flex justify-between py-2"><span>{a.nome} · {a.email}</span><span className="text-slate-500">{a.status}</span></li>)}
+        </ul></Card>
+      )}
+    </div>
+  )
   const set = (k: string, x: any) => { setV((s: any) => ({ ...s, [k]: x })); setDirty(true) }
 
   async function save(): Promise<boolean> {
