@@ -23,6 +23,14 @@ def test_backup_s3(admin, s3):
     from app.core.database import SessionLocal
     from app.modules.backup import service
 
+    # arquivo grande (> 8 MB) força upload em partes (multipart), onde checksums do boto3 quebravam o S3-compatível
+    import os
+
+    from app.core import storage
+
+    grande = storage.root() / "ab" / "grande.bin"
+    grande.parent.mkdir(parents=True, exist_ok=True)
+    grande.write_bytes(os.urandom(12 * 1024 * 1024))
     with SessionLocal() as db:
         reg = service.executar(db, "manual")
     assert reg.status == "sucesso", reg.mensagem

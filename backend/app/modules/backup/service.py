@@ -42,8 +42,11 @@ def _client(cfg: dict, secret: str | None):
     return boto3.client(
         "s3", endpoint_url=cfg.get("endpoint_url") or None, region_name=cfg.get("regiao") or "us-east-1",
         aws_access_key_id=cfg["access_key"], aws_secret_access_key=secret,
+        # checksums só quando exigidos: o padrão do boto3 >= 1.36 quebra provedores S3-compatíveis
+        # (MinIO, Backblaze, Wasabi, R2...) em uploads/downloads grandes (multipart)
         config=Config(s3={"addressing_style": "path" if cfg.get("path_style") else "auto"}, retries={"max_attempts": 5},
-                      signature_version="s3v4"),
+                      signature_version="s3v4", request_checksum_calculation="when_required",
+                      response_checksum_validation="when_required"),
     )
 
 

@@ -5,6 +5,10 @@ os.environ.setdefault("DATABASE_URL", "postgresql+psycopg://postgres@127.0.0.1:5
 os.environ.setdefault("SECRET_KEY", "test-secret-key-0123456789abcdefghijklmnop")
 os.environ.setdefault("ENCRYPTION_KEY", "test-encryption-key-0123456789abcdefghij")
 os.environ.setdefault("STORAGE_DIR", "/tmp/struvia-test-storage")  # noqa: S108
+# começa cada execução com a pasta de arquivos vazia (evita acumular arquivos entre execuções)
+import shutil  # noqa: E402
+
+shutil.rmtree(os.environ["STORAGE_DIR"], ignore_errors=True)
 os.environ["ADMIN_EMAIL"] = "admin@teste.com"
 os.environ["ADMIN_PASSWORD"] = "Admin@12345"
 os.environ["COOKIE_SECURE"] = "false"
