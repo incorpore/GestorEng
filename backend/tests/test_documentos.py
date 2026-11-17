@@ -370,76 +370,15 @@ def test_documenso_v2_status_e_download_assinado(monkeypatch):
     assert vistos == [("v2/document/12", None), ("v2/document/12/download", {"version": "signed"})]
 
 
-def _pdf_assinaturas() -> bytes:
-    from weasyprint import HTML
-
-    return HTML(string="""<html><body style='font-family:Arial;font-size:11pt'><div style='padding:30mm 20mm'>
-    <p>Termo de aceite da obra.</p>
-    <p style='margin-top:30mm;text-align:center'>______________________________<br><b>Jorge Diretor</b><br>Diretor</p>
-    <table style='width:100%;margin-top:20mm'><tr>
-    <td style='text-align:center;width:50%'>______________________________<br>Maria Fiscal<br>Fiscal</td>
-    <td style='text-align:center;width:50%'>______________________________<br>Carlos Técnico<br>RT</td></tr></table>
-    </div></body></html>""").write_pdf()
-
-
-def test_detectar_campos_por_texto_e_por_ia(admin, monkeypatch):
-    from app.modules.documentos import campos
-
-    pdf = _pdf_assinaturas()
-    ass = [{"nome": "Maria Fiscal", "email": "m@x.com"}, {"nome": "Jorge Diretor", "email": "j@x.com"},
-           {"nome": "Carlos Técnico", "email": "c@x.com"}, {"nome": "Só Cópia", "email": "s@x.com", "papel": "CC"}]
-    r = campos.detectar(pdf, ass)
-    por = {c["indice"]: c for c in r["campos"]}
-    assert r["metodo"] == "texto" and set(por) == {0, 1, 2}
-    # Maria à esquerda, Carlos à direita, mesma altura; Jorge acima dos dois; campos acima dos nomes
-    assert por[0]["x"] < 50 < por[2]["x"] and abs(por[0]["y"] - por[2]["y"]) < 0.5 and por[1]["y"] < por[0]["y"]
-    nomes = {linha.texto: linha for linha in campos.linhas(pdf)}
-    assert por[1]["y"] + por[1]["altura"] < nomes["Jorge Diretor"].y
-
-    # IA devolvendo JSON (com texto em volta) — usado como veio, ajustado aos limites
-    resposta = 'Aqui está: {"campos": [{"assinante": 1, "pagina": 1, "x": 35, "y": 30, "largura": 30, "altura": 6, ' \
-               '"referencia": "Jorge Diretor"}, {"assinante": 3, "pagina": 1, "x": 1, "y": 1}, ' \
-               '{"assinante": 0, "pagina": 9, "x": 1, "y": 1}]}'
-    r = campos.detectar(pdf, ass, chamar=lambda msgs: resposta)
-    por = {c["indice"]: c for c in r["campos"]}
-    assert r["metodo"] == "ia" and por[1]["origem"] == "ia" and por[1]["x"] == 35
-    # quem a IA não achou (0 com página inválida, 2 ausente) vem da busca no texto; cópia (3) nunca recebe campo
-    assert por[0]["origem"] == "texto" and por[2]["origem"] == "texto" and 3 not in por
-    # IA quebrada: avisa e usa o texto
-    r = campos.detectar(pdf, ass, chamar=lambda msgs: "não sei")
-    assert r["metodo"] == "texto" and "IA" in r["aviso"] and len(r["campos"]) == 3
-
-
-def test_detectar_endpoint_e_envio_com_posicoes(admin, monkeypatch):
-    from app.core import storage
+def test_envio_com_posicoes_marcadas(admin, monkeypatch):
     from app.modules.documentos import documenso
-    from app.modules.ia import module as ia
 
     admin.put("/api/configuracoes/empresa", json={"responsavel": "Jorge Diretor", "email_responsavel": "j@x.com"})
     modelo = admin.get("/api/modelos-documento", params={"tipo": "oficio"}).json()["items"][0]
     doc = admin.post("/api/documentos-acoes/gerar", json={"modelo_id": modelo["id"], "titulo": "Aceite"}).json()
     admin.post(f"/api/documentos-acoes/{doc['id']}/emitir")
-    # troca o PDF emitido pelo PDF de teste com blocos de assinatura
-    from app.core.database import SessionLocal
-    from app.core.models import Arquivo
-    from app.modules.documentos.models import Documento
-
-    with SessionLocal() as db:
-        a = db.get(Arquivo, db.get(Documento, doc["id"]).pdf_arquivo_id)
-        storage.path_for(a.uuid).write_bytes(_pdf_assinaturas())
     url = f"/api/documentos-acoes/{doc['id']}/assinatura"
     ass = [{"nome": "Jorge Diretor", "email": "j@x.com"}, {"nome": "Maria Fiscal", "email": "m@x.com"}]
-    # sem OpenRouter configurado → busca pelo texto
-    r = admin.post(f"{url}/detectar", json={"assinantes": ass})
-    assert r.status_code == 200, r.text
-    assert r.json()["metodo"] == "texto" and len(r.json()["campos"]) == 2 and r.json()["paginas"][0]["largura"] > 500
-    # com OpenRouter → IA
-    admin.put("/api/integracoes/openrouter", json={"config": {}, "segredo": "sk-teste"})
-    monkeypatch.setattr(ia, "_call", lambda db, msgs, modelo=None, max_tokens=4000:
-                        '{"campos": [{"assinante": 0, "pagina": 1, "x": 40, "y": 33, "largura": 25, "altura": 6}]}')
-    r = admin.post(f"{url}/detectar", json={"assinantes": ass}).json()
-    assert r["metodo"] == "ia" and r["campos"][0]["x"] == 40 and r["campos"][1]["origem"] == "texto"
-
     # envio usa as posições informadas
     enviados = []
 

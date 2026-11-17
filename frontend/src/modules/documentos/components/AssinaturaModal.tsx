@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { DndContext, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
 import { SortableContext, arrayMove, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { GripVertical, Plus, ShieldCheck, Sparkles, Trash2 } from 'lucide-react'
+import { GripVertical, MousePointerClick, Plus, ShieldCheck, Trash2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Button, Field, IconButton, Input, Loading, Modal, Select, Textarea, Toggle } from '@/components/ui'
 import { api } from '@/core/api'
@@ -33,21 +33,11 @@ export function AssinaturaModal({ docId, open, onClose, onSent }: { docId: numbe
   const [loading, setLoading] = useState(false)
   // posições de assinatura por e-mail (sobrevivem à reordenação da lista)
   const [posicoes, setPosicoes] = useState<(CampoPos & { email: string })[] | null>(null)
-  const [detectando, setDetectando] = useState(false)
-  const [infoDet, setInfoDet] = useState<{ metodo: string; aviso?: string | null } | null>(null)
+  const [marcando, setMarcando] = useState(false)
+  const [ativo, setAtivo] = useState<string | null>(null) // e-mail de quem está sendo marcado
   const idx = (email: string) => rows.findIndex((r) => r.email.toLowerCase() === email.toLowerCase())
   const camposAtuais: (CampoPos & { email: string })[] = (posicoes || []).map((p) => ({ ...p, indice: idx(p.email) })).filter((p) => p.indice >= 0)
 
-  async function detectar() {
-    setDetectando(true)
-    try {
-      const assinantes = rows.map(({ nome, email, papel }) => ({ nome, email, papel }))
-      const r = await api.post<{ campos: CampoPos[]; metodo: string; aviso?: string | null }>(`/documentos-acoes/${docId}/assinatura/detectar`, { assinantes })
-      setPosicoes(r.campos.map((c) => ({ ...c, email: rows[c.indice].email })))
-      setInfoDet({ metodo: r.metodo, aviso: r.aviso })
-      if (!r.campos.length) toast(r.aviso || 'Nenhum local de assinatura encontrado; será usada a posição padrão.', 'info')
-    } catch (e) { toast(errMsg(e), 'error') } finally { setDetectando(false) }
-  }
   const rep = padrao.data?.representante
   const repOk = !!rep?.nome && !!rep?.email
   const sensores = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
@@ -112,24 +102,35 @@ export function AssinaturaModal({ docId, open, onClose, onSent }: { docId: numbe
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
                 <p className="text-sm font-medium">Posição das assinaturas</p>
-                <p className="text-xs text-slate-500">{posicoes ? (infoDet?.metodo === 'ia' ? 'Detectadas pela IA. Arraste os retângulos para ajustar.' : 'Detectadas pelo texto do PDF. Arraste para ajustar.') : 'Sem detecção: as assinaturas ficam lado a lado no rodapé da última página.'}</p>
+                <p className="text-xs text-slate-500">{camposAtuais.length ? `${camposAtuais.length} marcada(s). Quem não for marcado assina no rodapé da última página.` : 'Sem marcação: as assinaturas ficam lado a lado no rodapé da última página.'}</p>
               </div>
-              <Button size="sm" variant="secondary" icon={<Sparkles className="h-4 w-4" />} loading={detectando}
-                disabled={rows.some((r) => !r.nome.trim() || !r.email.trim())} onClick={detectar}>{posicoes ? 'Detectar novamente' : 'Detectar com IA'}</Button>
+              <Button size="sm" variant="secondary" icon={<MousePointerClick className="h-4 w-4" />} disabled={rows.some((r) => !r.nome.trim() || !r.email.trim())}
+                onClick={() => { setMarcando(!marcando); if (!ativo) setAtivo(rows.find((r) => r.papel === 'SIGNER')?.email || null) }}>{marcando ? 'Ocultar documento' : 'Marcar no documento'}</Button>
             </div>
-            {infoDet?.aviso && <p className="mt-2 text-xs text-amber-600">{infoDet.aviso}</p>}
-            {posicoes && (
+            {marcando && (
               <>
+                <p className="mt-2 text-xs text-slate-500">Escolha a pessoa e clique no documento sobre a linha onde ela assina. Arraste o retângulo para ajustar.</p>
                 <ul className="mt-2 flex flex-wrap gap-2 text-xs">
                   {rows.filter((r) => r.papel === 'SIGNER').map((r) => {
                     const c = camposAtuais.find((x) => x.email.toLowerCase() === r.email.toLowerCase())
                     const i = idx(r.email)
-                    return <li key={r.id} className="flex items-center gap-1 rounded-full border px-2 py-0.5" style={{ borderColor: corAssinante(i) }}>
-                      <span className="h-2 w-2 rounded-full" style={{ background: corAssinante(i) }} />{r.nome}: {c ? `pág. ${c.pagina}` : 'não encontrado (posição padrão)'}</li>
+                    const sel = ativo?.toLowerCase() === r.email.toLowerCase()
+                    return <li key={r.id}><button type="button" onClick={() => setAtivo(r.email)} aria-pressed={sel}
+                      className="flex items-center gap-1 rounded-full border-2 px-2.5 py-1"
+                      style={{ borderColor: corAssinante(i), background: sel ? `${corAssinante(i)}22` : undefined, fontWeight: sel ? 600 : 400 }}>
+                      <span className="h-2 w-2 rounded-full" style={{ background: corAssinante(i) }} />{r.nome || 'Assinante'}: {c ? `pág. ${c.pagina}` : 'não marcado'}</button></li>
                   })}
                 </ul>
-                {camposAtuais.length > 0 && <div className="mt-2"><PosicoesAssinatura docId={docId} campos={camposAtuais} nomes={rows.map((r) => r.nome)}
-                  onChange={(cs) => setPosicoes(cs.map((c) => ({ ...c, email: rows[c.indice].email })))} /></div>}
+                <div className="mt-2"><PosicoesAssinatura docId={docId} campos={camposAtuais} nomes={rows.map((r) => r.nome)}
+                  ativo={ativo ? idx(ativo) : null}
+                  onChange={(cs) => {
+                    const novas = cs.map((c) => ({ ...c, email: rows[c.indice].email }))
+                    const marcou = novas.length > camposAtuais.length || novas.some((n) => !camposAtuais.find((c) => c.email === n.email && c.x === n.x && c.y === n.y))
+                    setPosicoes(novas)
+                    // depois de marcar alguém por clique, passa para a próxima pessoa ainda sem marcação
+                    const proximo = rows.find((r) => r.papel === 'SIGNER' && !novas.some((n) => n.email.toLowerCase() === r.email.toLowerCase()))
+                    if (marcou && novas.length > camposAtuais.length && proximo) setAtivo(proximo.email)
+                  }} /></div>
               </>
             )}
           </div>

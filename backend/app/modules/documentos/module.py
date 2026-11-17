@@ -327,7 +327,7 @@ class AssinaturaIn(BaseModel):
     sequencial: bool = True  # cada assinante recebe depois que o anterior assinar, na ordem da lista
     pasta_id: str | None = Field(None, max_length=64)  # pasta escolhida no Documenso
     pasta_auto: bool = True  # sem pasta escolhida: usa o padrão (ERP/Cliente/Obra/Documentos|Anexos)
-    campos: list["CampoAssinatura"] | None = Field(None, max_length=60)  # posições detectadas/ajustadas
+    campos: list["CampoAssinatura"] | None = Field(None, max_length=60)  # posições marcadas na tela
 
 
 class CampoAssinatura(BaseModel):
@@ -342,9 +342,6 @@ class CampoAssinatura(BaseModel):
 AssinaturaIn.model_rebuild()
 
 
-class DetectarIn(BaseModel):
-    assinantes: list[Assinante] = Field(min_length=1, max_length=20)
-    usar_ia: bool = True
 
 
 def caminho_auto(db: Session, doc: Documento) -> list[str]:
@@ -459,29 +456,6 @@ def assinatura_padrao(documento_id: int | None = None, db: Session = Depends(get
                 vistos.add(email)
                 recentes.append({"nome": a["nome"], "email": a["email"]})
     return {"representante": rep, "recentes": recentes[:30], **destino}
-
-
-@r.post("/{did}/assinatura/detectar")
-def detectar_campos(did: int, body: DetectarIn, request: Request, db: Session = Depends(get_db),
-                    cu: CurrentUser = Depends(require("documentos.assinar"))):
-    """Localiza onde cada assinante deve assinar no PDF (IA configurada + leitura do texto do PDF)."""
-    from . import campos
-
-    doc = _get_doc(db, cu, did)
-    if not doc.pdf_arquivo_id:
-        raise HTTPException(409, "Emita o documento antes de posicionar as assinaturas")
-    a = db.get(Arquivo, doc.pdf_arquivo_id)
-    chamar = None
-    if body.usar_ia and cu.has("ia.usar") and get_integracao(db, "openrouter")[1]:
-        from app.modules.ia.module import _call
-
-        def chamar(msgs):
-            return _call(db, msgs, max_tokens=2500)
-    res = campos.detectar(storage.read_bytes(a.uuid), [x.model_dump() for x in body.assinantes], chamar)
-    audit.log(db, user_id=cu.id, action="detectar_assinaturas", entity="documento", entity_id=doc.id,
-              data={"metodo": res["metodo"], "encontrados": len(res["campos"])}, request=request)
-    db.commit()
-    return res
 
 
 @r.post("/{did}/assinatura", response_model=DocumentoOut)

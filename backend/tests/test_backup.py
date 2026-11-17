@@ -20,13 +20,12 @@ def test_backup_s3(admin, s3):
     assert r.status_code == 200 and r.json()["secret_definido"] and r.json()["prefixo"] == "velmont/"
     assert "secret_key" not in r.json()
     assert admin.post("/api/backup/testar").json()["ok"]
-    from app.core.database import SessionLocal
-    from app.modules.backup import service
-
     # arquivo grande (> 8 MB) força upload em partes (multipart), onde checksums do boto3 quebravam o S3-compatível
     import os
 
     from app.core import storage
+    from app.core.database import SessionLocal
+    from app.modules.backup import service
 
     grande = storage.root() / "ab" / "grande.bin"
     grande.parent.mkdir(parents=True, exist_ok=True)
