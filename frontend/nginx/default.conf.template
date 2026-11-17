@@ -34,6 +34,17 @@ server {
         add_header Cache-Control "public, immutable";
         add_header X-Content-Type-Options "nosniff" always;
         try_files $uri @asset_ausente;
+
+        # módulos .mjs (ex.: leitor de PDF): o mime.types do nginx não conhece a extensão e o navegador
+        # recusa executar módulo servido como application/octet-stream
+        location ~* \.mjs$ {
+            types { }
+            default_type application/javascript;
+            expires 1y;
+            add_header Cache-Control "public, immutable";
+            add_header X-Content-Type-Options "nosniff" always;
+            try_files $uri @asset_ausente;
+        }
     }
 
     # arquivo de versão antiga que não existe mais: 404 sem cache (o Cloudflare não guarda o erro)
