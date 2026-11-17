@@ -1,13 +1,13 @@
-# GestorEng — somente a APLICAÇÃO (API + worker + web), usando PostgreSQL e Redis
+# Struvia — somente a APLICAÇÃO (API + worker + web), usando PostgreSQL e Redis
 # que já rodam em outros containers (ex.: ZimaOS / Portainer).
 #
-# 1) Crie o banco no seu Postgres 16+:  CREATE DATABASE gestoreng; CREATE USER gestoreng WITH PASSWORD '...'; ALTER DATABASE gestoreng OWNER TO gestoreng;
+# 1) Crie o banco no seu Postgres 16+:  CREATE DATABASE struvia; CREATE USER struvia WITH PASSWORD '...'; ALTER DATABASE struvia OWNER TO struvia;
 # 2) No .env defina DATABASE_URL, (opcional) REDIS_URL e EXTERNAL_NETWORK (rede Docker onde estão o Postgres/Redis)
 # 3) docker compose -f docker-compose.external.yml up -d
-name: gestoreng
+name: struvia
 
 x-app: &app
-  image: ${IMAGE_API:-gestoreng/api:local}
+  image: ${IMAGE_API:-struvia/api:local}
   build: ./backend
   pull_policy: ${PULL_POLICY:-build}
   restart: unless-stopped
@@ -37,7 +37,7 @@ services:
     depends_on: [api]
 
   web:
-    image: ${IMAGE_WEB:-gestoreng/web:local}
+    image: ${IMAGE_WEB:-struvia/web:local}
     build: ./frontend
     pull_policy: ${PULL_POLICY:-build}
     restart: unless-stopped

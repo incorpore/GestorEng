@@ -39,7 +39,7 @@ def test_refresh_rotacao_e_reuso(client):
 def test_refresh_por_cookie_web(client):
     r = client.post("/api/auth/login", json=ADMIN)
     assert "refresh_token" not in r.json() or r.json()["refresh_token"] is None
-    assert "ge_refresh" in r.cookies
+    assert "struvia_refresh" in r.cookies
     r2 = client.post("/api/auth/refresh")
     assert r2.status_code == 200
 
@@ -119,5 +119,5 @@ def test_redis_url_prefixo():
     assert parse_redis_url("redis://:x@r:6379/2?prefix=a:b:&ssl_cert_reqs=none")[1] == "a:b:"
     assert parse_redis_url("redis://:x@r:6379/2?prefix=a&ssl_cert_reqs=none")[0] == "redis://:x@r:6379/2?ssl_cert_reqs=none"
     assert parse_redis_url("redis://r:6379/0", "env") == ("redis://r:6379/0", "env:")
-    assert parse_redis_url("redis://r:6379/0")[1] == "gestoreng:"
-    assert parse_redis_url("redis://r:6379/0?prefix=GestorEng_")[1] == "GestorEng_"
+    assert parse_redis_url("redis://r:6379/0")[1] == "struvia:"
+    assert parse_redis_url("redis://r:6379/0?prefix=Struvia_")[1] == "Struvia_"

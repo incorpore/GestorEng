@@ -24,7 +24,7 @@ def _norm(s: str) -> str:
 
 def _get(path: str, params: dict) -> dict:
     try:
-        with httpx.Client(timeout=30, headers={"Accept": "application/json", "User-Agent": "GestorEng/1.0"}) as c:
+        with httpx.Client(timeout=30, headers={"Accept": "application/json", "User-Agent": "Struvia/1.0"}) as c:
             r = c.get(f"{BASE}{path}", params={k: v for k, v in params.items() if v not in (None, "")})
     except httpx.HTTPError as e:
         raise HTTPException(502, f"Falha ao consultar o PNCP: {e.__class__.__name__}")
@@ -105,7 +105,7 @@ BASE_PNCP = "https://pncp.gov.br/api/pncp/v1"
 
 def _get_pncp(path: str) -> list | dict:
     try:
-        with httpx.Client(timeout=30, headers={"Accept": "application/json", "User-Agent": "GestorEng/1.0"}) as c:
+        with httpx.Client(timeout=30, headers={"Accept": "application/json", "User-Agent": "Struvia/1.0"}) as c:
             r = c.get(f"{BASE_PNCP}{path}", params={"pagina": 1, "tamanhoPagina": 500} if path.endswith("itens") else None)
     except httpx.HTTPError as e:
         raise HTTPException(502, f"Falha ao consultar o PNCP: {e.__class__.__name__}")

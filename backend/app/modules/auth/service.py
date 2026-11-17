@@ -11,7 +11,7 @@ from app.core.security import create_access_token, new_opaque_token, sha256
 
 from .models import RefreshToken, Usuario
 
-COOKIE = "ge_refresh"
+COOKIE = "struvia_refresh"
 
 
 def now() -> datetime:

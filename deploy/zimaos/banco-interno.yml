@@ -1,29 +1,29 @@
-# GestorEng — ZimaOS · BANCO INTERNO (PostgreSQL + Redis instalados junto com o app)
+# Struvia — ZimaOS · BANCO INTERNO (PostgreSQL + Redis instalados junto com o app)
 # Troque todos os valores TROQUE_*. As variáveis de "api" e "worker" devem ser IGUAIS.
 # POSTGRES_PASSWORD deve ser igual em "db", "api" e "worker"; a senha do Redis igual no "command" do redis e em REDIS_PASSWORD.
 # Senhas podem ter qualquer caractere — o sistema codifica sozinho. Chaves: openssl rand -hex 32
-name: gestoreng
+name: struvia
 services:
   db:
-    container_name: gestoreng-db
+    container_name: struvia-db
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_DB: gestoreng
-      POSTGRES_USER: gestoreng
+      POSTGRES_DB: struvia
+      POSTGRES_USER: struvia
       POSTGRES_PASSWORD: TROQUE_SENHA_DO_BANCO
       TZ: America/Sao_Paulo
     volumes:
       - type: bind
-        source: /media/URSUS/AppData/GestorEng/postgres
+        source: /media/URSUS/AppData/Struvia/postgres
         target: /var/lib/postgresql/data
     networks:
-      - gestoreng
+      - struvia
     security_opt:
       - no-new-privileges:true
 
   redis:
-    container_name: gestoreng-redis
+    container_name: struvia-redis
     image: redis:7-alpine
     restart: unless-stopped
     command:
@@ -35,13 +35,13 @@ services:
       - --appendonly
       - "no"
     networks:
-      - gestoreng
+      - struvia
     security_opt:
       - no-new-privileges:true
 
   api:
-    container_name: gestoreng-api
-    image: ghcr.io/incorpore/gestoreng-api:latest
+    container_name: struvia-api
+    image: ghcr.io/incorpore/struvia-api:latest
     restart: unless-stopped
     command:
       - api
@@ -49,14 +49,14 @@ services:
       ENVIRONMENT: production
       POSTGRES_HOST: db
       POSTGRES_PORT: "5432"
-      POSTGRES_DB: gestoreng
-      POSTGRES_USER: gestoreng
+      POSTGRES_DB: struvia
+      POSTGRES_USER: struvia
       POSTGRES_PASSWORD: TROQUE_SENHA_DO_BANCO
       REDIS_HOST: redis
       REDIS_PORT: "6379"
       REDIS_PASSWORD: TROQUE_SENHA_DO_REDIS
       REDIS_DB: "0"
-      REDIS_PREFIX: GestorEng_
+      REDIS_PREFIX: Struvia_
       SECRET_KEY: TROQUE_CHAVE_1
       ENCRYPTION_KEY: TROQUE_CHAVE_2
       ADMIN_EMAIL: admin@velmont.com.br
@@ -70,21 +70,21 @@ services:
       STORAGE_DIR: /data/storage
     volumes:
       - type: bind
-        source: /media/URSUS/AppData/GestorEng/storage
+        source: /media/URSUS/AppData/Struvia/storage
         target: /data/storage
     depends_on:
       - db
       - redis
     networks:
-      - gestoreng
+      - struvia
     security_opt:
       - no-new-privileges:true
     cap_drop:
       - ALL
 
   worker:
-    container_name: gestoreng-worker
-    image: ghcr.io/incorpore/gestoreng-api:latest
+    container_name: struvia-worker
+    image: ghcr.io/incorpore/struvia-api:latest
     restart: unless-stopped
     command:
       - worker
@@ -92,14 +92,14 @@ services:
       ENVIRONMENT: production
       POSTGRES_HOST: db
       POSTGRES_PORT: "5432"
-      POSTGRES_DB: gestoreng
-      POSTGRES_USER: gestoreng
+      POSTGRES_DB: struvia
+      POSTGRES_USER: struvia
       POSTGRES_PASSWORD: TROQUE_SENHA_DO_BANCO
       REDIS_HOST: redis
       REDIS_PORT: "6379"
       REDIS_PASSWORD: TROQUE_SENHA_DO_REDIS
       REDIS_DB: "0"
-      REDIS_PREFIX: GestorEng_
+      REDIS_PREFIX: Struvia_
       SECRET_KEY: TROQUE_CHAVE_1
       ENCRYPTION_KEY: TROQUE_CHAVE_2
       COOKIE_SECURE: "false"
@@ -109,22 +109,22 @@ services:
       STORAGE_DIR: /data/storage
     volumes:
       - type: bind
-        source: /media/URSUS/AppData/GestorEng/storage
+        source: /media/URSUS/AppData/Struvia/storage
         target: /data/storage
     depends_on:
       - api
     healthcheck:
       disable: true
     networks:
-      - gestoreng
+      - struvia
     security_opt:
       - no-new-privileges:true
     cap_drop:
       - ALL
 
   web:
-    container_name: gestoreng-web
-    image: ghcr.io/incorpore/gestoreng-web:latest
+    container_name: struvia-web
+    image: ghcr.io/incorpore/struvia-web:latest
     restart: unless-stopped
     environment:
       API_UPSTREAM: api:8000
@@ -136,15 +136,15 @@ services:
     depends_on:
       - api
     networks:
-      - gestoreng
+      - struvia
     security_opt:
       - no-new-privileges:true
     cap_drop:
       - ALL
 
 networks:
-  gestoreng:
-    name: gestoreng
+  struvia:
+    name: struvia
     driver: bridge
 
 x-casaos:
@@ -157,4 +157,4 @@ x-casaos:
   port_map: "8917"
   scheme: http
   title:
-    custom: GestorEng
+    custom: Struvia

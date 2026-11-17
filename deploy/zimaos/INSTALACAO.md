@@ -1,5 +1,5 @@
 ---
-title: "GestorEng no ZimaOS — Guia de Instalação"
+title: "Struvia no ZimaOS — Guia de Instalação"
 subtitle: "Velmont · banco interno ou externo · passo a passo"
 lang: pt-BR
 ---
@@ -28,14 +28,14 @@ aparecem e podem ser alteradas no próprio painel do ZimaOS.
 
 # Passo 1 — Liberar o download das imagens (repositório privado)
 
-Como o repositório é privado, as imagens `ghcr.io/incorpore/gestoreng-api` e `gestoreng-web` também são privadas.
+Como o repositório é privado, as imagens `ghcr.io/incorpore/struvia-api` e `struvia-web` também são privadas.
 O ZimaOS precisa de um **token do GitHub** para baixá-las.
 
 **1.1 Criar o token (no navegador):**
 
 1. GitHub > clique na sua foto > **Settings** > **Developer settings** > **Personal access tokens** > **Tokens (classic)**.
 2. **Generate new token (classic)**.
-3. *Note*: `ZimaOS GestorEng` · *Expiration*: o prazo que preferir (anote para renovar).
+3. *Note*: `ZimaOS Struvia` · *Expiration*: o prazo que preferir (anote para renovar).
 4. Marque **somente** `read:packages`.
 5. **Generate token** e copie o valor (começa com `ghp_`). Ele aparece uma única vez.
 
@@ -50,16 +50,16 @@ Deve aparecer `Login Succeeded`. O login fica salvo; só repita se o token expir
 **1.3 Baixar as imagens:**
 
 ```bash
-sudo docker pull ghcr.io/incorpore/gestoreng-api:latest
-sudo docker pull ghcr.io/incorpore/gestoreng-web:latest
+sudo docker pull ghcr.io/incorpore/struvia-api:latest
+sudo docker pull ghcr.io/incorpore/struvia-web:latest
 ```
 
 **Alternativa — tornar somente as imagens públicas** (o repositório e o código no GitHub continuam privados; o ZimaOS
 baixa sem login, e os passos 1.1 e 1.2 deixam de ser necessários):
 
-1. GitHub > organização/perfil **incorpore** > aba **Packages** > **gestoreng-api**.
+1. GitHub > organização/perfil **incorpore** > aba **Packages** > **struvia-api**.
 2. **Package settings** (lateral direita) > *Danger Zone* > **Change visibility** > **Public** > digite o nome para confirmar.
-3. Repita para **gestoreng-web**.
+3. Repita para **struvia-web**.
 
 Se a opção *Public* estiver bloqueada (conta de organização): *Settings* da organização > **Packages** > em
 *Package creation*, permita pacotes **Public**.
@@ -74,17 +74,17 @@ Se a opção *Public* estiver bloqueada (conta de organização): *Settings* da 
 # Passo 2 — Criar as pastas de dados
 
 ```bash
-sudo mkdir -p /media/URSUS/AppData/GestorEng/storage
-sudo chown -R 10001:10001 /media/URSUS/AppData/GestorEng/storage
+sudo mkdir -p /media/URSUS/AppData/Struvia/storage
+sudo chown -R 10001:10001 /media/URSUS/AppData/Struvia/storage
 ```
 
 Somente para **banco interno**, crie também a pasta do PostgreSQL (o próprio Postgres ajusta as permissões):
 
 ```bash
-sudo mkdir -p /media/URSUS/AppData/GestorEng/postgres
+sudo mkdir -p /media/URSUS/AppData/Struvia/postgres
 ```
 
-> Se quiser outro local (outro disco, NAS montado), troque o caminho `/media/URSUS/AppData/GestorEng` em **todas** as
+> Se quiser outro local (outro disco, NAS montado), troque o caminho `/media/URSUS/AppData/Struvia` em **todas** as
 > linhas `source:` do arquivo `.yml`.
 
 # Passo 3 — Gerar as chaves secretas
@@ -115,13 +115,13 @@ sudo docker exec -it NOME_DO_CONTAINER_POSTGRES psql -U postgres
 Dentro do `psql`, execute (troque a senha):
 
 ```sql
-CREATE USER gestoreng WITH PASSWORD 'SUA_SENHA_DO_BANCO';
-CREATE DATABASE gestoreng OWNER gestoreng;
+CREATE USER struvia WITH PASSWORD 'SUA_SENHA_DO_BANCO';
+CREATE DATABASE struvia OWNER struvia;
 \q
 ```
 
-> Use nomes **em minúsculas** (`gestoreng`). Se você escrever `GestorEng` sem aspas, o PostgreSQL grava como
-> `gestoreng` e a conexão com o nome em maiúsculas falha.
+> Use nomes **em minúsculas** (`struvia`). Se você escrever `Struvia` sem aspas, o PostgreSQL grava como
+> `struvia` e a conexão com o nome em maiúsculas falha.
 
 **4.2 Testar se o servidor responde** (a partir do ZimaOS):
 
@@ -154,7 +154,7 @@ Abra o arquivo escolhido (`banco-interno.yml` ou `banco-externo.yml`) e troque t
 | `POSTGRES_PASSWORD` | Senha do banco (interno: será criada agora; externo: a do passo 4.1) |
 | `POSTGRES_HOST`, `POSTGRES_DB`, `POSTGRES_USER` | Só no externo: endereço, banco e usuário do passo 4 |
 | `REDIS_PASSWORD` | Senha do Redis (interno: escolha uma e repita no `command` do serviço `redis`; externo: a existente) |
-| `REDIS_PREFIX` | Prefixo das chaves no Redis (ex.: `GestorEng_`) |
+| `REDIS_PREFIX` | Prefixo das chaves no Redis (ex.: `Struvia_`) |
 | `SECRET_KEY` / `ENCRYPTION_KEY` | Os dois valores do passo 3 |
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Seu acesso inicial (10+ caracteres, misturando maiúsculas, minúsculas, números/símbolos) |
 | `COOKIE_SECURE` | `"false"` acessando por `http://IP:8917`; `"true"` se usar HTTPS |
@@ -177,9 +177,9 @@ As senhas podem conter **qualquer caractere** — o sistema monta as URLs de con
 **Opção B — pelo terminal:**
 
 ```bash
-sudo mkdir -p /media/URSUS/AppData/GestorEng/compose
-sudo nano /media/URSUS/AppData/GestorEng/compose/docker-compose.yml   # cole o .yml preenchido, Ctrl+O, Enter, Ctrl+X
-cd /media/URSUS/AppData/GestorEng/compose
+sudo mkdir -p /media/URSUS/AppData/Struvia/compose
+sudo nano /media/URSUS/AppData/Struvia/compose/docker-compose.yml   # cole o .yml preenchido, Ctrl+O, Enter, Ctrl+X
+cd /media/URSUS/AppData/Struvia/compose
 sudo docker compose up -d
 ```
 
@@ -190,14 +190,14 @@ sudo docker compose up -d
 **7.1 Acompanhar a inicialização da API** (a primeira vez leva até 1 minuto, pois cria as tabelas):
 
 ```bash
-sudo docker logs -f gestoreng-api
+sudo docker logs -f struvia-api
 # aguarde: "Application startup complete" (Ctrl+C para sair)
 ```
 
 **7.2 Diagnóstico completo** (banco, Redis, pasta de arquivos e backup):
 
 ```bash
-sudo docker exec gestoreng-api python -m app.manage verificar
+sudo docker exec struvia-api python -m app.manage verificar
 ```
 
 Saída esperada: linhas com `✓` para PostgreSQL, Redis, pasta de arquivos e `pg_dump`.
@@ -213,35 +213,78 @@ Saída esperada: linhas com `✓` para PostgreSQL, Redis, pasta de arquivos e `p
 5. **Configurações > Backup**: bucket S3 e horário (fortemente recomendado).
 6. **Usuários e acesso**: crie os usuários e atribua perfis.
 
+# Migrar uma instalação antiga (GestorEng) para Struvia
+
+O sistema se chamava **GestorEng**. Se você já instalou com os nomes antigos (containers `gestoreng-*`, imagens
+`gestoreng-api`/`gestoreng-web`, pasta `.../AppData/GestorEng`), siga estes passos **uma única vez**. Os dados são preservados.
+
+> Se a instalação antiga ainda não tem dados importantes, é mais simples desinstalá-la, apagar a pasta
+> `/media/URSUS/AppData/GestorEng` e fazer uma instalação nova a partir do Passo 1.
+
+**M.1 — Parar e remover o app antigo** (os dados ficam na pasta, fora do app):
+
+```bash
+sudo docker stop gestoreng-web gestoreng-worker gestoreng-api
+```
+
+No painel do ZimaOS, desinstale o app **GestorEng**. Se perguntar se deve apagar os dados, responda **não**.
+
+**M.2 — Renomear a pasta de dados:**
+
+```bash
+sudo mv /media/URSUS/AppData/GestorEng /media/URSUS/AppData/Struvia
+sudo chown -R 10001:10001 /media/URSUS/AppData/Struvia/storage
+```
+
+**M.3 — Baixar as novas imagens** (os nomes mudaram para `struvia-api` e `struvia-web`):
+
+```bash
+sudo docker pull ghcr.io/incorpore/struvia-api:latest
+sudo docker pull ghcr.io/incorpore/struvia-web:latest
+```
+
+> Se você tinha deixado as imagens antigas **públicas**, repita isso para os pacotes novos `struvia-api` e
+> `struvia-web` (veja o Passo 1). Pacotes novos de um repositório privado nascem privados.
+
+**M.4 — Manter o nome do banco já existente.** O banco antigo se chama `gestoreng`, com o usuário `gestoreng`.
+No arquivo novo (`banco-interno.yml` ou `banco-externo.yml`), deixe **`POSTGRES_DB: gestoreng`** e
+**`POSTGRES_USER: gestoreng`** em todos os serviços onde aparecem (`db`, `api` e `worker`). Use **as mesmas** senhas,
+`SECRET_KEY` e `ENCRYPTION_KEY` da instalação antiga. A `ENCRYPTION_KEY` precisa ser idêntica, senão as integrações
+cadastradas deixam de funcionar.
+
+**M.5 — Instalar o arquivo novo** como no Passo 6 e conferir como no Passo 7. Todos os usuários precisarão entrar de
+novo (o nome do cookie de sessão mudou). Nos aplicativos autenticadores (2FA), a conta continua aparecendo com o nome
+antigo; isso não afeta o funcionamento.
+
 # Comandos de manutenção (terminal do container)
 
-Todos são executados a partir do terminal do ZimaOS com `sudo docker exec -it gestoreng-api ...`:
+Todos são executados a partir do terminal do ZimaOS com `sudo docker exec -it struvia-api ...`:
 
 | Para... | Comando |
 |---|---|
-| Ver a ajuda | `sudo docker exec -it gestoreng-api python -m app.manage` |
-| Listar usuários | `sudo docker exec -it gestoreng-api python -m app.manage usuarios` |
-| Criar outro administrador | `sudo docker exec -it gestoreng-api python -m app.manage criar-admin email@velmont.com.br Nome Completo` |
-| Redefinir senha (esqueci a senha) | `sudo docker exec -it gestoreng-api python -m app.manage senha email@velmont.com.br` |
-| Desbloquear usuário | `sudo docker exec -it gestoreng-api python -m app.manage desbloquear email@velmont.com.br` |
-| Remover 2FA (perdeu o celular) | `sudo docker exec -it gestoreng-api python -m app.manage remover-2fa email@velmont.com.br` |
-| Encerrar sessões de um usuário | `sudo docker exec -it gestoreng-api python -m app.manage sair-todos email@velmont.com.br` |
-| Diagnóstico | `sudo docker exec -it gestoreng-api python -m app.manage verificar` |
-| Gerar nova chave | `sudo docker exec -it gestoreng-api python -m app.manage gerar-chave` |
-| Executar backup agora | `sudo docker exec -it gestoreng-api ./docker-entrypoint.sh backup executar` |
-| Listar backups no S3 | `sudo docker exec -it gestoreng-api ./docker-entrypoint.sh backup listar` |
+| Ver a ajuda | `sudo docker exec -it struvia-api python -m app.manage` |
+| Listar usuários | `sudo docker exec -it struvia-api python -m app.manage usuarios` |
+| Criar outro administrador | `sudo docker exec -it struvia-api python -m app.manage criar-admin email@velmont.com.br Nome Completo` |
+| Redefinir senha (esqueci a senha) | `sudo docker exec -it struvia-api python -m app.manage senha email@velmont.com.br` |
+| Desbloquear usuário | `sudo docker exec -it struvia-api python -m app.manage desbloquear email@velmont.com.br` |
+| Remover 2FA (perdeu o celular) | `sudo docker exec -it struvia-api python -m app.manage remover-2fa email@velmont.com.br` |
+| Encerrar sessões de um usuário | `sudo docker exec -it struvia-api python -m app.manage sair-todos email@velmont.com.br` |
+| Diagnóstico | `sudo docker exec -it struvia-api python -m app.manage verificar` |
+| Gerar nova chave | `sudo docker exec -it struvia-api python -m app.manage gerar-chave` |
+| Executar backup agora | `sudo docker exec -it struvia-api ./docker-entrypoint.sh backup executar` |
+| Listar backups no S3 | `sudo docker exec -it struvia-api ./docker-entrypoint.sh backup listar` |
 
 Os comandos que pedem senha a solicitam de forma oculta (não aparece no histórico do terminal).
 
 **Acesso direto ao banco interno** (consultas manuais):
 
 ```bash
-sudo docker exec -it gestoreng-db psql -U gestoreng -d gestoreng
+sudo docker exec -it struvia-db psql -U struvia -d struvia
 ```
 
 # Alterar variáveis depois da instalação
 
-**Pelo painel:** ícone do GestorEng > menu (⋮) > **Settings** (*Configurações*). Cada container (`api`, `worker`,
+**Pelo painel:** ícone do Struvia > menu (⋮) > **Settings** (*Configurações*). Cada container (`api`, `worker`,
 `web`, `db`, `redis`) tem sua aba com as **variáveis de ambiente** — altere o valor e clique em **Save**; o ZimaOS recria
 o container. **Ao mudar algo na `api`, faça a mesma alteração no `worker`.**
 
@@ -265,19 +308,19 @@ Efeito de cada alteração:
 **Trocar a senha do banco interno** (a variável só é lida na criação do banco):
 
 ```bash
-sudo docker exec -it gestoreng-db psql -U gestoreng -d gestoreng -c "ALTER USER gestoreng PASSWORD 'NOVA_SENHA';"
+sudo docker exec -it struvia-db psql -U struvia -d struvia -c "ALTER USER struvia PASSWORD 'NOVA_SENHA';"
 ```
 
 Depois altere `POSTGRES_PASSWORD` para `NOVA_SENHA` nos serviços `db`, `api` e `worker` e salve.
 
-# Atualizar o GestorEng para uma nova versão
+# Atualizar o Struvia para uma nova versão
 
 ```bash
-sudo docker pull ghcr.io/incorpore/gestoreng-api:latest
-sudo docker pull ghcr.io/incorpore/gestoreng-web:latest
+sudo docker pull ghcr.io/incorpore/struvia-api:latest
+sudo docker pull ghcr.io/incorpore/struvia-web:latest
 ```
 
-Depois, no painel: ícone do GestorEng > **Restart** não basta — use **Settings > Save** (recria os containers com as
+Depois, no painel: ícone do Struvia > **Restart** não basta — use **Settings > Save** (recria os containers com as
 imagens novas). Pelo terminal: `sudo docker compose up -d` na pasta do arquivo. As atualizações do banco (migrações) são
 aplicadas automaticamente na inicialização da API. Faça um backup antes de atualizar.
 
@@ -289,21 +332,21 @@ Inclui banco e arquivos, roda todo dia no horário escolhido e apaga os antigos 
 **Backup manual extra do banco interno** (arquivo na pasta do app):
 
 ```bash
-sudo docker exec gestoreng-db pg_dump -U gestoreng -Fc gestoreng | sudo tee /media/URSUS/AppData/GestorEng/manual-$(date +%F).dump > /dev/null
+sudo docker exec struvia-db pg_dump -U struvia -Fc struvia | sudo tee /media/URSUS/AppData/Struvia/manual-$(date +%F).dump > /dev/null
 ```
 
 **Restaurar um backup do S3** (sobrescreve os dados atuais):
 
 ```bash
-sudo docker stop gestoreng-web gestoreng-worker
-sudo docker exec -it gestoreng-api ./docker-entrypoint.sh backup listar
-sudo docker exec -it gestoreng-api ./docker-entrypoint.sh backup restaurar gestoreng/gestoreng-AAAAMMDD-HHMMSS.tar.gz
-sudo docker restart gestoreng-api && sudo docker start gestoreng-worker gestoreng-web
+sudo docker stop struvia-web struvia-worker
+sudo docker exec -it struvia-api ./docker-entrypoint.sh backup listar
+sudo docker exec -it struvia-api ./docker-entrypoint.sh backup restaurar struvia/struvia-AAAAMMDD-HHMMSS.tar.gz
+sudo docker restart struvia-api && sudo docker start struvia-worker struvia-web
 ```
 
 # Problemas comuns
 
-**`/etc/nginx/conf.d is not writable`** (no log do `gestoreng-web`; o site não abre) — o compose tem `read_only` e
+**`/etc/nginx/conf.d is not writable`** (no log do `struvia-web`; o site não abre) — o compose tem `read_only` e
 `tmpfs` que o ZimaOS cria sem permissão de escrita. Use os arquivos atuais de `deploy/zimaos/` (já sem essas opções)
 ou remova `read_only: true` e o bloco `tmpfs:` dos serviços `api`, `worker` e `web`. As imagens novas param com uma
 mensagem clara nesse caso, em vez de subir um site sem configuração.
@@ -330,32 +373,32 @@ sudo systemctl restart docker
 **`connection refused` / `could not connect`** (banco externo) — refaça os testes do passo 4.2.
 
 **Pasta de arquivos sem permissão** (aparece no `verificar` ou ao anexar arquivos):
-`sudo chown -R 10001:10001 /media/URSUS/AppData/GestorEng/storage`
+`sudo chown -R 10001:10001 /media/URSUS/AppData/Struvia/storage`
 
 **Sou desconectado ao recarregar a página** — `COOKIE_SECURE` está `"true"` mas o acesso é por `http://`.
 Use `"false"` ou configure HTTPS.
 
 **Upload de arquivo falha** — aumente `MAX_UPLOAD_MB` e `MAX_BODY` (iguais).
 
-**Esqueci a senha do administrador** — `sudo docker exec -it gestoreng-api python -m app.manage senha SEU_EMAIL`.
+**Esqueci a senha do administrador** — `sudo docker exec -it struvia-api python -m app.manage senha SEU_EMAIL`.
 
 **Worker mostrando "Aguardando migrações..."** — normal nos primeiros segundos; se persistir, veja
-`sudo docker logs gestoreng-api`.
+`sudo docker logs struvia-api`.
 
 **Porta 8917 já em uso** — troque por outra livre (veja a tabela de variáveis).
 
 **Ver logs de qualquer parte:**
 
 ```bash
-sudo docker logs --tail 100 gestoreng-api
-sudo docker logs --tail 100 gestoreng-worker
-sudo docker logs --tail 100 gestoreng-web
-sudo docker logs --tail 100 gestoreng-db      # banco interno
+sudo docker logs --tail 100 struvia-api
+sudo docker logs --tail 100 struvia-worker
+sudo docker logs --tail 100 struvia-web
+sudo docker logs --tail 100 struvia-db      # banco interno
 ```
 
 # Acesso pelo celular e HTTPS (opcional)
 
 - **App Android:** no primeiro uso informe `http://IP-DO-ZIMAOS:8917` (na rede da empresa) ou o seu domínio HTTPS.
-- **HTTPS / acesso externo:** coloque o GestorEng atrás do proxy que você já usa (Nginx Proxy Manager, Cloudflare
+- **HTTPS / acesso externo:** coloque o Struvia atrás do proxy que você já usa (Nginx Proxy Manager, Cloudflare
   Tunnel, Traefik) apontando para `IP-DO-ZIMAOS:8917`. Depois ajuste `COOKIE_SECURE: "true"` e inclua o domínio em
   `CORS_ORIGINS` (ex.: `https://gestor.velmont.com.br`).

@@ -54,7 +54,7 @@ def _call(db: Session, messages: list[dict], modelo: str | None = None, max_toke
     try:
         with httpx.Client(timeout=120) as c:
             resp = c.post(f"{base}/chat/completions", headers={
-                "Authorization": f"Bearer {key}", "X-Title": "GestorEng", "Content-Type": "application/json",
+                "Authorization": f"Bearer {key}", "X-Title": "Struvia", "Content-Type": "application/json",
             }, json={"model": modelo or default, "messages": messages, "max_tokens": max_tokens})
     except httpx.HTTPError as e:
         raise HTTPException(502, f"Falha ao contatar OpenRouter: {e.__class__.__name__}")

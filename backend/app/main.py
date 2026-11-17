@@ -11,11 +11,11 @@ from app.core.config import get_settings
 from app.core.database import SessionLocal, get_db
 from app.modules import load_modules
 
-log = logging.getLogger("gestoreng")
+log = logging.getLogger("struvia")
 settings = get_settings()
 
 app = FastAPI(
-    title="GestorEng API",
+    title="Struvia API",
     version="1.0.0",
     docs_url="/api/docs" if settings.is_dev else None,
     redoc_url=None,

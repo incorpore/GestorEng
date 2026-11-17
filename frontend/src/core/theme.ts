@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-const KEY = 'ge-theme'
+const KEY = 'struvia-theme'
 function initial(): boolean {
   try {
     const s = localStorage.getItem(KEY)

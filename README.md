@@ -1,4 +1,4 @@
-# GestorEng — Sistema de gestão da Velmont
+# Struvia — Sistema de gestão da Velmont
 
 Sistema modular para gerir a construtora: **obras** (públicas e particulares) com **medições/boletins**, **diário de obras (RDO)**,
 **licitações** com integração ao **PNCP**, **orçamentos**, **financeiro**, **documentos** com papel timbrado e variáveis
@@ -27,7 +27,7 @@ Há **dois arquivos compose**:
 ### 1.1 Preparação (ambos)
 
 ```bash
-git clone https://github.com/incorpore/GestorEng.git && cd GestorEng
+git clone https://github.com/incorpore/GestorEng.git struvia && cd struvia
 cp .env.example .env
 # gere os segredos e cole no .env (SECRET_KEY, ENCRYPTION_KEY, senhas):
 openssl rand -base64 48
@@ -49,16 +49,16 @@ Acesse `http://IP-DO-SERVIDOR:8080` com o `ADMIN_EMAIL` / `ADMIN_PASSWORD` do `.
 
 1. No seu PostgreSQL (16 ou superior):
    ```sql
-   CREATE USER gestoreng WITH PASSWORD 'senha-forte';
-   CREATE DATABASE gestoreng OWNER gestoreng;
+   CREATE USER struvia WITH PASSWORD 'senha-forte';
+   CREATE DATABASE struvia OWNER struvia;
    ```
 2. Descubra a rede Docker onde estão o Postgres/Redis: `docker network ls` (ex.: `infra`, `zimaos_default`).
 3. No `.env`:
    ```env
    EXTERNAL_NETWORK=infra
-   DATABASE_URL=postgresql+psycopg://gestoreng:senha-forte@postgres:5432/gestoreng
+   DATABASE_URL=postgresql+psycopg://struvia:senha-forte@postgres:5432/struvia
    REDIS_URL=redis://:senha-redis@redis:6379/0     # opcional — vazio = sem Redis
-   # STORAGE_PATH=/DATA/AppData/gestoreng/storage  # opcional: pasta do host/NAS para anexos
+   # STORAGE_PATH=/DATA/AppData/struvia/storage  # opcional: pasta do host/NAS para anexos
    ```
    (`postgres`/`redis` são os nomes dos containers nessa rede.)
 
@@ -69,8 +69,8 @@ Acesse `http://IP-DO-SERVIDOR:8080` com o `ADMIN_EMAIL` / `ADMIN_PASSWORD` do `.
    - Caracteres especiais da senha devem ser codificados (`@`→`%40`, `#`→`%23`, `:`→`%3A`, `/`→`%2F`, `%`→`%25`).
      Para gerar: `python3 -c "import urllib.parse;print(urllib.parse.quote('SUA_SENHA', safe=''))"`.
    - Com usuário ACL (Redis 6+): `redis://usuario:senha@redis:6379/0`; com TLS use `rediss://`.
-   - `/2` é o número do banco do Redis (0–15) — outra forma de isolar o GestorEng de outros sistemas.
-   - `?prefix=velmont` faz todas as chaves começarem com `velmont:` (padrão `gestoreng:`). Alternativa: `REDIS_PREFIX=velmont`.
+   - `/2` é o número do banco do Redis (0–15) — outra forma de isolar o Struvia de outros sistemas.
+   - `?prefix=velmont` faz todas as chaves começarem com `velmont:` (padrão `struvia:`). Alternativa: `REDIS_PREFIX=velmont`.
 4. `docker compose -f docker-compose.external.yml up -d --build`
 
 > **Redis** é opcional: quando presente, o limite de tentativas de login é compartilhado entre processos/réplicas.
@@ -84,8 +84,8 @@ minutos e precisa de acesso a Docker Hub, PyPI, npm e apt.postgresql.org.
 
 Opcionalmente, use as imagens publicadas pelo workflow **Imagens Docker** (amd64 e arm64) após o merge na `main`:
 ```env
-IMAGE_API=ghcr.io/incorpore/gestoreng-api:latest
-IMAGE_WEB=ghcr.io/incorpore/gestoreng-web:latest
+IMAGE_API=ghcr.io/incorpore/struvia-api:latest
+IMAGE_WEB=ghcr.io/incorpore/struvia-web:latest
 PULL_POLICY=always
 ```
 Se o repositório for privado, faça `docker login ghcr.io` com um token com escopo `read:packages`.
@@ -100,7 +100,7 @@ o Docker do servidor está configurado com um espelho de registro que saiu do ar
 
 Depois teste com `docker pull ghcr.io/home-assistant/home-assistant:stable` (ou qualquer imagem pública do ghcr.io).
 
-**A instalação tenta baixar `gestoreng/api:local`:** confirme que o `.env` não tem `PULL_POLICY=always` sem as variáveis
+**A instalação tenta baixar `struvia/api:local`:** confirme que o `.env` não tem `PULL_POLICY=always` sem as variáveis
 `IMAGE_*` e rode `docker compose up -d --build`.
 
 ### 1.6 ZimaOS / CasaOS
@@ -109,7 +109,7 @@ Arquivos prontos em [`deploy/zimaos/`](deploy/zimaos/):
 
 - [`banco-interno.yml`](deploy/zimaos/banco-interno.yml) — instala PostgreSQL e Redis junto com o app;
 - [`banco-externo.yml`](deploy/zimaos/banco-externo.yml) — usa PostgreSQL/Redis já existentes;
-- [`INSTALACAO.md`](deploy/zimaos/INSTALACAO.md) e [`GestorEng-ZimaOS.pdf`](deploy/zimaos/GestorEng-ZimaOS.pdf) — guia
+- [`INSTALACAO.md`](deploy/zimaos/INSTALACAO.md) e [`Struvia-ZimaOS.pdf`](deploy/zimaos/Struvia-ZimaOS.pdf) — guia
   passo a passo (login no registro privado, pastas, chaves, banco, instalação, manutenção, atualização e problemas comuns).
   Regenere o PDF/LaTeX com `deploy/zimaos/gerar-pdf.sh`.
 
@@ -127,7 +127,7 @@ Configurações › **Backup** (somente administradores):
 
 - Funciona com **AWS S3, MinIO, Cloudflare R2, Backblaze B2, Wasabi**, MinIO no ZimaOS etc.
 - Backup diário no horário escolhido, executado pelo container `worker` (com trava no banco — nunca roda em duplicidade).
-- Conteúdo: `gestoreng-AAAAMMDD-HHMMSS.tar.gz` com o banco (`pg_dump -Fc`) e todos os anexos/PDFs.
+- Conteúdo: `struvia-AAAAMMDD-HHMMSS.tar.gz` com o banco (`pg_dump -Fc`) e todos os anexos/PDFs.
 - Retenção configurável (apaga backups mais antigos que N dias), SSE-AES256 opcional, histórico com status e botão
   **Executar agora**. A secret key fica criptografada no banco.
 
@@ -138,7 +138,7 @@ docker compose exec api ./docker-entrypoint.sh backup listar
 docker compose exec api ./docker-entrypoint.sh backup executar
 # Restauração (sobrescreve o banco atual!):
 docker compose stop web worker
-docker compose run --rm api backup restaurar gestoreng/gestoreng-20261115-023000.tar.gz
+docker compose run --rm api backup restaurar struvia/struvia-20261115-023000.tar.gz
 docker compose up -d
 ```
 
@@ -148,7 +148,7 @@ docker compose up -d
 
 ## 3. Segurança
 
-Nenhum sistema é "100% seguro", mas o GestorEng adota as práticas recomendadas (OWASP ASVS):
+Nenhum sistema é "100% seguro", mas o Struvia adota as práticas recomendadas (OWASP ASVS):
 
 - Senhas com **Argon2id**, política de força, bloqueio após 5 tentativas e limite de requisições por IP.
 - **2FA (TOTP)** opcional por usuário; administradores podem resetar.
@@ -176,7 +176,7 @@ Gera o APK assinado (artefato do workflow e anexo da *Release*).
 
 1. Crie a chave de assinatura **uma única vez** e guarde-a com segurança:
    ```bash
-   keytool -genkeypair -v -keystore velmont.jks -alias gestoreng -keyalg RSA -keysize 4096 -validity 10000
+   keytool -genkeypair -v -keystore velmont.jks -alias struvia -keyalg RSA -keysize 4096 -validity 10000
    base64 -w0 velmont.jks   # copie a saída
    ```
 2. Em *Settings › Secrets and variables › Actions* crie: `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`,
@@ -222,7 +222,7 @@ docker run -d --name pg -e POSTGRES_PASSWORD=postgres -p 5432:5432 postgres:16-a
 cd backend && python -m venv .venv && . .venv/bin/activate && pip install -r requirements-dev.txt
 cp .env.dev.example .env    # ajuste DATABASE_URL
 alembic upgrade head && python -m app.seed && uvicorn app.main:app --reload
-pytest                     # testes (usa o banco gestoreng_test)
+pytest                     # testes (usa o banco struvia_test)
 # Web
 cd frontend && npm install && npm run dev    # http://localhost:5173 (proxy /api → :8000)
 ```

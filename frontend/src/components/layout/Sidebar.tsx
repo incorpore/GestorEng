@@ -32,7 +32,7 @@ export function Sidebar() {
     <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 md:flex">
       <div className="flex h-16 items-center border-b border-slate-100 px-5 dark:border-slate-800"><Brand /></div>
       <SidebarNav />
-      <p className="px-5 py-3 text-[11px] text-slate-400">GestorEng v1.0</p>
+      <p className="px-5 py-3 text-[11px] text-slate-400">Struvia v1.0</p>
     </aside>
   )
 }

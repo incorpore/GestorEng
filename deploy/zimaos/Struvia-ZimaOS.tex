@@ -115,7 +115,7 @@
 \allsectionsfont{\color{velmont}\sffamily}
 \usepackage{fancyhdr}
 \pagestyle{fancy}\fancyhf{}
-\lhead{\small\sffamily GestorEng · ZimaOS}\rhead{\small\sffamily Velmont}
+\lhead{\small\sffamily Struvia · ZimaOS}\rhead{\small\sffamily Velmont}
 \cfoot{\small\thepage}
 \renewcommand{\headrulewidth}{0.4pt}
 \let\oldquote\quote\let\endoldquote\endquote
@@ -129,7 +129,7 @@
 \IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
 \urlstyle{same}
 \hypersetup{
-  pdftitle={GestorEng no ZimaOS --- Guia de Instalação},
+  pdftitle={Struvia no ZimaOS --- Guia de Instalação},
   pdflang={pt-BR},
   colorlinks=true,
   linkcolor={blue},
@@ -138,7 +138,7 @@
   urlcolor={blue},
   pdfcreator={LaTeX via pandoc}}
 
-\title{GestorEng no ZimaOS --- Guia de Instalação}
+\title{Struvia no ZimaOS --- Guia de Instalação}
 \usepackage{etoolbox}
 \makeatletter
 \providecommand{\subtitle}[1]{% add subtitle to \maketitle
@@ -147,7 +147,7 @@
 \makeatother
 \subtitle{Velmont · banco interno ou externo · passo a passo}
 \author{}
-\date{16/11/2026}
+\date{17/11/2026}
 
 \begin{document}
 \maketitle
@@ -218,8 +218,8 @@ com \texttt{docker\ exec} executam algo \textbf{dentro de um container}.
 privado)}\label{passo-1-liberar-o-download-das-imagens-reposituxf3rio-privado}}
 
 Como o repositório é privado, as imagens
-\texttt{ghcr.io/incorpore/gestoreng-api} e \texttt{gestoreng-web} também
-são privadas. O ZimaOS precisa de um \textbf{token do GitHub} para
+\texttt{ghcr.io/incorpore/struvia-api} e \texttt{struvia-web} também são
+privadas. O ZimaOS precisa de um \textbf{token do GitHub} para
 baixá-las.
 
 \textbf{1.1 Criar o token (no navegador):}
@@ -235,8 +235,8 @@ baixá-las.
 \item
   \textbf{Generate new token (classic)}.
 \item
-  \emph{Note}: \texttt{ZimaOS\ GestorEng} · \emph{Expiration}: o prazo
-  que preferir (anote para renovar).
+  \emph{Note}: \texttt{ZimaOS\ Struvia} · \emph{Expiration}: o prazo que
+  preferir (anote para renovar).
 \item
   Marque \textbf{somente} \texttt{read:packages}.
 \item
@@ -259,8 +259,8 @@ se o token expirar.
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\FunctionTok{sudo}\NormalTok{ docker pull ghcr.io/incorpore/gestoreng{-}api:latest}
-\FunctionTok{sudo}\NormalTok{ docker pull ghcr.io/incorpore/gestoreng{-}web:latest}
+\FunctionTok{sudo}\NormalTok{ docker pull ghcr.io/incorpore/struvia{-}api:latest}
+\FunctionTok{sudo}\NormalTok{ docker pull ghcr.io/incorpore/struvia{-}web:latest}
 \end{Highlighting}
 \end{Shaded}
 
@@ -274,14 +274,14 @@ login, e os passos 1.1 e 1.2 deixam de ser necessários):
 \item
   GitHub \textgreater{} organização/perfil \textbf{incorpore}
   \textgreater{} aba \textbf{Packages} \textgreater{}
-  \textbf{gestoreng-api}.
+  \textbf{struvia-api}.
 \item
   \textbf{Package settings} (lateral direita) \textgreater{}
   \emph{Danger Zone} \textgreater{} \textbf{Change visibility}
   \textgreater{} \textbf{Public} \textgreater{} digite o nome para
   confirmar.
 \item
-  Repita para \textbf{gestoreng-web}.
+  Repita para \textbf{struvia-web}.
 \end{enumerate}
 
 Se a opção \emph{Public} estiver bloqueada (conta de organização):
@@ -308,8 +308,8 @@ dados}\label{passo-2-criar-as-pastas-de-dados}}
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\FunctionTok{sudo}\NormalTok{ mkdir }\AttributeTok{{-}p}\NormalTok{ /media/URSUS/AppData/GestorEng/storage}
-\FunctionTok{sudo}\NormalTok{ chown }\AttributeTok{{-}R}\NormalTok{ 10001:10001 /media/URSUS/AppData/GestorEng/storage}
+\FunctionTok{sudo}\NormalTok{ mkdir }\AttributeTok{{-}p}\NormalTok{ /media/URSUS/AppData/Struvia/storage}
+\FunctionTok{sudo}\NormalTok{ chown }\AttributeTok{{-}R}\NormalTok{ 10001:10001 /media/URSUS/AppData/Struvia/storage}
 \end{Highlighting}
 \end{Shaded}
 
@@ -318,13 +318,13 @@ Somente para \textbf{banco interno}, crie também a pasta do PostgreSQL
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\FunctionTok{sudo}\NormalTok{ mkdir }\AttributeTok{{-}p}\NormalTok{ /media/URSUS/AppData/GestorEng/postgres}
+\FunctionTok{sudo}\NormalTok{ mkdir }\AttributeTok{{-}p}\NormalTok{ /media/URSUS/AppData/Struvia/postgres}
 \end{Highlighting}
 \end{Shaded}
 
 \begin{quote}
 Se quiser outro local (outro disco, NAS montado), troque o caminho
-\texttt{/media/URSUS/AppData/GestorEng} em \textbf{todas} as linhas
+\texttt{/media/URSUS/AppData/Struvia} em \textbf{todas} as linhas
 \texttt{source:} do arquivo \texttt{.yml}.
 \end{quote}
 
@@ -376,16 +376,16 @@ Dentro do \texttt{psql}, execute (troque a senha):
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\KeywordTok{CREATE} \FunctionTok{USER}\NormalTok{ gestoreng }\KeywordTok{WITH} \KeywordTok{PASSWORD} \StringTok{\textquotesingle{}SUA\_SENHA\_DO\_BANCO\textquotesingle{}}\NormalTok{;}
-\KeywordTok{CREATE} \KeywordTok{DATABASE}\NormalTok{ gestoreng OWNER gestoreng;}
+\KeywordTok{CREATE} \FunctionTok{USER}\NormalTok{ struvia }\KeywordTok{WITH} \KeywordTok{PASSWORD} \StringTok{\textquotesingle{}SUA\_SENHA\_DO\_BANCO\textquotesingle{}}\NormalTok{;}
+\KeywordTok{CREATE} \KeywordTok{DATABASE}\NormalTok{ struvia OWNER struvia;}
 \NormalTok{\textbackslash{}q}
 \end{Highlighting}
 \end{Shaded}
 
 \begin{quote}
-Use nomes \textbf{em minúsculas} (\texttt{gestoreng}). Se você escrever
-\texttt{GestorEng} sem aspas, o PostgreSQL grava como \texttt{gestoreng}
-e a conexão com o nome em maiúsculas falha.
+Use nomes \textbf{em minúsculas} (\texttt{struvia}). Se você escrever
+\texttt{Struvia} sem aspas, o PostgreSQL grava como \texttt{struvia} e a
+conexão com o nome em maiúsculas falha.
 \end{quote}
 
 \textbf{4.2 Testar se o servidor responde} (a partir do ZimaOS):
@@ -450,7 +450,7 @@ agora; externo: a do passo 4.1) \\
 \texttt{REDIS\_PASSWORD} & Senha do Redis (interno: escolha uma e repita
 no \texttt{command} do serviço \texttt{redis}; externo: a existente) \\
 \texttt{REDIS\_PREFIX} & Prefixo das chaves no Redis (ex.:
-\texttt{GestorEng\_}) \\
+\texttt{Struvia\_}) \\
 \texttt{SECRET\_KEY} / \texttt{ENCRYPTION\_KEY} & Os dois valores do
 passo 3 \\
 \texttt{ADMIN\_EMAIL} / \texttt{ADMIN\_PASSWORD} & Seu acesso inicial
@@ -497,9 +497,9 @@ ZimaOS}\label{passo-6-instalar-no-zimaos}}
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\FunctionTok{sudo}\NormalTok{ mkdir }\AttributeTok{{-}p}\NormalTok{ /media/URSUS/AppData/GestorEng/compose}
-\FunctionTok{sudo}\NormalTok{ nano /media/URSUS/AppData/GestorEng/compose/docker{-}compose.yml   }\CommentTok{\# cole o .yml preenchido, Ctrl+O, Enter, Ctrl+X}
-\BuiltInTok{cd}\NormalTok{ /media/URSUS/AppData/GestorEng/compose}
+\FunctionTok{sudo}\NormalTok{ mkdir }\AttributeTok{{-}p}\NormalTok{ /media/URSUS/AppData/Struvia/compose}
+\FunctionTok{sudo}\NormalTok{ nano /media/URSUS/AppData/Struvia/compose/docker{-}compose.yml   }\CommentTok{\# cole o .yml preenchido, Ctrl+O, Enter, Ctrl+X}
+\BuiltInTok{cd}\NormalTok{ /media/URSUS/AppData/Struvia/compose}
 \FunctionTok{sudo}\NormalTok{ docker compose up }\AttributeTok{{-}d}
 \end{Highlighting}
 \end{Shaded}
@@ -518,7 +518,7 @@ funcionando}\label{passo-7-conferir-se-estuxe1-tudo-funcionando}}
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\FunctionTok{sudo}\NormalTok{ docker logs }\AttributeTok{{-}f}\NormalTok{ gestoreng{-}api}
+\FunctionTok{sudo}\NormalTok{ docker logs }\AttributeTok{{-}f}\NormalTok{ struvia{-}api}
 \CommentTok{\# aguarde: "Application startup complete" (Ctrl+C para sair)}
 \end{Highlighting}
 \end{Shaded}
@@ -528,7 +528,7 @@ backup):
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\FunctionTok{sudo}\NormalTok{ docker exec gestoreng{-}api python }\AttributeTok{{-}m}\NormalTok{ app.manage verificar}
+\FunctionTok{sudo}\NormalTok{ docker exec struvia{-}api python }\AttributeTok{{-}m}\NormalTok{ app.manage verificar}
 \end{Highlighting}
 \end{Shaded}
 
@@ -562,12 +562,80 @@ arquivos e \texttt{pg\_dump}.
   \textbf{Usuários e acesso}: crie os usuários e atribua perfis.
 \end{enumerate}
 
+\hypertarget{migrar-uma-instalauxe7uxe3o-antiga-gestoreng-para-struvia}{%
+\section{Migrar uma instalação antiga (GestorEng) para
+Struvia}\label{migrar-uma-instalauxe7uxe3o-antiga-gestoreng-para-struvia}}
+
+O sistema se chamava \textbf{GestorEng}. Se você já instalou com os
+nomes antigos (containers \texttt{gestoreng-*}, imagens
+\texttt{gestoreng-api}/\texttt{gestoreng-web}, pasta
+\texttt{.../AppData/GestorEng}), siga estes passos \textbf{uma única
+vez}. Os dados são preservados.
+
+\begin{quote}
+Se a instalação antiga ainda não tem dados importantes, é mais simples
+desinstalá-la, apagar a pasta \texttt{/media/URSUS/AppData/GestorEng} e
+fazer uma instalação nova a partir do Passo 1.
+\end{quote}
+
+\textbf{M.1 --- Parar e remover o app antigo} (os dados ficam na pasta,
+fora do app):
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{sudo}\NormalTok{ docker stop gestoreng{-}web gestoreng{-}worker gestoreng{-}api}
+\end{Highlighting}
+\end{Shaded}
+
+No painel do ZimaOS, desinstale o app \textbf{GestorEng}. Se perguntar
+se deve apagar os dados, responda \textbf{não}.
+
+\textbf{M.2 --- Renomear a pasta de dados:}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{sudo}\NormalTok{ mv /media/URSUS/AppData/GestorEng /media/URSUS/AppData/Struvia}
+\FunctionTok{sudo}\NormalTok{ chown }\AttributeTok{{-}R}\NormalTok{ 10001:10001 /media/URSUS/AppData/Struvia/storage}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{M.3 --- Baixar as novas imagens} (os nomes mudaram para
+\texttt{struvia-api} e \texttt{struvia-web}):
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{sudo}\NormalTok{ docker pull ghcr.io/incorpore/struvia{-}api:latest}
+\FunctionTok{sudo}\NormalTok{ docker pull ghcr.io/incorpore/struvia{-}web:latest}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{quote}
+Se você tinha deixado as imagens antigas \textbf{públicas}, repita isso
+para os pacotes novos \texttt{struvia-api} e \texttt{struvia-web} (veja
+o Passo 1). Pacotes novos de um repositório privado nascem privados.
+\end{quote}
+
+\textbf{M.4 --- Manter o nome do banco já existente.} O banco antigo se
+chama \texttt{gestoreng}, com o usuário \texttt{gestoreng}. No arquivo
+novo (\texttt{banco-interno.yml} ou \texttt{banco-externo.yml}), deixe
+\textbf{\texttt{POSTGRES\_DB:\ gestoreng}} e
+\textbf{\texttt{POSTGRES\_USER:\ gestoreng}} em todos os serviços onde
+aparecem (\texttt{db}, \texttt{api} e \texttt{worker}). Use \textbf{as
+mesmas} senhas, \texttt{SECRET\_KEY} e \texttt{ENCRYPTION\_KEY} da
+instalação antiga. A \texttt{ENCRYPTION\_KEY} precisa ser idêntica,
+senão as integrações cadastradas deixam de funcionar.
+
+\textbf{M.5 --- Instalar o arquivo novo} como no Passo 6 e conferir como
+no Passo 7. Todos os usuários precisarão entrar de novo (o nome do
+cookie de sessão mudou). Nos aplicativos autenticadores (2FA), a conta
+continua aparecendo com o nome antigo; isso não afeta o funcionamento.
+
 \hypertarget{comandos-de-manutenuxe7uxe3o-terminal-do-container}{%
 \section{Comandos de manutenção (terminal do
 container)}\label{comandos-de-manutenuxe7uxe3o-terminal-do-container}}
 
 Todos são executados a partir do terminal do ZimaOS com
-\texttt{sudo\ docker\ exec\ -it\ gestoreng-api\ ...}:
+\texttt{sudo\ docker\ exec\ -it\ struvia-api\ ...}:
 
 \begin{longtable}[]{@{}
   >{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{0.5000}}
@@ -583,27 +651,27 @@ Comando
 \bottomrule\noalign{}
 \endlastfoot
 Ver a ajuda &
-\texttt{sudo\ docker\ exec\ -it\ gestoreng-api\ python\ -m\ app.manage} \\
+\texttt{sudo\ docker\ exec\ -it\ struvia-api\ python\ -m\ app.manage} \\
 Listar usuários &
-\texttt{sudo\ docker\ exec\ -it\ gestoreng-api\ python\ -m\ app.manage\ usuarios} \\
+\texttt{sudo\ docker\ exec\ -it\ struvia-api\ python\ -m\ app.manage\ usuarios} \\
 Criar outro administrador &
-\texttt{sudo\ docker\ exec\ -it\ gestoreng-api\ python\ -m\ app.manage\ criar-admin\ email@velmont.com.br\ Nome\ Completo} \\
+\texttt{sudo\ docker\ exec\ -it\ struvia-api\ python\ -m\ app.manage\ criar-admin\ email@velmont.com.br\ Nome\ Completo} \\
 Redefinir senha (esqueci a senha) &
-\texttt{sudo\ docker\ exec\ -it\ gestoreng-api\ python\ -m\ app.manage\ senha\ email@velmont.com.br} \\
+\texttt{sudo\ docker\ exec\ -it\ struvia-api\ python\ -m\ app.manage\ senha\ email@velmont.com.br} \\
 Desbloquear usuário &
-\texttt{sudo\ docker\ exec\ -it\ gestoreng-api\ python\ -m\ app.manage\ desbloquear\ email@velmont.com.br} \\
+\texttt{sudo\ docker\ exec\ -it\ struvia-api\ python\ -m\ app.manage\ desbloquear\ email@velmont.com.br} \\
 Remover 2FA (perdeu o celular) &
-\texttt{sudo\ docker\ exec\ -it\ gestoreng-api\ python\ -m\ app.manage\ remover-2fa\ email@velmont.com.br} \\
+\texttt{sudo\ docker\ exec\ -it\ struvia-api\ python\ -m\ app.manage\ remover-2fa\ email@velmont.com.br} \\
 Encerrar sessões de um usuário &
-\texttt{sudo\ docker\ exec\ -it\ gestoreng-api\ python\ -m\ app.manage\ sair-todos\ email@velmont.com.br} \\
+\texttt{sudo\ docker\ exec\ -it\ struvia-api\ python\ -m\ app.manage\ sair-todos\ email@velmont.com.br} \\
 Diagnóstico &
-\texttt{sudo\ docker\ exec\ -it\ gestoreng-api\ python\ -m\ app.manage\ verificar} \\
+\texttt{sudo\ docker\ exec\ -it\ struvia-api\ python\ -m\ app.manage\ verificar} \\
 Gerar nova chave &
-\texttt{sudo\ docker\ exec\ -it\ gestoreng-api\ python\ -m\ app.manage\ gerar-chave} \\
+\texttt{sudo\ docker\ exec\ -it\ struvia-api\ python\ -m\ app.manage\ gerar-chave} \\
 Executar backup agora &
-\texttt{sudo\ docker\ exec\ -it\ gestoreng-api\ ./docker-entrypoint.sh\ backup\ executar} \\
+\texttt{sudo\ docker\ exec\ -it\ struvia-api\ ./docker-entrypoint.sh\ backup\ executar} \\
 Listar backups no S3 &
-\texttt{sudo\ docker\ exec\ -it\ gestoreng-api\ ./docker-entrypoint.sh\ backup\ listar} \\
+\texttt{sudo\ docker\ exec\ -it\ struvia-api\ ./docker-entrypoint.sh\ backup\ listar} \\
 \end{longtable}
 
 Os comandos que pedem senha a solicitam de forma oculta (não aparece no
@@ -613,7 +681,7 @@ histórico do terminal).
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\FunctionTok{sudo}\NormalTok{ docker exec }\AttributeTok{{-}it}\NormalTok{ gestoreng{-}db psql }\AttributeTok{{-}U}\NormalTok{ gestoreng }\AttributeTok{{-}d}\NormalTok{ gestoreng}
+\FunctionTok{sudo}\NormalTok{ docker exec }\AttributeTok{{-}it}\NormalTok{ struvia{-}db psql }\AttributeTok{{-}U}\NormalTok{ struvia }\AttributeTok{{-}d}\NormalTok{ struvia}
 \end{Highlighting}
 \end{Shaded}
 
@@ -621,7 +689,7 @@ histórico do terminal).
 \section{Alterar variáveis depois da
 instalação}\label{alterar-variuxe1veis-depois-da-instalauxe7uxe3o}}
 
-\textbf{Pelo painel:} ícone do GestorEng \textgreater{} menu (⋮)
+\textbf{Pelo painel:} ícone do Struvia \textgreater{} menu (⋮)
 \textgreater{} \textbf{Settings} (\emph{Configurações}). Cada container
 (\texttt{api}, \texttt{worker}, \texttt{web}, \texttt{db},
 \texttt{redis}) tem sua aba com as \textbf{variáveis de ambiente} ---
@@ -681,26 +749,26 @@ criação do banco):
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\FunctionTok{sudo}\NormalTok{ docker exec }\AttributeTok{{-}it}\NormalTok{ gestoreng{-}db psql }\AttributeTok{{-}U}\NormalTok{ gestoreng }\AttributeTok{{-}d}\NormalTok{ gestoreng }\AttributeTok{{-}c} \StringTok{"ALTER USER gestoreng PASSWORD \textquotesingle{}NOVA\_SENHA\textquotesingle{};"}
+\FunctionTok{sudo}\NormalTok{ docker exec }\AttributeTok{{-}it}\NormalTok{ struvia{-}db psql }\AttributeTok{{-}U}\NormalTok{ struvia }\AttributeTok{{-}d}\NormalTok{ struvia }\AttributeTok{{-}c} \StringTok{"ALTER USER struvia PASSWORD \textquotesingle{}NOVA\_SENHA\textquotesingle{};"}
 \end{Highlighting}
 \end{Shaded}
 
 Depois altere \texttt{POSTGRES\_PASSWORD} para \texttt{NOVA\_SENHA} nos
 serviços \texttt{db}, \texttt{api} e \texttt{worker} e salve.
 
-\hypertarget{atualizar-o-gestoreng-para-uma-nova-versuxe3o}{%
-\section{Atualizar o GestorEng para uma nova
-versão}\label{atualizar-o-gestoreng-para-uma-nova-versuxe3o}}
+\hypertarget{atualizar-o-struvia-para-uma-nova-versuxe3o}{%
+\section{Atualizar o Struvia para uma nova
+versão}\label{atualizar-o-struvia-para-uma-nova-versuxe3o}}
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\FunctionTok{sudo}\NormalTok{ docker pull ghcr.io/incorpore/gestoreng{-}api:latest}
-\FunctionTok{sudo}\NormalTok{ docker pull ghcr.io/incorpore/gestoreng{-}web:latest}
+\FunctionTok{sudo}\NormalTok{ docker pull ghcr.io/incorpore/struvia{-}api:latest}
+\FunctionTok{sudo}\NormalTok{ docker pull ghcr.io/incorpore/struvia{-}web:latest}
 \end{Highlighting}
 \end{Shaded}
 
-Depois, no painel: ícone do GestorEng \textgreater{} \textbf{Restart}
-não basta --- use \textbf{Settings \textgreater{} Save} (recria os
+Depois, no painel: ícone do Struvia \textgreater{} \textbf{Restart} não
+basta --- use \textbf{Settings \textgreater{} Save} (recria os
 containers com as imagens novas). Pelo terminal:
 \texttt{sudo\ docker\ compose\ up\ -d} na pasta do arquivo. As
 atualizações do banco (migrações) são aplicadas automaticamente na
@@ -718,7 +786,7 @@ escolhido e apaga os antigos conforme a retenção.
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\FunctionTok{sudo}\NormalTok{ docker exec gestoreng{-}db pg\_dump }\AttributeTok{{-}U}\NormalTok{ gestoreng }\AttributeTok{{-}Fc}\NormalTok{ gestoreng }\KeywordTok{|} \FunctionTok{sudo}\NormalTok{ tee /media/URSUS/AppData/GestorEng/manual{-}}\VariableTok{$(}\FunctionTok{date}\NormalTok{ +\%F}\VariableTok{)}\NormalTok{.dump }\OperatorTok{\textgreater{}}\NormalTok{ /dev/null}
+\FunctionTok{sudo}\NormalTok{ docker exec struvia{-}db pg\_dump }\AttributeTok{{-}U}\NormalTok{ struvia }\AttributeTok{{-}Fc}\NormalTok{ struvia }\KeywordTok{|} \FunctionTok{sudo}\NormalTok{ tee /media/URSUS/AppData/Struvia/manual{-}}\VariableTok{$(}\FunctionTok{date}\NormalTok{ +\%F}\VariableTok{)}\NormalTok{.dump }\OperatorTok{\textgreater{}}\NormalTok{ /dev/null}
 \end{Highlighting}
 \end{Shaded}
 
@@ -726,10 +794,10 @@ escolhido e apaga os antigos conforme a retenção.
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\FunctionTok{sudo}\NormalTok{ docker stop gestoreng{-}web gestoreng{-}worker}
-\FunctionTok{sudo}\NormalTok{ docker exec }\AttributeTok{{-}it}\NormalTok{ gestoreng{-}api ./docker{-}entrypoint.sh backup listar}
-\FunctionTok{sudo}\NormalTok{ docker exec }\AttributeTok{{-}it}\NormalTok{ gestoreng{-}api ./docker{-}entrypoint.sh backup restaurar gestoreng/gestoreng{-}AAAAMMDD{-}HHMMSS.tar.gz}
-\FunctionTok{sudo}\NormalTok{ docker restart gestoreng{-}api }\KeywordTok{\&\&} \FunctionTok{sudo}\NormalTok{ docker start gestoreng{-}worker gestoreng{-}web}
+\FunctionTok{sudo}\NormalTok{ docker stop struvia{-}web struvia{-}worker}
+\FunctionTok{sudo}\NormalTok{ docker exec }\AttributeTok{{-}it}\NormalTok{ struvia{-}api ./docker{-}entrypoint.sh backup listar}
+\FunctionTok{sudo}\NormalTok{ docker exec }\AttributeTok{{-}it}\NormalTok{ struvia{-}api ./docker{-}entrypoint.sh backup restaurar struvia/struvia{-}AAAAMMDD{-}HHMMSS.tar.gz}
+\FunctionTok{sudo}\NormalTok{ docker restart struvia{-}api }\KeywordTok{\&\&} \FunctionTok{sudo}\NormalTok{ docker start struvia{-}worker struvia{-}web}
 \end{Highlighting}
 \end{Shaded}
 
@@ -737,7 +805,7 @@ escolhido e apaga os antigos conforme a retenção.
 \section{Problemas comuns}\label{problemas-comuns}}
 
 \textbf{\texttt{/etc/nginx/conf.d\ is\ not\ writable}} (no log do
-\texttt{gestoreng-web}; o site não abre) --- o compose tem
+\texttt{struvia-web}; o site não abre) --- o compose tem
 \texttt{read\_only} e \texttt{tmpfs} que o ZimaOS cria sem permissão de
 escrita. Use os arquivos atuais de \texttt{deploy/zimaos/} (já sem essas
 opções) ou remova \texttt{read\_only:\ true} e o bloco \texttt{tmpfs:}
@@ -779,7 +847,7 @@ na primeira criação.
 
 \textbf{Pasta de arquivos sem permissão} (aparece no \texttt{verificar}
 ou ao anexar arquivos):
-\texttt{sudo\ chown\ -R\ 10001:10001\ /media/URSUS/AppData/GestorEng/storage}
+\texttt{sudo\ chown\ -R\ 10001:10001\ /media/URSUS/AppData/Struvia/storage}
 
 \textbf{Sou desconectado ao recarregar a página} ---
 \texttt{COOKIE\_SECURE} está \texttt{"true"} mas o acesso é por
@@ -789,11 +857,11 @@ ou ao anexar arquivos):
 \texttt{MAX\_BODY} (iguais).
 
 \textbf{Esqueci a senha do administrador} ---
-\texttt{sudo\ docker\ exec\ -it\ gestoreng-api\ python\ -m\ app.manage\ senha\ SEU\_EMAIL}.
+\texttt{sudo\ docker\ exec\ -it\ struvia-api\ python\ -m\ app.manage\ senha\ SEU\_EMAIL}.
 
 \textbf{Worker mostrando ``Aguardando migrações\ldots{}''} --- normal
 nos primeiros segundos; se persistir, veja
-\texttt{sudo\ docker\ logs\ gestoreng-api}.
+\texttt{sudo\ docker\ logs\ struvia-api}.
 
 \textbf{Porta 8917 já em uso} --- troque por outra livre (veja a tabela
 de variáveis).
@@ -802,10 +870,10 @@ de variáveis).
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\FunctionTok{sudo}\NormalTok{ docker logs }\AttributeTok{{-}{-}tail}\NormalTok{ 100 gestoreng{-}api}
-\FunctionTok{sudo}\NormalTok{ docker logs }\AttributeTok{{-}{-}tail}\NormalTok{ 100 gestoreng{-}worker}
-\FunctionTok{sudo}\NormalTok{ docker logs }\AttributeTok{{-}{-}tail}\NormalTok{ 100 gestoreng{-}web}
-\FunctionTok{sudo}\NormalTok{ docker logs }\AttributeTok{{-}{-}tail}\NormalTok{ 100 gestoreng{-}db      }\CommentTok{\# banco interno}
+\FunctionTok{sudo}\NormalTok{ docker logs }\AttributeTok{{-}{-}tail}\NormalTok{ 100 struvia{-}api}
+\FunctionTok{sudo}\NormalTok{ docker logs }\AttributeTok{{-}{-}tail}\NormalTok{ 100 struvia{-}worker}
+\FunctionTok{sudo}\NormalTok{ docker logs }\AttributeTok{{-}{-}tail}\NormalTok{ 100 struvia{-}web}
+\FunctionTok{sudo}\NormalTok{ docker logs }\AttributeTok{{-}{-}tail}\NormalTok{ 100 struvia{-}db      }\CommentTok{\# banco interno}
 \end{Highlighting}
 \end{Shaded}
 
@@ -820,8 +888,8 @@ de variáveis).
   \texttt{http://IP-DO-ZIMAOS:8917} (na rede da empresa) ou o seu
   domínio HTTPS.
 \item
-  \textbf{HTTPS / acesso externo:} coloque o GestorEng atrás do proxy
-  que você já usa (Nginx Proxy Manager, Cloudflare Tunnel, Traefik)
+  \textbf{HTTPS / acesso externo:} coloque o Struvia atrás do proxy que
+  você já usa (Nginx Proxy Manager, Cloudflare Tunnel, Traefik)
   apontando para \texttt{IP-DO-ZIMAOS:8917}. Depois ajuste
   \texttt{COOKIE\_SECURE:\ "true"} e inclua o domínio em
   \texttt{CORS\_ORIGINS} (ex.: \texttt{https://gestor.velmont.com.br}).
@@ -838,32 +906,32 @@ do repositório: o PDF quebra linhas longas.
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\CommentTok{\# GestorEng — ZimaOS · BANCO INTERNO (PostgreSQL + Redis instalados junto com o app)}
+\CommentTok{\# Struvia — ZimaOS · BANCO INTERNO (PostgreSQL + Redis instalados junto com o app)}
 \CommentTok{\# Troque todos os valores TROQUE\_*. As variáveis de "api" e "worker" devem ser IGUAIS.}
 \CommentTok{\# POSTGRES\_PASSWORD deve ser igual em "db", "api" e "worker"; a senha do Redis igual no "command" do redis e em REDIS\_PASSWORD.}
 \CommentTok{\# Senhas podem ter qualquer caractere — o sistema codifica sozinho. Chaves: openssl rand {-}hex 32}
-\FunctionTok{name}\KeywordTok{:}\AttributeTok{ gestoreng}
+\FunctionTok{name}\KeywordTok{:}\AttributeTok{ struvia}
 \FunctionTok{services}\KeywordTok{:}
 \AttributeTok{  }\FunctionTok{db}\KeywordTok{:}
-\AttributeTok{    }\FunctionTok{container\_name}\KeywordTok{:}\AttributeTok{ gestoreng{-}db}
+\AttributeTok{    }\FunctionTok{container\_name}\KeywordTok{:}\AttributeTok{ struvia{-}db}
 \AttributeTok{    }\FunctionTok{image}\KeywordTok{:}\AttributeTok{ postgres:16{-}alpine}
 \AttributeTok{    }\FunctionTok{restart}\KeywordTok{:}\AttributeTok{ unless{-}stopped}
 \AttributeTok{    }\FunctionTok{environment}\KeywordTok{:}
-\AttributeTok{      }\FunctionTok{POSTGRES\_DB}\KeywordTok{:}\AttributeTok{ gestoreng}
-\AttributeTok{      }\FunctionTok{POSTGRES\_USER}\KeywordTok{:}\AttributeTok{ gestoreng}
+\AttributeTok{      }\FunctionTok{POSTGRES\_DB}\KeywordTok{:}\AttributeTok{ struvia}
+\AttributeTok{      }\FunctionTok{POSTGRES\_USER}\KeywordTok{:}\AttributeTok{ struvia}
 \AttributeTok{      }\FunctionTok{POSTGRES\_PASSWORD}\KeywordTok{:}\AttributeTok{ TROQUE\_SENHA\_DO\_BANCO}
 \AttributeTok{      }\FunctionTok{TZ}\KeywordTok{:}\AttributeTok{ America/Sao\_Paulo}
 \AttributeTok{    }\FunctionTok{volumes}\KeywordTok{:}
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ }\FunctionTok{type}\KeywordTok{:}\AttributeTok{ bind}
-\AttributeTok{        }\FunctionTok{source}\KeywordTok{:}\AttributeTok{ /media/URSUS/AppData/GestorEng/postgres}
+\AttributeTok{        }\FunctionTok{source}\KeywordTok{:}\AttributeTok{ /media/URSUS/AppData/Struvia/postgres}
 \AttributeTok{        }\FunctionTok{target}\KeywordTok{:}\AttributeTok{ /var/lib/postgresql/data}
 \AttributeTok{    }\FunctionTok{networks}\KeywordTok{:}
-\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ gestoreng}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ struvia}
 \AttributeTok{    }\FunctionTok{security\_opt}\KeywordTok{:}
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ no{-}new{-}privileges:true}
 
 \AttributeTok{  }\FunctionTok{redis}\KeywordTok{:}
-\AttributeTok{    }\FunctionTok{container\_name}\KeywordTok{:}\AttributeTok{ gestoreng{-}redis}
+\AttributeTok{    }\FunctionTok{container\_name}\KeywordTok{:}\AttributeTok{ struvia{-}redis}
 \AttributeTok{    }\FunctionTok{image}\KeywordTok{:}\AttributeTok{ redis:7{-}alpine}
 \AttributeTok{    }\FunctionTok{restart}\KeywordTok{:}\AttributeTok{ unless{-}stopped}
 \AttributeTok{    }\FunctionTok{command}\KeywordTok{:}
@@ -875,13 +943,13 @@ do repositório: o PDF quebra linhas longas.
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ {-}{-}appendonly}
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ }\StringTok{"no"}
 \AttributeTok{    }\FunctionTok{networks}\KeywordTok{:}
-\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ gestoreng}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ struvia}
 \AttributeTok{    }\FunctionTok{security\_opt}\KeywordTok{:}
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ no{-}new{-}privileges:true}
 
 \AttributeTok{  }\FunctionTok{api}\KeywordTok{:}
-\AttributeTok{    }\FunctionTok{container\_name}\KeywordTok{:}\AttributeTok{ gestoreng{-}api}
-\AttributeTok{    }\FunctionTok{image}\KeywordTok{:}\AttributeTok{ ghcr.io/incorpore/gestoreng{-}api:latest}
+\AttributeTok{    }\FunctionTok{container\_name}\KeywordTok{:}\AttributeTok{ struvia{-}api}
+\AttributeTok{    }\FunctionTok{image}\KeywordTok{:}\AttributeTok{ ghcr.io/incorpore/struvia{-}api:latest}
 \AttributeTok{    }\FunctionTok{restart}\KeywordTok{:}\AttributeTok{ unless{-}stopped}
 \AttributeTok{    }\FunctionTok{command}\KeywordTok{:}
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ api}
@@ -889,14 +957,14 @@ do repositório: o PDF quebra linhas longas.
 \AttributeTok{      }\FunctionTok{ENVIRONMENT}\KeywordTok{:}\AttributeTok{ production}
 \AttributeTok{      }\FunctionTok{POSTGRES\_HOST}\KeywordTok{:}\AttributeTok{ db}
 \AttributeTok{      }\FunctionTok{POSTGRES\_PORT}\KeywordTok{:}\AttributeTok{ }\StringTok{"5432"}
-\AttributeTok{      }\FunctionTok{POSTGRES\_DB}\KeywordTok{:}\AttributeTok{ gestoreng}
-\AttributeTok{      }\FunctionTok{POSTGRES\_USER}\KeywordTok{:}\AttributeTok{ gestoreng}
+\AttributeTok{      }\FunctionTok{POSTGRES\_DB}\KeywordTok{:}\AttributeTok{ struvia}
+\AttributeTok{      }\FunctionTok{POSTGRES\_USER}\KeywordTok{:}\AttributeTok{ struvia}
 \AttributeTok{      }\FunctionTok{POSTGRES\_PASSWORD}\KeywordTok{:}\AttributeTok{ TROQUE\_SENHA\_DO\_BANCO}
 \AttributeTok{      }\FunctionTok{REDIS\_HOST}\KeywordTok{:}\AttributeTok{ redis}
 \AttributeTok{      }\FunctionTok{REDIS\_PORT}\KeywordTok{:}\AttributeTok{ }\StringTok{"6379"}
 \AttributeTok{      }\FunctionTok{REDIS\_PASSWORD}\KeywordTok{:}\AttributeTok{ TROQUE\_SENHA\_DO\_REDIS}
 \AttributeTok{      }\FunctionTok{REDIS\_DB}\KeywordTok{:}\AttributeTok{ }\StringTok{"0"}
-\AttributeTok{      }\FunctionTok{REDIS\_PREFIX}\KeywordTok{:}\AttributeTok{ GestorEng\_}
+\AttributeTok{      }\FunctionTok{REDIS\_PREFIX}\KeywordTok{:}\AttributeTok{ Struvia\_}
 \AttributeTok{      }\FunctionTok{SECRET\_KEY}\KeywordTok{:}\AttributeTok{ TROQUE\_CHAVE\_1}
 \AttributeTok{      }\FunctionTok{ENCRYPTION\_KEY}\KeywordTok{:}\AttributeTok{ TROQUE\_CHAVE\_2}
 \AttributeTok{      }\FunctionTok{ADMIN\_EMAIL}\KeywordTok{:}\AttributeTok{ admin@velmont.com.br}
@@ -910,21 +978,21 @@ do repositório: o PDF quebra linhas longas.
 \AttributeTok{      }\FunctionTok{STORAGE\_DIR}\KeywordTok{:}\AttributeTok{ /data/storage}
 \AttributeTok{    }\FunctionTok{volumes}\KeywordTok{:}
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ }\FunctionTok{type}\KeywordTok{:}\AttributeTok{ bind}
-\AttributeTok{        }\FunctionTok{source}\KeywordTok{:}\AttributeTok{ /media/URSUS/AppData/GestorEng/storage}
+\AttributeTok{        }\FunctionTok{source}\KeywordTok{:}\AttributeTok{ /media/URSUS/AppData/Struvia/storage}
 \AttributeTok{        }\FunctionTok{target}\KeywordTok{:}\AttributeTok{ /data/storage}
 \AttributeTok{    }\FunctionTok{depends\_on}\KeywordTok{:}
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ db}
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ redis}
 \AttributeTok{    }\FunctionTok{networks}\KeywordTok{:}
-\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ gestoreng}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ struvia}
 \AttributeTok{    }\FunctionTok{security\_opt}\KeywordTok{:}
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ no{-}new{-}privileges:true}
 \AttributeTok{    }\FunctionTok{cap\_drop}\KeywordTok{:}
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ ALL}
 
 \AttributeTok{  }\FunctionTok{worker}\KeywordTok{:}
-\AttributeTok{    }\FunctionTok{container\_name}\KeywordTok{:}\AttributeTok{ gestoreng{-}worker}
-\AttributeTok{    }\FunctionTok{image}\KeywordTok{:}\AttributeTok{ ghcr.io/incorpore/gestoreng{-}api:latest}
+\AttributeTok{    }\FunctionTok{container\_name}\KeywordTok{:}\AttributeTok{ struvia{-}worker}
+\AttributeTok{    }\FunctionTok{image}\KeywordTok{:}\AttributeTok{ ghcr.io/incorpore/struvia{-}api:latest}
 \AttributeTok{    }\FunctionTok{restart}\KeywordTok{:}\AttributeTok{ unless{-}stopped}
 \AttributeTok{    }\FunctionTok{command}\KeywordTok{:}
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ worker}
@@ -932,14 +1000,14 @@ do repositório: o PDF quebra linhas longas.
 \AttributeTok{      }\FunctionTok{ENVIRONMENT}\KeywordTok{:}\AttributeTok{ production}
 \AttributeTok{      }\FunctionTok{POSTGRES\_HOST}\KeywordTok{:}\AttributeTok{ db}
 \AttributeTok{      }\FunctionTok{POSTGRES\_PORT}\KeywordTok{:}\AttributeTok{ }\StringTok{"5432"}
-\AttributeTok{      }\FunctionTok{POSTGRES\_DB}\KeywordTok{:}\AttributeTok{ gestoreng}
-\AttributeTok{      }\FunctionTok{POSTGRES\_USER}\KeywordTok{:}\AttributeTok{ gestoreng}
+\AttributeTok{      }\FunctionTok{POSTGRES\_DB}\KeywordTok{:}\AttributeTok{ struvia}
+\AttributeTok{      }\FunctionTok{POSTGRES\_USER}\KeywordTok{:}\AttributeTok{ struvia}
 \AttributeTok{      }\FunctionTok{POSTGRES\_PASSWORD}\KeywordTok{:}\AttributeTok{ TROQUE\_SENHA\_DO\_BANCO}
 \AttributeTok{      }\FunctionTok{REDIS\_HOST}\KeywordTok{:}\AttributeTok{ redis}
 \AttributeTok{      }\FunctionTok{REDIS\_PORT}\KeywordTok{:}\AttributeTok{ }\StringTok{"6379"}
 \AttributeTok{      }\FunctionTok{REDIS\_PASSWORD}\KeywordTok{:}\AttributeTok{ TROQUE\_SENHA\_DO\_REDIS}
 \AttributeTok{      }\FunctionTok{REDIS\_DB}\KeywordTok{:}\AttributeTok{ }\StringTok{"0"}
-\AttributeTok{      }\FunctionTok{REDIS\_PREFIX}\KeywordTok{:}\AttributeTok{ GestorEng\_}
+\AttributeTok{      }\FunctionTok{REDIS\_PREFIX}\KeywordTok{:}\AttributeTok{ Struvia\_}
 \AttributeTok{      }\FunctionTok{SECRET\_KEY}\KeywordTok{:}\AttributeTok{ TROQUE\_CHAVE\_1}
 \AttributeTok{      }\FunctionTok{ENCRYPTION\_KEY}\KeywordTok{:}\AttributeTok{ TROQUE\_CHAVE\_2}
 \AttributeTok{      }\FunctionTok{COOKIE\_SECURE}\KeywordTok{:}\AttributeTok{ }\StringTok{"false"}
@@ -949,22 +1017,22 @@ do repositório: o PDF quebra linhas longas.
 \AttributeTok{      }\FunctionTok{STORAGE\_DIR}\KeywordTok{:}\AttributeTok{ /data/storage}
 \AttributeTok{    }\FunctionTok{volumes}\KeywordTok{:}
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ }\FunctionTok{type}\KeywordTok{:}\AttributeTok{ bind}
-\AttributeTok{        }\FunctionTok{source}\KeywordTok{:}\AttributeTok{ /media/URSUS/AppData/GestorEng/storage}
+\AttributeTok{        }\FunctionTok{source}\KeywordTok{:}\AttributeTok{ /media/URSUS/AppData/Struvia/storage}
 \AttributeTok{        }\FunctionTok{target}\KeywordTok{:}\AttributeTok{ /data/storage}
 \AttributeTok{    }\FunctionTok{depends\_on}\KeywordTok{:}
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ api}
 \AttributeTok{    }\FunctionTok{healthcheck}\KeywordTok{:}
 \AttributeTok{      }\FunctionTok{disable}\KeywordTok{:}\AttributeTok{ }\CharTok{true}
 \AttributeTok{    }\FunctionTok{networks}\KeywordTok{:}
-\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ gestoreng}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ struvia}
 \AttributeTok{    }\FunctionTok{security\_opt}\KeywordTok{:}
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ no{-}new{-}privileges:true}
 \AttributeTok{    }\FunctionTok{cap\_drop}\KeywordTok{:}
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ ALL}
 
 \AttributeTok{  }\FunctionTok{web}\KeywordTok{:}
-\AttributeTok{    }\FunctionTok{container\_name}\KeywordTok{:}\AttributeTok{ gestoreng{-}web}
-\AttributeTok{    }\FunctionTok{image}\KeywordTok{:}\AttributeTok{ ghcr.io/incorpore/gestoreng{-}web:latest}
+\AttributeTok{    }\FunctionTok{container\_name}\KeywordTok{:}\AttributeTok{ struvia{-}web}
+\AttributeTok{    }\FunctionTok{image}\KeywordTok{:}\AttributeTok{ ghcr.io/incorpore/struvia{-}web:latest}
 \AttributeTok{    }\FunctionTok{restart}\KeywordTok{:}\AttributeTok{ unless{-}stopped}
 \AttributeTok{    }\FunctionTok{environment}\KeywordTok{:}
 \AttributeTok{      }\FunctionTok{API\_UPSTREAM}\KeywordTok{:}\AttributeTok{ api:8000}
@@ -976,15 +1044,15 @@ do repositório: o PDF quebra linhas longas.
 \AttributeTok{    }\FunctionTok{depends\_on}\KeywordTok{:}
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ api}
 \AttributeTok{    }\FunctionTok{networks}\KeywordTok{:}
-\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ gestoreng}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ struvia}
 \AttributeTok{    }\FunctionTok{security\_opt}\KeywordTok{:}
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ no{-}new{-}privileges:true}
 \AttributeTok{    }\FunctionTok{cap\_drop}\KeywordTok{:}
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ ALL}
 
 \FunctionTok{networks}\KeywordTok{:}
-\AttributeTok{  }\FunctionTok{gestoreng}\KeywordTok{:}
-\AttributeTok{    }\FunctionTok{name}\KeywordTok{:}\AttributeTok{ gestoreng}
+\AttributeTok{  }\FunctionTok{struvia}\KeywordTok{:}
+\AttributeTok{    }\FunctionTok{name}\KeywordTok{:}\AttributeTok{ struvia}
 \AttributeTok{    }\FunctionTok{driver}\KeywordTok{:}\AttributeTok{ bridge}
 
 \FunctionTok{x{-}casaos}\KeywordTok{:}
@@ -997,7 +1065,7 @@ do repositório: o PDF quebra linhas longas.
 \AttributeTok{  }\FunctionTok{port\_map}\KeywordTok{:}\AttributeTok{ }\StringTok{"8917"}
 \AttributeTok{  }\FunctionTok{scheme}\KeywordTok{:}\AttributeTok{ http}
 \AttributeTok{  }\FunctionTok{title}\KeywordTok{:}
-\AttributeTok{    }\FunctionTok{custom}\KeywordTok{:}\AttributeTok{ GestorEng}
+\AttributeTok{    }\FunctionTok{custom}\KeywordTok{:}\AttributeTok{ Struvia}
 \end{Highlighting}
 \end{Shaded}
 
@@ -1012,15 +1080,15 @@ do repositório: o PDF quebra linhas longas.
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\CommentTok{\# GestorEng — ZimaOS · BANCO EXTERNO (PostgreSQL e Redis já existentes na rede)}
+\CommentTok{\# Struvia — ZimaOS · BANCO EXTERNO (PostgreSQL e Redis já existentes na rede)}
 \CommentTok{\# Troque todos os valores TROQUE\_*. As variáveis de "api" e "worker" devem ser IGUAIS.}
 \CommentTok{\# Redis é opcional: para não usar, apague as linhas REDIS\_* de "api" e "worker".}
 \CommentTok{\# Senhas podem ter qualquer caractere — o sistema codifica sozinho. Chaves: openssl rand {-}hex 32}
-\FunctionTok{name}\KeywordTok{:}\AttributeTok{ gestoreng}
+\FunctionTok{name}\KeywordTok{:}\AttributeTok{ struvia}
 \FunctionTok{services}\KeywordTok{:}
 \AttributeTok{  }\FunctionTok{api}\KeywordTok{:}
-\AttributeTok{    }\FunctionTok{container\_name}\KeywordTok{:}\AttributeTok{ gestoreng{-}api}
-\AttributeTok{    }\FunctionTok{image}\KeywordTok{:}\AttributeTok{ ghcr.io/incorpore/gestoreng{-}api:latest}
+\AttributeTok{    }\FunctionTok{container\_name}\KeywordTok{:}\AttributeTok{ struvia{-}api}
+\AttributeTok{    }\FunctionTok{image}\KeywordTok{:}\AttributeTok{ ghcr.io/incorpore/struvia{-}api:latest}
 \AttributeTok{    }\FunctionTok{restart}\KeywordTok{:}\AttributeTok{ unless{-}stopped}
 \AttributeTok{    }\FunctionTok{command}\KeywordTok{:}
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ api}
@@ -1028,14 +1096,14 @@ do repositório: o PDF quebra linhas longas.
 \AttributeTok{      }\FunctionTok{ENVIRONMENT}\KeywordTok{:}\AttributeTok{ production}
 \AttributeTok{      }\FunctionTok{POSTGRES\_HOST}\KeywordTok{:}\AttributeTok{ }\FloatTok{192.168.3.100}
 \AttributeTok{      }\FunctionTok{POSTGRES\_PORT}\KeywordTok{:}\AttributeTok{ }\StringTok{"5432"}
-\AttributeTok{      }\FunctionTok{POSTGRES\_DB}\KeywordTok{:}\AttributeTok{ gestoreng}
-\AttributeTok{      }\FunctionTok{POSTGRES\_USER}\KeywordTok{:}\AttributeTok{ gestoreng}
+\AttributeTok{      }\FunctionTok{POSTGRES\_DB}\KeywordTok{:}\AttributeTok{ struvia}
+\AttributeTok{      }\FunctionTok{POSTGRES\_USER}\KeywordTok{:}\AttributeTok{ struvia}
 \AttributeTok{      }\FunctionTok{POSTGRES\_PASSWORD}\KeywordTok{:}\AttributeTok{ TROQUE\_SENHA\_DO\_BANCO}
 \AttributeTok{      }\FunctionTok{REDIS\_HOST}\KeywordTok{:}\AttributeTok{ }\FloatTok{192.168.3.100}
 \AttributeTok{      }\FunctionTok{REDIS\_PORT}\KeywordTok{:}\AttributeTok{ }\StringTok{"6379"}
 \AttributeTok{      }\FunctionTok{REDIS\_PASSWORD}\KeywordTok{:}\AttributeTok{ TROQUE\_SENHA\_DO\_REDIS}
 \AttributeTok{      }\FunctionTok{REDIS\_DB}\KeywordTok{:}\AttributeTok{ }\StringTok{"0"}
-\AttributeTok{      }\FunctionTok{REDIS\_PREFIX}\KeywordTok{:}\AttributeTok{ GestorEng\_}
+\AttributeTok{      }\FunctionTok{REDIS\_PREFIX}\KeywordTok{:}\AttributeTok{ Struvia\_}
 \AttributeTok{      }\FunctionTok{SECRET\_KEY}\KeywordTok{:}\AttributeTok{ TROQUE\_CHAVE\_1}
 \AttributeTok{      }\FunctionTok{ENCRYPTION\_KEY}\KeywordTok{:}\AttributeTok{ TROQUE\_CHAVE\_2}
 \AttributeTok{      }\FunctionTok{ADMIN\_EMAIL}\KeywordTok{:}\AttributeTok{ admin@velmont.com.br}
@@ -1049,18 +1117,18 @@ do repositório: o PDF quebra linhas longas.
 \AttributeTok{      }\FunctionTok{STORAGE\_DIR}\KeywordTok{:}\AttributeTok{ /data/storage}
 \AttributeTok{    }\FunctionTok{volumes}\KeywordTok{:}
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ }\FunctionTok{type}\KeywordTok{:}\AttributeTok{ bind}
-\AttributeTok{        }\FunctionTok{source}\KeywordTok{:}\AttributeTok{ /media/URSUS/AppData/GestorEng/storage}
+\AttributeTok{        }\FunctionTok{source}\KeywordTok{:}\AttributeTok{ /media/URSUS/AppData/Struvia/storage}
 \AttributeTok{        }\FunctionTok{target}\KeywordTok{:}\AttributeTok{ /data/storage}
 \AttributeTok{    }\FunctionTok{networks}\KeywordTok{:}
-\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ gestoreng}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ struvia}
 \AttributeTok{    }\FunctionTok{security\_opt}\KeywordTok{:}
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ no{-}new{-}privileges:true}
 \AttributeTok{    }\FunctionTok{cap\_drop}\KeywordTok{:}
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ ALL}
 
 \AttributeTok{  }\FunctionTok{worker}\KeywordTok{:}
-\AttributeTok{    }\FunctionTok{container\_name}\KeywordTok{:}\AttributeTok{ gestoreng{-}worker}
-\AttributeTok{    }\FunctionTok{image}\KeywordTok{:}\AttributeTok{ ghcr.io/incorpore/gestoreng{-}api:latest}
+\AttributeTok{    }\FunctionTok{container\_name}\KeywordTok{:}\AttributeTok{ struvia{-}worker}
+\AttributeTok{    }\FunctionTok{image}\KeywordTok{:}\AttributeTok{ ghcr.io/incorpore/struvia{-}api:latest}
 \AttributeTok{    }\FunctionTok{restart}\KeywordTok{:}\AttributeTok{ unless{-}stopped}
 \AttributeTok{    }\FunctionTok{command}\KeywordTok{:}
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ worker}
@@ -1068,14 +1136,14 @@ do repositório: o PDF quebra linhas longas.
 \AttributeTok{      }\FunctionTok{ENVIRONMENT}\KeywordTok{:}\AttributeTok{ production}
 \AttributeTok{      }\FunctionTok{POSTGRES\_HOST}\KeywordTok{:}\AttributeTok{ }\FloatTok{192.168.3.100}
 \AttributeTok{      }\FunctionTok{POSTGRES\_PORT}\KeywordTok{:}\AttributeTok{ }\StringTok{"5432"}
-\AttributeTok{      }\FunctionTok{POSTGRES\_DB}\KeywordTok{:}\AttributeTok{ gestoreng}
-\AttributeTok{      }\FunctionTok{POSTGRES\_USER}\KeywordTok{:}\AttributeTok{ gestoreng}
+\AttributeTok{      }\FunctionTok{POSTGRES\_DB}\KeywordTok{:}\AttributeTok{ struvia}
+\AttributeTok{      }\FunctionTok{POSTGRES\_USER}\KeywordTok{:}\AttributeTok{ struvia}
 \AttributeTok{      }\FunctionTok{POSTGRES\_PASSWORD}\KeywordTok{:}\AttributeTok{ TROQUE\_SENHA\_DO\_BANCO}
 \AttributeTok{      }\FunctionTok{REDIS\_HOST}\KeywordTok{:}\AttributeTok{ }\FloatTok{192.168.3.100}
 \AttributeTok{      }\FunctionTok{REDIS\_PORT}\KeywordTok{:}\AttributeTok{ }\StringTok{"6379"}
 \AttributeTok{      }\FunctionTok{REDIS\_PASSWORD}\KeywordTok{:}\AttributeTok{ TROQUE\_SENHA\_DO\_REDIS}
 \AttributeTok{      }\FunctionTok{REDIS\_DB}\KeywordTok{:}\AttributeTok{ }\StringTok{"0"}
-\AttributeTok{      }\FunctionTok{REDIS\_PREFIX}\KeywordTok{:}\AttributeTok{ GestorEng\_}
+\AttributeTok{      }\FunctionTok{REDIS\_PREFIX}\KeywordTok{:}\AttributeTok{ Struvia\_}
 \AttributeTok{      }\FunctionTok{SECRET\_KEY}\KeywordTok{:}\AttributeTok{ TROQUE\_CHAVE\_1}
 \AttributeTok{      }\FunctionTok{ENCRYPTION\_KEY}\KeywordTok{:}\AttributeTok{ TROQUE\_CHAVE\_2}
 \AttributeTok{      }\FunctionTok{COOKIE\_SECURE}\KeywordTok{:}\AttributeTok{ }\StringTok{"false"}
@@ -1085,22 +1153,22 @@ do repositório: o PDF quebra linhas longas.
 \AttributeTok{      }\FunctionTok{STORAGE\_DIR}\KeywordTok{:}\AttributeTok{ /data/storage}
 \AttributeTok{    }\FunctionTok{volumes}\KeywordTok{:}
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ }\FunctionTok{type}\KeywordTok{:}\AttributeTok{ bind}
-\AttributeTok{        }\FunctionTok{source}\KeywordTok{:}\AttributeTok{ /media/URSUS/AppData/GestorEng/storage}
+\AttributeTok{        }\FunctionTok{source}\KeywordTok{:}\AttributeTok{ /media/URSUS/AppData/Struvia/storage}
 \AttributeTok{        }\FunctionTok{target}\KeywordTok{:}\AttributeTok{ /data/storage}
 \AttributeTok{    }\FunctionTok{depends\_on}\KeywordTok{:}
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ api}
 \AttributeTok{    }\FunctionTok{healthcheck}\KeywordTok{:}
 \AttributeTok{      }\FunctionTok{disable}\KeywordTok{:}\AttributeTok{ }\CharTok{true}
 \AttributeTok{    }\FunctionTok{networks}\KeywordTok{:}
-\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ gestoreng}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ struvia}
 \AttributeTok{    }\FunctionTok{security\_opt}\KeywordTok{:}
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ no{-}new{-}privileges:true}
 \AttributeTok{    }\FunctionTok{cap\_drop}\KeywordTok{:}
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ ALL}
 
 \AttributeTok{  }\FunctionTok{web}\KeywordTok{:}
-\AttributeTok{    }\FunctionTok{container\_name}\KeywordTok{:}\AttributeTok{ gestoreng{-}web}
-\AttributeTok{    }\FunctionTok{image}\KeywordTok{:}\AttributeTok{ ghcr.io/incorpore/gestoreng{-}web:latest}
+\AttributeTok{    }\FunctionTok{container\_name}\KeywordTok{:}\AttributeTok{ struvia{-}web}
+\AttributeTok{    }\FunctionTok{image}\KeywordTok{:}\AttributeTok{ ghcr.io/incorpore/struvia{-}web:latest}
 \AttributeTok{    }\FunctionTok{restart}\KeywordTok{:}\AttributeTok{ unless{-}stopped}
 \AttributeTok{    }\FunctionTok{environment}\KeywordTok{:}
 \AttributeTok{      }\FunctionTok{API\_UPSTREAM}\KeywordTok{:}\AttributeTok{ api:8000}
@@ -1112,15 +1180,15 @@ do repositório: o PDF quebra linhas longas.
 \AttributeTok{    }\FunctionTok{depends\_on}\KeywordTok{:}
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ api}
 \AttributeTok{    }\FunctionTok{networks}\KeywordTok{:}
-\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ gestoreng}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ struvia}
 \AttributeTok{    }\FunctionTok{security\_opt}\KeywordTok{:}
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ no{-}new{-}privileges:true}
 \AttributeTok{    }\FunctionTok{cap\_drop}\KeywordTok{:}
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ ALL}
 
 \FunctionTok{networks}\KeywordTok{:}
-\AttributeTok{  }\FunctionTok{gestoreng}\KeywordTok{:}
-\AttributeTok{    }\FunctionTok{name}\KeywordTok{:}\AttributeTok{ gestoreng}
+\AttributeTok{  }\FunctionTok{struvia}\KeywordTok{:}
+\AttributeTok{    }\FunctionTok{name}\KeywordTok{:}\AttributeTok{ struvia}
 \AttributeTok{    }\FunctionTok{driver}\KeywordTok{:}\AttributeTok{ bridge}
 
 \FunctionTok{x{-}casaos}\KeywordTok{:}
@@ -1133,7 +1201,7 @@ do repositório: o PDF quebra linhas longas.
 \AttributeTok{  }\FunctionTok{port\_map}\KeywordTok{:}\AttributeTok{ }\StringTok{"8917"}
 \AttributeTok{  }\FunctionTok{scheme}\KeywordTok{:}\AttributeTok{ http}
 \AttributeTok{  }\FunctionTok{title}\KeywordTok{:}
-\AttributeTok{    }\FunctionTok{custom}\KeywordTok{:}\AttributeTok{ GestorEng}
+\AttributeTok{    }\FunctionTok{custom}\KeywordTok{:}\AttributeTok{ Struvia}
 \end{Highlighting}
 \end{Shaded}
 

@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli'
 
 const config: CapacitorConfig = {
-  appId: 'br.com.velmont.gestoreng',
-  appName: 'GestorEng',
+  appId: 'br.com.velmont.struvia',
+  appName: 'Struvia',
   webDir: 'dist',
   android: {
     allowMixedContent: false,

@@ -22,7 +22,7 @@ class BackupCfgIn(BaseModel):
     endpoint_url: str = Field("", max_length=300)
     regiao: str = Field("us-east-1", max_length=40)
     bucket: str = Field("", max_length=100)
-    prefixo: str = Field("gestoreng/", max_length=200)
+    prefixo: str = Field("struvia/", max_length=200)
     access_key: str = Field("", max_length=200)
     hora: int = Field(2, ge=0, le=23)
     minuto: int = Field(30, ge=0, le=59)

@@ -10,14 +10,14 @@ from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
-    app_name: str = "GestorEng"
+    app_name: str = "Struvia"
     environment: str = Field("production", description="production | development | test")
     # Banco: informe DATABASE_URL completa OU as variáveis POSTGRES_* (a URL é montada e a senha codificada automaticamente)
     database_url: str | None = None
     postgres_host: str = "localhost"
     postgres_port: int = 5432
-    postgres_db: str = "gestoreng"
-    postgres_user: str = "gestoreng"
+    postgres_db: str = "struvia"
+    postgres_user: str = "struvia"
     postgres_password: str | None = None
 
     # Redis (opcional): REDIS_URL completa OU REDIS_HOST/REDIS_PASSWORD/REDIS_DB; prefixo das chaves em REDIS_PREFIX

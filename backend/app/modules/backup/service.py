@@ -1,7 +1,7 @@
 """Backup completo (banco + arquivos) para armazenamento compatível com S3 (AWS, MinIO, Backblaze B2,
 Cloudflare R2, Wasabi, ZimaOS/MinIO...).
 
-Formato: gestoreng-AAAAMMDD-HHMMSS.tar.gz contendo `database.dump` (pg_dump -Fc) e `storage/`.
+Formato: struvia-AAAAMMDD-HHMMSS.tar.gz contendo `database.dump` (pg_dump -Fc) e `storage/`.
 """
 import hashlib
 import logging
@@ -24,7 +24,7 @@ from .models import BackupLog
 
 log = logging.getLogger("backup")
 CHAVE = "backup_s3"
-DEFAULTS = {"ativo": False, "endpoint_url": "", "regiao": "us-east-1", "bucket": "", "prefixo": "gestoreng/", "access_key": "",
+DEFAULTS = {"ativo": False, "endpoint_url": "", "regiao": "us-east-1", "bucket": "", "prefixo": "struvia/", "access_key": "",
             "hora": 2, "minuto": 30, "retencao_dias": 30, "incluir_arquivos": True, "path_style": True, "sse": False}
 
 
@@ -60,7 +60,7 @@ def testar(db: Session) -> dict:
     s3 = _client(cfg, secret)
     try:
         s3.head_bucket(Bucket=cfg["bucket"])
-        key = f"{cfg['prefixo']}.teste-gestoreng"
+        key = f"{cfg['prefixo']}.teste-struvia"
         s3.put_object(Bucket=cfg["bucket"], Key=key, Body=b"ok")
         s3.delete_object(Bucket=cfg["bucket"], Key=key)
     except Exception as e:  # noqa: BLE001
@@ -74,7 +74,7 @@ def executar(db: Session, origem: str = "manual") -> BackupLog:
     reg = BackupLog(origem=origem)
     db.add(reg)
     db.commit()
-    tmp = Path(tempfile.mkdtemp(prefix="gestoreng-bkp-"))
+    tmp = Path(tempfile.mkdtemp(prefix="struvia-bkp-"))
     try:
         dump = tmp / "database.dump"
         args, env = _pg_env()
@@ -82,7 +82,7 @@ def executar(db: Session, origem: str = "manual") -> BackupLog:
                            env=env, capture_output=True, text=True, timeout=3600)
         if r.returncode != 0:
             raise RuntimeError(f"pg_dump falhou: {r.stderr[-500:]}")
-        nome = f"gestoreng-{datetime.now(UTC).strftime('%Y%m%d-%H%M%S')}.tar.gz"
+        nome = f"struvia-{datetime.now(UTC).strftime('%Y%m%d-%H%M%S')}.tar.gz"
         arq = tmp / nome
         with tarfile.open(arq, "w:gz") as tar:
             tar.add(dump, arcname="database.dump")
@@ -140,7 +140,7 @@ def restaurar(db: Session, chave: str) -> None:
     """Restaura banco e arquivos a partir de um backup (uso via CLI, com o sistema parado)."""
     cfg, secret = config(db)
     s3 = _client(cfg, secret)
-    tmp = Path(tempfile.mkdtemp(prefix="gestoreng-restore-"))
+    tmp = Path(tempfile.mkdtemp(prefix="struvia-restore-"))
     try:
         arq = tmp / "backup.tar.gz"
         s3.download_file(cfg["bucket"], chave, str(arq))

@@ -23,7 +23,7 @@ export default function ServerSetup({ onDone, initial = '' }: { onDone: () => vo
     <div className="flex min-h-full items-center justify-center p-4">
       <form onSubmit={submit} className="card w-full max-w-sm space-y-4 p-6">
         <div className="flex items-center gap-2"><Server className="h-6 w-6 text-primary" /><h1 className="text-lg font-semibold">Conectar ao servidor</h1></div>
-        <p className="text-sm text-slate-500">Informe o endereço do GestorEng da sua empresa.</p>
+        <p className="text-sm text-slate-500">Informe o endereço do Struvia da sua empresa.</p>
         <Field label="Endereço do servidor"><Input type="url" inputMode="url" autoCapitalize="none" required value={url} onChange={(e) => setUrl(e.target.value)} /></Field>
         {erro && <p className="text-sm text-rose-600">{erro}</p>}
         <Button className="w-full" type="submit" loading={loading}>Conectar</Button>

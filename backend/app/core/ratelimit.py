@@ -21,18 +21,18 @@ def parse_redis_url(url: str, env_prefix: str | None = None) -> tuple[str, str]:
     """Separa o parâmetro `prefix` (não suportado pelo Redis) da URL.
 
     Ex.: redis://:senha@redis:6379/0?prefix=velmont  ->  ("redis://:senha@redis:6379/0", "velmont:")
-    Precedência: ?prefix= na URL > REDIS_PREFIX > "gestoreng:".
+    Precedência: ?prefix= na URL > REDIS_PREFIX > "struvia:".
     """
     parts = urlsplit(url)
     query = parse_qsl(parts.query, keep_blank_values=True)
-    prefix = next((v for k, v in query if k == "prefix"), None) or env_prefix or "gestoreng"
+    prefix = next((v for k, v in query if k == "prefix"), None) or env_prefix or "struvia"
     clean = urlunsplit(parts._replace(query=urlencode([(k, v) for k, v in query if k != "prefix"])))
     # separador ":" só é acrescentado se o prefixo não terminar em ":", "_", "-" ou "."
     return clean, prefix if prefix[-1] in ":_-." else f"{prefix}:"
 
 
 _redis = None
-PREFIX = "gestoreng:"
+PREFIX = "struvia:"
 _cfg = get_settings()
 if _cfg.redis_url:
     try:

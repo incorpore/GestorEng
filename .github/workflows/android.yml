@@ -61,7 +61,7 @@ jobs:
         run: |
           BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
           IN=android/app/build/outputs/apk/release/app-release-unsigned.apk
-          OUT=GestorEng-${{ steps.v.outputs.name }}.apk
+          OUT=Struvia-${{ steps.v.outputs.name }}.apk
           "$BT/zipalign" -p -f 4 "$IN" aligned.apk
           if [ -n "$KEYSTORE_B64" ]; then
             echo "$KEYSTORE_B64" | base64 -d > release.jks
@@ -69,7 +69,7 @@ jobs:
             rm -f release.jks
           else
             echo "::warning::Sem keystore nos secrets — APK assinado com chave temporária (apenas testes; não atualiza instalações anteriores)."
-            keytool -genkeypair -v -keystore tmp.jks -alias tmp -keyalg RSA -keysize 4096 -validity 3650 -storepass temp1234 -keypass temp1234 -dname "CN=GestorEng Teste"
+            keytool -genkeypair -v -keystore tmp.jks -alias tmp -keyalg RSA -keysize 4096 -validity 3650 -storepass temp1234 -keypass temp1234 -dname "CN=Struvia Teste"
             "$BT/apksigner" sign --ks tmp.jks --ks-pass pass:temp1234 --out "$OUT" aligned.apk
           fi
           "$BT/apksigner" verify --print-certs "$OUT"
@@ -77,7 +77,7 @@ jobs:
 
       - uses: actions/upload-artifact@v5
         with:
-          name: GestorEng-android-${{ steps.v.outputs.name }}
+          name: Struvia-android-${{ steps.v.outputs.name }}
           path: ${{ env.APK }}
       - name: Publica release
         if: startsWith(github.ref, 'refs/tags/v')

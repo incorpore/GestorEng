@@ -1,4 +1,4 @@
-"""Comandos de manutenção (executar dentro do container gestoreng-api).
+"""Comandos de manutenção (executar dentro do container struvia-api).
 
   python -m app.manage criar-admin  <email> <nome>        cria um administrador (pede a senha)
   python -m app.manage senha        <email>               redefine a senha (pede a nova)
