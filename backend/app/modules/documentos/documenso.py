@@ -32,7 +32,7 @@ class _Resp:
         try:
             dados = self.r.json()
         except ValueError:
-            raise HTTPException(502, f"Resposta inesperada do Documenso em {self.rota} (não é JSON). "
+            raise HTTPException(424, f"Resposta inesperada do Documenso em {self.rota} (não é JSON). "
                                      "Confira a URL do Documenso em Configurações > Integrações.")
         return dados if isinstance(dados, dict) else {"data": dados}
 
@@ -41,19 +41,24 @@ def _req(method: str, url: str, token: str, **kw) -> _Resp:
     rota = "/" + url.split("/", 3)[-1] if "://" in url else url
     try:
         with httpx.Client(timeout=TEMPO) as c:
-            r = c.request(method, url, headers={"Authorization": token, "Accept": "application/json"}, **kw)
+            r = c.request(method, url, headers={"Authorization": token, "Accept": "application/json", "User-Agent": "Struvia"}, **kw)
     except (httpx.ConnectError, httpx.ConnectTimeout) as e:
         host = url.split("/")[2] if "://" in url else url
-        raise DocumensoFora(502, f"O servidor do Struvia não conseguiu conectar ao Documenso em {host} "
+        raise DocumensoFora(424, f"O servidor do Struvia não conseguiu conectar ao Documenso em {host} "
                                  f"({e.__class__.__name__}). Use um endereço acessível a partir do servidor "
                                  "(ex.: http://IP-DO-ZIMAOS:PORTA) em Configurações > Integrações e clique em Testar.")
     except httpx.HTTPError as e:
-        raise HTTPException(502, f"Falha de comunicação com o Documenso: {e.__class__.__name__}")
+        raise HTTPException(424, f"Falha de comunicação com o Documenso: {e.__class__.__name__}")
+    html = r.text.lstrip()[:15].lower().startswith(("<!doctype", "<html"))
+    if r.headers.get("cf-mitigated") or (r.status_code in (403, 503) and html and "cloudflare" in r.text[:5000].lower()):
+        raise HTTPException(424, "O Cloudflare bloqueou o acesso do servidor do Struvia ao Documenso (proteção contra "
+                                 "robôs). Use o endereço local do Documenso (ex.: http://192.168.3.100:PORTA) em "
+                                 "Configurações > Integrações.")
     if r.status_code in (401, 403):
-        raise HTTPException(502, "O Documenso recusou o token da API (401/403). Gere um novo token e salve em "
+        raise HTTPException(424, "O Documenso recusou o token da API (401/403). Gere um novo token e salve em "
                                  "Configurações > Integrações.")
     if r.status_code >= 400:
-        raise HTTPException(502, f"Documenso retornou {r.status_code} em {rota}: {r.text[:300]}")
+        raise HTTPException(424, f"Documenso retornou {r.status_code} em {rota}: {r.text[:300]}")
     return _Resp(r, rota)
 
 
@@ -91,7 +96,7 @@ def criar_pasta(db: Session, nome: str, parent_id: str | None = None) -> dict:
     body = {"name": nome, "type": "DOCUMENT", **({"parentId": parent_id} if parent_id else {})}
     f = _req("POST", f"{base}/api/v2/folder/create", token, json=body).json()
     if not f.get("id"):
-        raise HTTPException(502, "Resposta inesperada do Documenso ao criar pasta")
+        raise HTTPException(424, "Resposta inesperada do Documenso ao criar pasta")
     return {"id": str(f["id"]), "nome": f.get("name") or nome, "parent_id": f.get("parentId")}
 
 
@@ -141,14 +146,14 @@ def enviar(db: Session, *, titulo: str, pdf: bytes, assinantes: list[dict], mens
     doc_id = created.get("documentId")
     upload_url = created.get("uploadUrl")
     if not doc_id or not upload_url:
-        raise HTTPException(502, "Resposta inesperada do Documenso")
+        raise HTTPException(424, "Resposta inesperada do Documenso")
     try:
         with httpx.Client(timeout=httpx.Timeout(90, connect=8)) as c:
             up = c.put(upload_url, content=pdf, headers={"Content-Type": "application/pdf"})
         if up.status_code >= 400:
-            raise HTTPException(502, f"Falha ao enviar PDF ao Documenso ({up.status_code})")
+            raise HTTPException(424, f"Falha ao enviar PDF ao Documenso ({up.status_code})")
     except httpx.HTTPError as e:
-        raise HTTPException(502, f"Falha ao enviar PDF ao Documenso: {e.__class__.__name__}")
+        raise HTTPException(424, f"Falha ao enviar PDF ao Documenso: {e.__class__.__name__}")
     ordem = {a["email"].lower(): i for i, a in enumerate(assinantes)}
     recipients = sorted(created.get("recipients") or [], key=lambda x: ordem.get((x.get("email") or "").lower(), 99))
     n = max(len(recipients), 1)
@@ -184,9 +189,9 @@ def baixar_assinado(db: Session, doc_id: str) -> bytes:
     info = _req("GET", f"{base}/api/v1/documents/{doc_id}/download", token).json()
     url = info.get("downloadUrl")
     if not url:
-        raise HTTPException(502, "Documento assinado indisponível")
+        raise HTTPException(424, "Documento assinado indisponível")
     with httpx.Client(timeout=120) as c:
         r = c.get(url)
     if r.status_code >= 400:
-        raise HTTPException(502, "Falha ao baixar documento assinado")
+        raise HTTPException(424, "Falha ao baixar documento assinado")
     return r.content

@@ -71,4 +71,4 @@ def municipios(uf: str = Query(min_length=2, max_length=2), db: Session = Depend
         return cache(db, f"ibge:municipios:{uf}", f"{IBGE}/estados/{uf}/municipios",
                      lambda d: [{"id": m["id"], "nome": m["nome"]} for m in d])
     except (httpx.HTTPError, ValueError, KeyError):
-        raise HTTPException(502, "Não foi possível consultar os municípios no IBGE. Tente novamente.")
+        raise HTTPException(424, "Não foi possível consultar os municípios no IBGE. Tente novamente.")

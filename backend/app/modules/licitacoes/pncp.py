@@ -27,11 +27,11 @@ def _get(path: str, params: dict) -> dict:
         with httpx.Client(timeout=30, headers={"Accept": "application/json", "User-Agent": "Struvia/1.0"}) as c:
             r = c.get(f"{BASE}{path}", params={k: v for k, v in params.items() if v not in (None, "")})
     except httpx.HTTPError as e:
-        raise HTTPException(502, f"Falha ao consultar o PNCP: {e.__class__.__name__}")
+        raise HTTPException(424, f"Falha ao consultar o PNCP: {e.__class__.__name__}")
     if r.status_code == 204:
         return {"data": [], "totalRegistros": 0, "totalPaginas": 0, "numeroPagina": params.get("pagina", 1)}
     if r.status_code >= 400:
-        raise HTTPException(502, f"PNCP retornou erro {r.status_code}: {r.text[:300]}")
+        raise HTTPException(424, f"PNCP retornou erro {r.status_code}: {r.text[:300]}")
     return r.json()
 
 
@@ -108,9 +108,9 @@ def _get_pncp(path: str) -> list | dict:
         with httpx.Client(timeout=30, headers={"Accept": "application/json", "User-Agent": "Struvia/1.0"}) as c:
             r = c.get(f"{BASE_PNCP}{path}", params={"pagina": 1, "tamanhoPagina": 500} if path.endswith("itens") else None)
     except httpx.HTTPError as e:
-        raise HTTPException(502, f"Falha ao consultar o PNCP: {e.__class__.__name__}")
+        raise HTTPException(424, f"Falha ao consultar o PNCP: {e.__class__.__name__}")
     if r.status_code >= 400:
-        raise HTTPException(502, f"PNCP retornou erro {r.status_code}")
+        raise HTTPException(424, f"PNCP retornou erro {r.status_code}")
     return r.json() if r.content else []
 
 

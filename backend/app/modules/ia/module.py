@@ -57,14 +57,14 @@ def _call(db: Session, messages: list[dict], modelo: str | None = None, max_toke
                 "Authorization": f"Bearer {key}", "X-Title": "Struvia", "Content-Type": "application/json",
             }, json={"model": modelo or default, "messages": messages, "max_tokens": max_tokens})
     except httpx.HTTPError as e:
-        raise HTTPException(502, f"Falha ao contatar OpenRouter: {e.__class__.__name__}")
+        raise HTTPException(424, f"Falha ao contatar OpenRouter: {e.__class__.__name__}")
     if resp.status_code >= 400:
-        raise HTTPException(502, f"OpenRouter retornou {resp.status_code}: {resp.text[:300]}")
+        raise HTTPException(424, f"OpenRouter retornou {resp.status_code}: {resp.text[:300]}")
     data = resp.json()
     try:
         return data["choices"][0]["message"]["content"] or ""
     except (KeyError, IndexError):
-        raise HTTPException(502, "Resposta inesperada do OpenRouter")
+        raise HTTPException(424, "Resposta inesperada do OpenRouter")
 
 
 def _contexto(db: Session, cu: CurrentUser, entidade: str | None, entidade_id: int | None) -> str:

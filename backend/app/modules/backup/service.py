@@ -64,7 +64,7 @@ def testar(db: Session) -> dict:
         s3.put_object(Bucket=cfg["bucket"], Key=key, Body=b"ok")
         s3.delete_object(Bucket=cfg["bucket"], Key=key)
     except Exception as e:  # noqa: BLE001
-        raise HTTPException(502, f"Falha ao acessar o bucket: {e.__class__.__name__}: {str(e)[:200]}")
+        raise HTTPException(424, f"Falha ao acessar o bucket: {e.__class__.__name__}: {str(e)[:200]}")
     return {"ok": True}
 
 

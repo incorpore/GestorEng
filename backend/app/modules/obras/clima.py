@@ -68,11 +68,11 @@ def _get(db: Session, caminho: str, params: dict) -> dict | list:
         with httpx.Client(timeout=15) as c:
             r = c.get(f"{base}{caminho}", params={**params, "appid": chave, "units": "metric", "lang": "pt_br"})
     except httpx.HTTPError as e:
-        raise HTTPException(502, f"Falha ao consultar o OpenWeather: {e.__class__.__name__}")
+        raise HTTPException(424, f"Falha ao consultar o OpenWeather: {e.__class__.__name__}")
     if r.status_code == 401:
         raise HTTPException(400, "Chave do OpenWeather inválida ou ainda não ativada (pode levar até 2 horas após criar)")
     if r.status_code >= 400:
-        raise HTTPException(502, f"OpenWeather retornou {r.status_code}")
+        raise HTTPException(424, f"OpenWeather retornou {r.status_code}")
     dados = r.json()
     _cache[key] = (time.monotonic(), dados)
     return dados

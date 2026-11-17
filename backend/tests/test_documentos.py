@@ -288,11 +288,11 @@ def test_documenso_inacessivel_e_resposta_html_dao_mensagem_clara(admin, monkeyp
     monkeypatch.setattr(documenso, "_cfg", lambda db: ("http://127.0.0.1:9", "t", {}))
     t0 = time.monotonic()
     r = admin.post(url, json=corpo)
-    assert r.status_code == 502 and "não conseguiu conectar ao Documenso em 127.0.0.1:9" in r.json()["detail"]
+    assert r.status_code == 424 and "não conseguiu conectar ao Documenso em 127.0.0.1:9" in r.json()["detail"]
     assert time.monotonic() - t0 < 15
     assert admin.get(f"/api/documentos/{doc['id']}").json()["status"] == "emitido"
 
-    # Documenso devolvendo página HTML (URL errada): 502 com explicação, nunca 500
+    # Documenso devolvendo página HTML (URL errada): 424 com explicação, nunca 500
     class Html:
         def __init__(self, *a, **k): ...
         def __enter__(self): return self
@@ -303,4 +303,4 @@ def test_documenso_inacessivel_e_resposta_html_dao_mensagem_clara(admin, monkeyp
 
     monkeypatch.setattr(documenso.httpx, "Client", Html)
     r = admin.post(url, json=corpo)
-    assert r.status_code == 502 and "não é JSON" in r.json()["detail"]
+    assert r.status_code == 424 and "não é JSON" in r.json()["detail"]
