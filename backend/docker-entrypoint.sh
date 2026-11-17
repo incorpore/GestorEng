@@ -9,7 +9,10 @@ if [ "$(id -u)" = "0" ]; then
     echo "Ajustando o dono de $DIR para o usuário app (10001)..."
     chown -R app:app "$DIR" 2>/dev/null || echo "AVISO: não foi possível alterar o dono de $DIR"
   fi
-  exec setpriv --reuid=app --regid=app --init-groups --inh-caps=-all "$(readlink -f "$0")" "$@"
+  if setpriv --reuid=app --regid=app --init-groups true 2>/dev/null; then
+    exec setpriv --reuid=app --regid=app --init-groups --inh-caps=-all "$(readlink -f "$0")" "$@"
+  fi
+  echo "AVISO: sem permissão para trocar para o usuário app (falta cap_add SETUID/SETGID no compose); seguindo como root sem capacidades."
 fi
 
 DIR="${STORAGE_DIR:-/data/storage}"
