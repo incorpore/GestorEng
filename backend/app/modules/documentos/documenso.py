@@ -155,7 +155,7 @@ def _campos_assinatura(assinantes: list[dict], paginas: int) -> list[list[dict]]
 
 
 def enviar(db: Session, *, titulo: str, pdf: bytes, assinantes: list[dict], mensagem: str | None = None,
-           sequencial: bool = True, pasta_id: str | None = None) -> dict:
+           sequencial: bool = True, pasta_id: str | None = None, posicoes: list[dict] | None = None) -> dict:
     """Envia para assinatura pela API v2 (o PDF vai na mesma requisição — funciona com o Documenso guardando arquivos
     no banco, sem S3). Em Documenso antigo, sem API v2, usa a API v1."""
     import json
@@ -166,6 +166,15 @@ def enviar(db: Session, *, titulo: str, pdf: bytes, assinantes: list[dict], mens
     base, token, _ = _cfg(db)
     paginas = len(PdfReader(BytesIO(pdf)).pages)
     campos = _campos_assinatura(assinantes, paginas)
+    definidos: dict[int, list[dict]] = {}
+    for p in posicoes or []:  # posições detectadas/ajustadas na tela substituem o padrão daquele assinante
+        i = p["indice"]
+        if 0 <= i < len(campos) and assinantes[i].get("papel", "SIGNER") == "SIGNER" and 1 <= p["pagina"] <= paginas:
+            definidos.setdefault(i, []).append({
+                "type": "SIGNATURE", "pageNumber": p["pagina"], "pageX": round(p["x"], 2), "pageY": round(p["y"], 2),
+                "width": round(min(p["largura"], 100 - p["x"]), 2), "height": round(min(p["altura"], 100 - p["y"]), 2)})
+    for i, lista in definidos.items():
+        campos[i] = lista
     meta = {"subject": titulo[:250], "message": mensagem or "Por favor, assine o documento.",
             "signingOrder": "SEQUENTIAL" if sequencial else "PARALLEL"}
     payload = {"title": titulo[:250], "meta": meta,

@@ -3,13 +3,14 @@ import { useQuery } from '@tanstack/react-query'
 import { DndContext, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
 import { SortableContext, arrayMove, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { GripVertical, Plus, ShieldCheck, Trash2 } from 'lucide-react'
+import { GripVertical, Plus, ShieldCheck, Sparkles, Trash2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Button, Field, IconButton, Input, Loading, Modal, Select, Textarea, Toggle } from '@/components/ui'
 import { api } from '@/core/api'
 import { useAuth } from '@/core/auth'
 import { errMsg, useToast } from '@/core/toast'
 import { PASTA_AUTO, PASTA_RAIZ, PastaDocumenso } from './PastaDocumenso'
+import { type CampoPos, corAssinante, PosicoesAssinatura } from './PosicoesAssinatura'
 
 interface Assinante { id: string; nome: string; email: string; papel: string; representante?: boolean }
 interface Padrao { representante: { nome: string; email: string; cargo: string }; recentes: { nome: string; email: string }[]; pasta_auto?: string[]; nome?: string }
@@ -30,6 +31,23 @@ export function AssinaturaModal({ docId, open, onClose, onSent }: { docId: numbe
   const [sequencial, setSequencial] = useState(true)
   const [pasta, setPasta] = useState(PASTA_AUTO)
   const [loading, setLoading] = useState(false)
+  // posições de assinatura por e-mail (sobrevivem à reordenação da lista)
+  const [posicoes, setPosicoes] = useState<(CampoPos & { email: string })[] | null>(null)
+  const [detectando, setDetectando] = useState(false)
+  const [infoDet, setInfoDet] = useState<{ metodo: string; aviso?: string | null } | null>(null)
+  const idx = (email: string) => rows.findIndex((r) => r.email.toLowerCase() === email.toLowerCase())
+  const camposAtuais: (CampoPos & { email: string })[] = (posicoes || []).map((p) => ({ ...p, indice: idx(p.email) })).filter((p) => p.indice >= 0)
+
+  async function detectar() {
+    setDetectando(true)
+    try {
+      const assinantes = rows.map(({ nome, email, papel }) => ({ nome, email, papel }))
+      const r = await api.post<{ campos: CampoPos[]; metodo: string; aviso?: string | null }>(`/documentos-acoes/${docId}/assinatura/detectar`, { assinantes })
+      setPosicoes(r.campos.map((c) => ({ ...c, email: rows[c.indice].email })))
+      setInfoDet({ metodo: r.metodo, aviso: r.aviso })
+      if (!r.campos.length) toast(r.aviso || 'Nenhum local de assinatura encontrado; será usada a posição padrão.', 'info')
+    } catch (e) { toast(errMsg(e), 'error') } finally { setDetectando(false) }
+  }
   const rep = padrao.data?.representante
   const repOk = !!rep?.nome && !!rep?.email
   const sensores = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
@@ -58,7 +76,8 @@ export function AssinaturaModal({ docId, open, onClose, onSent }: { docId: numbe
     try {
       const d = await api.post(`/documentos-acoes/${docId}/assinatura`, {
         assinantes: rows.map(({ nome, email, papel }) => ({ nome, email, papel })), mensagem: msg || undefined, sequencial,
-        pasta_id: pasta === PASTA_AUTO || pasta === PASTA_RAIZ ? null : pasta, pasta_auto: pasta === PASTA_AUTO })
+        pasta_id: pasta === PASTA_AUTO || pasta === PASTA_RAIZ ? null : pasta, pasta_auto: pasta === PASTA_AUTO,
+        campos: camposAtuais.length ? camposAtuais.map(({ indice, pagina, x, y, largura, altura }) => ({ indice, pagina, x, y, largura, altura })) : null })
       onSent(d)
       const aviso = d?.variaveis?._aviso_assinatura
       toast(aviso || 'Enviado para assinatura', aviso ? 'info' : undefined); onClose()
@@ -89,6 +108,31 @@ export function AssinaturaModal({ docId, open, onClose, onSent }: { docId: numbe
           </DndContext>
           <Button className="mt-2" size="sm" variant="secondary" icon={<Plus className="h-4 w-4" />} disabled={rows.length >= 20}
             onClick={() => setRows([...rows, { id: novoId(), nome: '', email: '', papel: 'SIGNER' }])}>Adicionar assinante</Button>
+          <div className="mt-4 rounded-lg border border-slate-200 p-3 dark:border-slate-700">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <p className="text-sm font-medium">Posição das assinaturas</p>
+                <p className="text-xs text-slate-500">{posicoes ? (infoDet?.metodo === 'ia' ? 'Detectadas pela IA. Arraste os retângulos para ajustar.' : 'Detectadas pelo texto do PDF. Arraste para ajustar.') : 'Sem detecção: as assinaturas ficam lado a lado no rodapé da última página.'}</p>
+              </div>
+              <Button size="sm" variant="secondary" icon={<Sparkles className="h-4 w-4" />} loading={detectando}
+                disabled={rows.some((r) => !r.nome.trim() || !r.email.trim())} onClick={detectar}>{posicoes ? 'Detectar novamente' : 'Detectar com IA'}</Button>
+            </div>
+            {infoDet?.aviso && <p className="mt-2 text-xs text-amber-600">{infoDet.aviso}</p>}
+            {posicoes && (
+              <>
+                <ul className="mt-2 flex flex-wrap gap-2 text-xs">
+                  {rows.filter((r) => r.papel === 'SIGNER').map((r) => {
+                    const c = camposAtuais.find((x) => x.email.toLowerCase() === r.email.toLowerCase())
+                    const i = idx(r.email)
+                    return <li key={r.id} className="flex items-center gap-1 rounded-full border px-2 py-0.5" style={{ borderColor: corAssinante(i) }}>
+                      <span className="h-2 w-2 rounded-full" style={{ background: corAssinante(i) }} />{r.nome}: {c ? `pág. ${c.pagina}` : 'não encontrado (posição padrão)'}</li>
+                  })}
+                </ul>
+                {camposAtuais.length > 0 && <div className="mt-2"><PosicoesAssinatura docId={docId} campos={camposAtuais} nomes={rows.map((r) => r.nome)}
+                  onChange={(cs) => setPosicoes(cs.map((c) => ({ ...c, email: rows[c.indice].email })))} /></div>}
+              </>
+            )}
+          </div>
           <div className="mt-3"><PastaDocumenso value={pasta} onChange={setPasta} enabled={open} caminhoAuto={padrao.data?.pasta_auto} /></div>
           <div className="mt-3"><Toggle checked={sequencial} onChange={setSequencial} label="Assinar na ordem da lista (um após o outro)" /></div>
           <Field label="Mensagem" className="mt-3"><Textarea value={msg} onChange={(e) => setMsg(e.target.value)} placeholder="Por favor, assine o documento." /></Field>

@@ -327,6 +327,24 @@ class AssinaturaIn(BaseModel):
     sequencial: bool = True  # cada assinante recebe depois que o anterior assinar, na ordem da lista
     pasta_id: str | None = Field(None, max_length=64)  # pasta escolhida no Documenso
     pasta_auto: bool = True  # sem pasta escolhida: usa o padrão (ERP/Cliente/Obra/Documentos|Anexos)
+    campos: list["CampoAssinatura"] | None = Field(None, max_length=60)  # posições detectadas/ajustadas
+
+
+class CampoAssinatura(BaseModel):
+    indice: int = Field(ge=0, le=19)
+    pagina: int = Field(ge=1, le=2000)
+    x: float = Field(ge=0, le=100)
+    y: float = Field(ge=0, le=100)
+    largura: float = Field(ge=2, le=100)
+    altura: float = Field(ge=1, le=50)
+
+
+AssinaturaIn.model_rebuild()
+
+
+class DetectarIn(BaseModel):
+    assinantes: list[Assinante] = Field(min_length=1, max_length=20)
+    usar_ia: bool = True
 
 
 def caminho_auto(db: Session, doc: Documento) -> list[str]:
@@ -443,6 +461,29 @@ def assinatura_padrao(documento_id: int | None = None, db: Session = Depends(get
     return {"representante": rep, "recentes": recentes[:30], **destino}
 
 
+@r.post("/{did}/assinatura/detectar")
+def detectar_campos(did: int, body: DetectarIn, request: Request, db: Session = Depends(get_db),
+                    cu: CurrentUser = Depends(require("documentos.assinar"))):
+    """Localiza onde cada assinante deve assinar no PDF (IA configurada + leitura do texto do PDF)."""
+    from . import campos
+
+    doc = _get_doc(db, cu, did)
+    if not doc.pdf_arquivo_id:
+        raise HTTPException(409, "Emita o documento antes de posicionar as assinaturas")
+    a = db.get(Arquivo, doc.pdf_arquivo_id)
+    chamar = None
+    if body.usar_ia and cu.has("ia.usar") and get_integracao(db, "openrouter")[1]:
+        from app.modules.ia.module import _call
+
+        def chamar(msgs):
+            return _call(db, msgs, max_tokens=2500)
+    res = campos.detectar(storage.read_bytes(a.uuid), [x.model_dump() for x in body.assinantes], chamar)
+    audit.log(db, user_id=cu.id, action="detectar_assinaturas", entity="documento", entity_id=doc.id,
+              data={"metodo": res["metodo"], "encontrados": len(res["campos"])}, request=request)
+    db.commit()
+    return res
+
+
 @r.post("/{did}/assinatura", response_model=DocumentoOut)
 def enviar_assinatura(did: int, body: AssinaturaIn, request: Request, db: Session = Depends(get_db),
                       cu: CurrentUser = Depends(require("documentos.assinar"))):
@@ -468,7 +509,8 @@ def enviar_assinatura(did: int, body: AssinaturaIn, request: Request, db: Sessio
             aviso_pasta = f"Enviado, mas sem organizar em pastas: {e.detail}"
     res = documenso.enviar(db, titulo=nome_pdf(db, doc), pdf=storage.read_bytes(a.uuid),
                            assinantes=[x.model_dump() for x in body.assinantes], mensagem=body.mensagem,
-                           sequencial=body.sequencial, pasta_id=pasta_id)
+                           sequencial=body.sequencial, pasta_id=pasta_id,
+                           posicoes=[c.model_dump() for c in body.campos] if body.campos else None)
     res["aviso"] = res.get("aviso") or aviso_pasta
     doc.documenso_id = res["documento_id"]
     doc.assinantes = res["assinantes"]
