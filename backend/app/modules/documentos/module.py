@@ -325,7 +325,33 @@ class AssinaturaIn(BaseModel):
     assinantes: list[Assinante] = Field(min_length=1, max_length=20)
     mensagem: str | None = Field(None, max_length=2000)
     sequencial: bool = True  # cada assinante recebe depois que o anterior assinar, na ordem da lista
-    pasta_id: str | None = Field(None, max_length=64)  # pasta no Documenso
+    pasta_id: str | None = Field(None, max_length=64)  # pasta escolhida no Documenso
+    pasta_auto: bool = True  # sem pasta escolhida: usa o padrão (ERP/Cliente/Obra/Documentos|Anexos)
+
+
+def caminho_auto(db: Session, doc: Documento) -> list[str]:
+    """Pastas padrão do documento no Documenso, conforme o modelo configurado na integração."""
+    from app.modules.obras.models import Obra
+
+    cfg, _ = get_integracao(db, "documenso")
+    modelo = (cfg.get("pasta_padrao") or "").strip() or documenso.PASTA_PADRAO
+    obra = db.get(Obra, doc.obra_id) if doc.obra_id else None
+    cli = obra.cliente if obra else None
+    valores = {"cliente": (cli.nome_fantasia or cli.nome) if cli else "Sem cliente", "obra": obra.nome if obra else "Sem obra",
+               "tipo": "Anexos" if doc.tipo == "anexo" else "Documentos", "ano": str(doc.ano or date.today().year),
+               "documento": doc.titulo or ""}
+    for k, v in valores.items():
+        modelo = modelo.replace("{{" + k + "}}", documenso.nome_pasta(v) or "-").replace("{{ " + k + " }}", documenso.nome_pasta(v) or "-")
+    return [p for p in (documenso.nome_pasta(x) for x in modelo.split("/")) if p][:8]
+
+
+def nome_pdf(db: Session, doc: Documento) -> str:
+    """Nome do documento no Documenso: o nome do arquivo (anexos) ou 'número - título.pdf'."""
+    anexo_id = (doc.variaveis or {}).get("_anexo_id")
+    a = db.get(Arquivo, anexo_id) if anexo_id else None
+    nome = a.nome if a else " - ".join(x for x in (doc.numero, doc.titulo) if x)
+    nome = nome.replace("/", "-").strip() or "documento"
+    return (nome if nome.lower().endswith(".pdf") else f"{nome}.pdf")[:240]
 
 
 def _representante(db: Session) -> dict:
@@ -397,9 +423,15 @@ def preparar_anexo(arquivo_id: int, db: Session = Depends(get_db), cu: CurrentUs
 
 
 @r.get("/assinatura/padrao")
-def assinatura_padrao(db: Session = Depends(get_db), cu: CurrentUser = Depends(require("documentos.assinar"))):
-    """Representante legal (assinante obrigatório) e pessoas usadas recentemente, para sugestão."""
+def assinatura_padrao(documento_id: int | None = None, db: Session = Depends(get_db),
+                      cu: CurrentUser = Depends(require("documentos.assinar"))):
+    """Representante legal (assinante obrigatório), pessoas usadas recentemente e — com documento_id — a pasta
+    padrão e o nome com que o documento aparecerá no Documenso."""
     rep = _representante(db)
+    destino = {}
+    if documento_id:
+        doc = _get_doc(db, cu, documento_id)
+        destino = {"pasta_auto": caminho_auto(db, doc), "nome": nome_pdf(db, doc)}
     vistos, recentes = {rep["email"].lower()}, []
     for lista in db.scalars(select(Documento.assinantes).where(Documento.assinantes.is_not(None))
                             .order_by(Documento.enviado_assinatura_em.desc().nulls_last()).limit(60)):
@@ -408,7 +440,7 @@ def assinatura_padrao(db: Session = Depends(get_db), cu: CurrentUser = Depends(r
             if email and email not in vistos and a.get("nome"):
                 vistos.add(email)
                 recentes.append({"nome": a["nome"], "email": a["email"]})
-    return {"representante": rep, "recentes": recentes[:30]}
+    return {"representante": rep, "recentes": recentes[:30], **destino}
 
 
 @r.post("/{did}/assinatura", response_model=DocumentoOut)
@@ -426,17 +458,24 @@ def enviar_assinatura(did: int, body: AssinaturaIn, request: Request, db: Sessio
     if not any(x.email.lower() == rep["email"].lower() and x.papel == "SIGNER" for x in body.assinantes):
         raise HTTPException(422, f"O representante legal ({rep['nome']}) deve estar entre os assinantes")
     a = db.get(Arquivo, doc.pdf_arquivo_id)
-    res = documenso.enviar(db, titulo=f"{doc.numero or ''} {doc.titulo}".strip(), pdf=storage.read_bytes(a.uuid),
+    pasta_id, aviso_pasta = body.pasta_id, None
+    if not pasta_id and body.pasta_auto:
+        try:
+            pasta_id = documenso.garantir_caminho(db, caminho_auto(db, doc))
+        except HTTPException as e:  # o envio segue, apenas fora da pasta padrão
+            aviso_pasta = f"Enviado, mas sem organizar em pastas: {e.detail}"
+    res = documenso.enviar(db, titulo=nome_pdf(db, doc), pdf=storage.read_bytes(a.uuid),
                            assinantes=[x.model_dump() for x in body.assinantes], mensagem=body.mensagem,
-                           sequencial=body.sequencial, pasta_id=body.pasta_id)
+                           sequencial=body.sequencial, pasta_id=pasta_id)
+    res["aviso"] = res.get("aviso") or aviso_pasta
     doc.documenso_id = res["documento_id"]
     doc.assinantes = res["assinantes"]
     doc.status = "aguardando_assinatura"
     doc.enviado_assinatura_em = datetime.now(UTC)
-    doc.variaveis = {**(doc.variaveis or {}), "_pasta_documenso": body.pasta_id, "_aviso_assinatura": res.get("aviso")}
+    doc.variaveis = {**(doc.variaveis or {}), "_pasta_documenso": pasta_id, "_aviso_assinatura": res.get("aviso")}
     audit.log(db, user_id=cu.id, action="enviar_assinatura", entity="documento", entity_id=doc.id,
               data={"documenso_id": doc.documenso_id, "assinantes": [x.email for x in body.assinantes],
-                    "pasta": body.pasta_id}, request=request)
+                    "pasta": pasta_id}, request=request)
     db.commit()
     db.refresh(doc)
     return doc

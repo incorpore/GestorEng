@@ -9,10 +9,10 @@ import { Button, Field, IconButton, Input, Loading, Modal, Select, Textarea, Tog
 import { api } from '@/core/api'
 import { useAuth } from '@/core/auth'
 import { errMsg, useToast } from '@/core/toast'
-import { PastaDocumenso, pastaLembrada } from './PastaDocumenso'
+import { PASTA_AUTO, PASTA_RAIZ, PastaDocumenso } from './PastaDocumenso'
 
 interface Assinante { id: string; nome: string; email: string; papel: string; representante?: boolean }
-interface Padrao { representante: { nome: string; email: string; cargo: string }; recentes: { nome: string; email: string }[] }
+interface Padrao { representante: { nome: string; email: string; cargo: string }; recentes: { nome: string; email: string }[]; pasta_auto?: string[]; nome?: string }
 
 let seq = 0
 const novoId = () => `a${++seq}`
@@ -24,11 +24,11 @@ export function AssinaturaModal({ docId, open, onClose, onSent }: { docId: numbe
   const toast = useToast()
   const { can } = useAuth()
   const sugestoes = useId()
-  const padrao = useQuery({ queryKey: ['assinatura-padrao'], queryFn: () => api.get<Padrao>('/documentos-acoes/assinatura/padrao'), enabled: open })
+  const padrao = useQuery({ queryKey: ['assinatura-padrao', docId], queryFn: () => api.get<Padrao>('/documentos-acoes/assinatura/padrao', { documento_id: docId }), enabled: open })
   const [rows, setRows] = useState<Assinante[]>([])
   const [msg, setMsg] = useState('')
   const [sequencial, setSequencial] = useState(true)
-  const [pasta, setPasta] = useState(pastaLembrada)
+  const [pasta, setPasta] = useState(PASTA_AUTO)
   const [loading, setLoading] = useState(false)
   const rep = padrao.data?.representante
   const repOk = !!rep?.nome && !!rep?.email
@@ -57,7 +57,8 @@ export function AssinaturaModal({ docId, open, onClose, onSent }: { docId: numbe
     setLoading(true)
     try {
       const d = await api.post(`/documentos-acoes/${docId}/assinatura`, {
-        assinantes: rows.map(({ nome, email, papel }) => ({ nome, email, papel })), mensagem: msg || undefined, sequencial, pasta_id: pasta || null })
+        assinantes: rows.map(({ nome, email, papel }) => ({ nome, email, papel })), mensagem: msg || undefined, sequencial,
+        pasta_id: pasta === PASTA_AUTO || pasta === PASTA_RAIZ ? null : pasta, pasta_auto: pasta === PASTA_AUTO })
       onSent(d)
       const aviso = d?.variaveis?._aviso_assinatura
       toast(aviso || 'Enviado para assinatura', aviso ? 'info' : undefined); onClose()
@@ -75,6 +76,7 @@ export function AssinaturaModal({ docId, open, onClose, onSent }: { docId: numbe
         </div>
       ) : (
         <>
+          {padrao.data?.nome && <p className="mb-3 truncate rounded-lg bg-slate-50 px-3 py-2 text-sm dark:bg-slate-800/60">No Documenso: <b>{[...(pasta === PASTA_AUTO ? padrao.data.pasta_auto || [] : []), padrao.data.nome].join(' / ')}</b></p>}
           <p className="mb-2 text-xs text-slate-500">Arraste pelos pontinhos para mudar a ordem.{sequencial ? ' Cada pessoa recebe o documento depois que a anterior assinar.' : ''}</p>
           <datalist id={sugestoes}>{padrao.data?.recentes.map((s) => <option key={s.email} value={s.nome}>{s.email}</option>)}</datalist>
           <DndContext sensors={sensores} collisionDetection={closestCenter} onDragEnd={arrastou}>
@@ -87,7 +89,7 @@ export function AssinaturaModal({ docId, open, onClose, onSent }: { docId: numbe
           </DndContext>
           <Button className="mt-2" size="sm" variant="secondary" icon={<Plus className="h-4 w-4" />} disabled={rows.length >= 20}
             onClick={() => setRows([...rows, { id: novoId(), nome: '', email: '', papel: 'SIGNER' }])}>Adicionar assinante</Button>
-          <div className="mt-3"><PastaDocumenso value={pasta} onChange={setPasta} enabled={open} /></div>
+          <div className="mt-3"><PastaDocumenso value={pasta} onChange={setPasta} enabled={open} caminhoAuto={padrao.data?.pasta_auto} /></div>
           <div className="mt-3"><Toggle checked={sequencial} onChange={setSequencial} label="Assinar na ordem da lista (um após o outro)" /></div>
           <Field label="Mensagem" className="mt-3"><Textarea value={msg} onChange={(e) => setMsg(e.target.value)} placeholder="Por favor, assine o documento." /></Field>
         </>

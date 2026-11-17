@@ -200,3 +200,71 @@ def test_documenso_pastas_e_envio_na_pasta(admin, monkeypatch):
     sit = admin.get("/api/documentos-acoes/anexos", params={"entidade": "obra", "entidade_id": obra["id"]}).json()
     assert sit == [{"arquivo_id": arq["id"], "documento_id": p1["documento_id"], "numero": p1["numero"],
                     "status": "aguardando_assinatura", "assinantes": sit[0]["assinantes"]}]
+
+
+def test_pasta_automatica_erp_cliente_obra_tipo(admin, monkeypatch):
+    import io
+
+    from pypdf import PdfWriter
+
+    from app.modules.documentos import documenso
+
+    pastas = [{"id": "x1", "name": "ERP", "parentId": None}]
+    chamadas = []
+
+    def req(method, url, token, **kw):
+        rota = url.split("/api/")[1]
+        chamadas.append((rota, kw.get("json")))
+        if rota == "v2/folder":
+            return _Resp({"data": list(pastas), "totalPages": 1})
+        if rota == "v2/folder/create":
+            p = {"id": f"x{len(pastas) + 1}", "name": kw["json"]["name"], "parentId": kw["json"].get("parentId")}
+            pastas.append(p)
+            return _Resp(p)
+        if rota == "v1/documents":
+            return _Resp({"documentId": 70, "uploadUrl": "http://u", "recipients": []})
+        return _Resp({})
+
+    class Up:
+        def __init__(self, *a, **k): ...
+        def __enter__(self): return self
+        def __exit__(self, *a): ...
+        def put(self, *a, **k): return type("R", (), {"status_code": 200})()
+
+    monkeypatch.setattr(documenso, "_req", req)
+    monkeypatch.setattr(documenso, "_cfg", lambda db: ("http://d", "t", {}))
+    monkeypatch.setattr(documenso.httpx, "Client", Up)
+    admin.put("/api/configuracoes/empresa", json={"responsavel": "Jorge", "email_responsavel": "jorge@empresa.com.br"})
+    cli = admin.post("/api/parceiros", json={"tipo": "orgao", "pessoa": "PJ", "nome": "Município de Vargem",
+                                             "nome_fantasia": "Prefeitura de Vargem"}).json()
+    obra = admin.post("/api/obras", json={"nome": "Rua do Cemitério / Trecho 2", "cliente_id": cli["id"]}).json()
+    w = PdfWriter()
+    w.add_blank_page(595, 842)
+    buf = io.BytesIO()
+    w.write(buf)
+    arq = admin.post("/api/arquivos", data={"entidade": "obra", "entidade_id": obra["id"]},
+                     files={"arquivo": ("Planilha medição 03.pdf", buf.getvalue(), "application/pdf")}).json()
+    doc_id = admin.post(f"/api/documentos-acoes/anexos/{arq['id']}").json()["documento_id"]
+    prev = admin.get("/api/documentos-acoes/assinatura/padrao", params={"documento_id": doc_id}).json()
+    assert prev["pasta_auto"] == ["ERP", "Prefeitura de Vargem", "Rua do Cemitério - Trecho 2", "Anexos"]
+    assert prev["nome"] == "Planilha medição 03.pdf"
+    rep = {"nome": "Jorge", "email": "jorge@empresa.com.br"}
+    r = admin.post(f"/api/documentos-acoes/{doc_id}/assinatura", json={"assinantes": [rep]})
+    assert r.status_code == 200, r.text
+    # ERP já existia: cria só cliente, obra e Anexos, em cadeia
+    criadas = [c[1] for c in chamadas if c[0] == "v2/folder/create"]
+    assert criadas == [{"name": "Prefeitura de Vargem", "type": "DOCUMENT", "parentId": "x1"},
+                       {"name": "Rua do Cemitério - Trecho 2", "type": "DOCUMENT", "parentId": "x2"},
+                       {"name": "Anexos", "type": "DOCUMENT", "parentId": "x3"}]
+    assert next(c[1] for c in chamadas if c[0] == "v1/documents")["title"] == "Planilha medição 03.pdf"
+    assert next(c[1] for c in chamadas if c[0] == "v2/document/update") == {"documentId": 70, "data": {"folderId": "x4"}}
+    # segundo documento da mesma obra reaproveita as pastas
+    modelo = admin.get("/api/modelos-documento", params={"tipo": "oficio"}).json()["items"][0]
+    doc2 = admin.post("/api/documentos-acoes/gerar", json={"modelo_id": modelo["id"], "titulo": "Pedido de aditivo",
+                                                           "entidade": "obra", "entidade_id": obra["id"]}).json()
+    admin.post(f"/api/documentos-acoes/{doc2['id']}/emitir")
+    chamadas.clear()
+    assert admin.post(f"/api/documentos-acoes/{doc2['id']}/assinatura", json={"assinantes": [rep]}).status_code == 200
+    assert [c[1]["name"] for c in chamadas if c[0] == "v2/folder/create"] == ["Documentos"]
+    titulo = next(c[1] for c in chamadas if c[0] == "v1/documents")["title"]
+    assert titulo.startswith("Ofício nº") and titulo.endswith(" - Pedido de aditivo.pdf") and "/" not in titulo

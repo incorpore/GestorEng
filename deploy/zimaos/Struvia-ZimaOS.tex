@@ -904,10 +904,16 @@ públicos}\label{integrauxe7uxf5es-e-links-puxfablicos}}
   \textbf{e-mail do representante} --- ele entra sempre como assinante.
   Os outros assinantes são adicionados no envio e a ordem é definida
   arrastando os nomes. PDFs anexados (obra, diário, licitação\ldots) têm
-  o botão \textbf{Assinar}. As \textbf{pastas} do Documenso são listadas
-  e criadas pelo próprio Struvia (exige Documenso recente, com a API v2;
-  em versões antigas o documento vai para a pasta principal e o sistema
-  avisa).
+  o botão \textbf{Assinar}. Por padrão cada documento vai para
+  \texttt{ERP/Cliente/Obra/Documentos} (ou \texttt{.../Anexos}) com o
+  nome do PDF; as pastas que faltarem são criadas no envio. O padrão
+  pode ser alterado em \emph{Configurações \textgreater{} Integrações
+  \textgreater{} Documenso} (variáveis \texttt{\{\{cliente\}\}},
+  \texttt{\{\{obra\}\}}, \texttt{\{\{tipo\}\}}, \texttt{\{\{ano\}\}}), e
+  no envio é possível escolher outra pasta. As \textbf{pastas} do
+  Documenso são listadas e criadas pelo próprio Struvia (exige Documenso
+  recente, com a API v2; em versões antigas o documento vai para a pasta
+  principal e o sistema avisa).
 \item
   \textbf{Cloudflare}: se o domínio passa pelo Cloudflare com \emph{Web
   Analytics} ativo, o script \texttt{beacon.min.js} já é permitido.

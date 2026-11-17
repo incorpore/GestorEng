@@ -6,7 +6,7 @@ import { api } from '@/core/api'
 import { errMsg, useToast } from '@/core/toast'
 
 function IntegracaoCard({ chave, titulo, descricao, dados, campos, testar, segredoLabel, webhook }: {
-  chave: string; titulo: string; descricao: string; dados: any; campos: { k: string; l: string; ph?: string }[]
+  chave: string; titulo: string; descricao: string; dados: any; campos: { k: string; l: string; ph?: string; hint?: string }[]
   testar: string; segredoLabel: string; webhook?: boolean
 }) {
   const qc = useQueryClient()
@@ -29,7 +29,7 @@ function IntegracaoCard({ chave, titulo, descricao, dados, campos, testar, segre
       </>}>
       <p className="mb-3 text-sm text-slate-500">{descricao}</p>
       <div className="grid gap-3 sm:grid-cols-2">
-        {campos.map((c) => <Field key={c.k} label={c.l}><Input value={cfg[c.k] || ''} placeholder={c.ph} onChange={(e) => setCfg({ ...cfg, [c.k]: e.target.value })} /></Field>)}
+        {campos.map((c) => <Field key={c.k} label={c.l} hint={c.hint}><Input value={cfg[c.k] || ''} placeholder={c.ph} onChange={(e) => setCfg({ ...cfg, [c.k]: e.target.value })} /></Field>)}
         <Field label={segredoLabel} hint={dados.segredo_definido ? 'Deixe em branco para manter o atual. Armazenado criptografado.' : 'Armazenado criptografado no servidor.'}>
           <Input type="password" autoComplete="off" value={segredo} onChange={(e) => setSegredo(e.target.value)} placeholder={dados.segredo_definido ? '••••••••' : ''} />
         </Field>
@@ -51,7 +51,8 @@ export function Integracoes() {
         campos={[{ k: 'base_url', l: 'URL da API' }, { k: 'modelo', l: 'Modelo padrão', ph: 'anthropic/claude-sonnet-4.5' }]} />
       <IntegracaoCard chave="documenso" titulo="Documenso (assinatura eletrônica)" dados={q.data.documenso} testar="/documentos-acoes/integracao/documenso/testar"
         segredoLabel="API token" webhook descricao="Instância self-hosted (ex.: no ZimaOS). Gere o token em Configurações > API Tokens do Documenso."
-        campos={[{ k: 'base_url', l: 'URL do Documenso', ph: 'http://192.168.0.10:3000' }]} />
+        campos={[{ k: 'base_url', l: 'URL do Documenso', ph: 'http://192.168.0.10:3000' },
+          { k: 'pasta_padrao', l: 'Padrão de pastas', ph: 'ERP/{{cliente}}/{{obra}}/{{tipo}}', hint: 'Variáveis: {{cliente}}, {{obra}}, {{tipo}} (Documentos ou Anexos), {{ano}}. O nome do arquivo é o nome do documento .pdf' }]} />
       <IntegracaoCard chave="openweather" titulo="OpenWeather (clima)" dados={q.data.openweather} testar="/clima/testar" segredoLabel="API key"
         descricao="Clima atual da obra e preenchimento automático das condições de manhã/tarde no diário. Crie a chave gratuita em openweathermap.org (pode levar até 2 h para ativar)."
         campos={[{ k: 'base_url', l: 'URL da API' }]} />

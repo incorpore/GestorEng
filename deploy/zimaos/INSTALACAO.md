@@ -406,7 +406,10 @@ sudo docker logs --tail 100 struvia-db      # banco interno
   *Configurações > Integrações > OpenWeather*. A chave pode levar até 2 horas para ser ativada pelo OpenWeather.
 - **Documenso (assinaturas)**: em *Configurações > Empresa* preencha o **representante legal** e o **e-mail do
   representante** — ele entra sempre como assinante. Os outros assinantes são adicionados no envio e a ordem é definida
-  arrastando os nomes. PDFs anexados (obra, diário, licitação...) têm o botão **Assinar**. As **pastas** do Documenso são
+  arrastando os nomes. PDFs anexados (obra, diário, licitação...) têm o botão **Assinar**. Por padrão cada documento vai para
+  `ERP/Cliente/Obra/Documentos` (ou `.../Anexos`) com o nome do PDF; as pastas que faltarem são criadas no envio.
+  O padrão pode ser alterado em *Configurações > Integrações > Documenso* (variáveis `{{cliente}}`, `{{obra}}`,
+  `{{tipo}}`, `{{ano}}`), e no envio é possível escolher outra pasta. As **pastas** do Documenso são
   listadas e criadas pelo próprio Struvia (exige Documenso recente, com a API v2; em versões antigas o documento vai
   para a pasta principal e o sistema avisa).
 - **Cloudflare**: se o domínio passa pelo Cloudflare com *Web Analytics* ativo, o script `beacon.min.js` já é

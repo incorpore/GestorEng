@@ -20,7 +20,7 @@ from .localidades import router as localidades_router
 r = APIRouter(prefix="/configuracoes", tags=["configurações"])
 pub = APIRouter(prefix="/publico", tags=["público"])
 INTEGRACOES = {"openrouter": {"base_url": "https://openrouter.ai/api/v1", "modelo": "anthropic/claude-sonnet-4.5"},
-               "documenso": {"base_url": "", "webhook_secret_definido": False},
+               "documenso": {"base_url": "", "pasta_padrao": "ERP/{{cliente}}/{{obra}}/{{tipo}}", "webhook_secret_definido": False},
                "openweather": {"base_url": "https://api.openweathermap.org"}}
 
 

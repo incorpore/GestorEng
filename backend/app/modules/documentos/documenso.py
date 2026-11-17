@@ -58,6 +58,27 @@ def criar_pasta(db: Session, nome: str, parent_id: str | None = None) -> dict:
     return {"id": f["id"], "nome": f["name"], "parent_id": f.get("parentId")}
 
 
+PASTA_PADRAO = "ERP/{{cliente}}/{{obra}}/{{tipo}}"
+
+
+def nome_pasta(texto: str) -> str:
+    texto = " ".join((texto or "").replace("/", "-").replace("\\", "-").split())
+    return texto[:120]
+
+
+def garantir_caminho(db: Session, partes: list[str]) -> str:
+    """Encontra (ou cria) a sequência de pastas, ex.: ERP › Cliente › Obra › Documentos. Retorna o id da última."""
+    existentes = pastas(db)
+    pai: str | None = None
+    for parte in partes:
+        achada = next((p for p in existentes if p["parent_id"] == pai and p["nome"].casefold() == parte.casefold()), None)
+        if not achada:
+            achada = criar_pasta(db, parte, pai)
+            existentes.append(achada)
+        pai = achada["id"]
+    return pai
+
+
 def mover_para_pasta(db: Session, doc_id: str, pasta_id: str) -> None:
     base, token, _ = _cfg(db)
     _req("POST", f"{base}/api/v2/document/update", token, json={"documentId": int(doc_id), "data": {"folderId": pasta_id}})
