@@ -27,7 +27,8 @@ export function PosicoesAssinatura({ docId, campos, nomes, ativo, onChange }: {
       try {
         const pdfjs = await import('pdfjs-dist')
         const worker = await import('pdfjs-dist/build/pdf.worker.min.mjs?url')
-        pdfjs.GlobalWorkerOptions.workerSrc = worker.default
+        // '?v=2': o arquivo já foi servido com tipo errado e ficou em cache por 1 ano; endereço novo força buscar de novo
+        pdfjs.GlobalWorkerOptions.workerSrc = `${worker.default}?v=2`
         const dados = await (await api.blob(`/documentos-acoes/${docId}/pdf`)).arrayBuffer()
         const doc = await pdfjs.getDocument({ data: dados, isEvalSupported: false }).promise
         if (!vivo) return
