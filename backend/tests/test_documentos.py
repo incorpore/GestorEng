@@ -92,3 +92,111 @@ def test_pdf_bloqueia_recursos_externos(admin):
     r = admin.post("/api/documentos-acoes/preview/pdf", json={
         "conteudo": "<img src='http://169.254.169.254/latest/meta-data'><img src='file:///etc/passwd'><p>ok</p>"})
     assert r.status_code == 200 and r.content.startswith(b"%PDF")
+
+
+def test_assinatura_representante_legal_e_ordem(admin, monkeypatch):
+    from app.modules.documentos import documenso
+
+    enviados = []
+
+    def falso(db, *, titulo, pdf, assinantes, mensagem=None, sequencial=True, pasta_id=None):
+        enviados.append({"assinantes": assinantes, "sequencial": sequencial})
+        return {"documento_id": "77", "assinantes": [{"nome": a["nome"], "email": a["email"], "status": "NOT_SIGNED"}
+                                                      for a in assinantes]}
+
+    monkeypatch.setattr(documenso, "enviar", falso)
+    modelo = admin.get("/api/modelos-documento", params={"tipo": "oficio"}).json()["items"][0]
+    doc = admin.post("/api/documentos-acoes/gerar", json={"modelo_id": modelo["id"], "titulo": "Para assinar"}).json()
+    assert admin.post(f"/api/documentos-acoes/{doc['id']}/emitir").status_code == 200
+    url = f"/api/documentos-acoes/{doc['id']}/assinatura"
+    fiscal = {"nome": "Maria Fiscal", "email": "maria@prefeitura.gov.br"}
+    admin.put("/api/configuracoes/empresa", json={"responsavel": "", "email_responsavel": ""})
+    r = admin.post(url, json={"assinantes": [fiscal]})
+    assert r.status_code == 400 and "representante legal" in r.json()["detail"]
+
+    admin.put("/api/configuracoes/empresa", json={"responsavel": "Jorge Diretor", "email_responsavel": "jorge@empresa.com.br",
+                                                  "cargo_responsavel": "Diretor"})
+    padrao = admin.get("/api/documentos-acoes/assinatura/padrao").json()
+    assert padrao["representante"] == {"nome": "Jorge Diretor", "email": "jorge@empresa.com.br", "cargo": "Diretor"}
+    r = admin.post(url, json={"assinantes": [fiscal]})
+    assert r.status_code == 422 and "Jorge Diretor" in r.json()["detail"]
+    rep = {"nome": "Jorge Diretor", "email": "JORGE@empresa.com.br"}
+    assert admin.post(url, json={"assinantes": [rep, {**fiscal, "email": "jorge@empresa.com.br"}]}).status_code == 422
+    # ordem livre (fiscal primeiro), assinatura em sequência
+    r = admin.post(url, json={"assinantes": [fiscal, rep], "sequencial": True})
+    assert r.status_code == 200, r.text
+    assert [a["email"] for a in enviados[-1]["assinantes"]] == ["maria@prefeitura.gov.br", "JORGE@empresa.com.br"]
+    assert enviados[-1]["sequencial"] is True and r.json()["status"] == "aguardando_assinatura"
+    recentes = admin.get("/api/documentos-acoes/assinatura/padrao").json()["recentes"]
+    assert recentes == [{"nome": "Maria Fiscal", "email": "maria@prefeitura.gov.br"}]
+
+
+class _Resp:
+    def __init__(self, dados):
+        self._d = dados
+
+    def json(self):
+        return self._d
+
+
+def test_documenso_pastas_e_envio_na_pasta(admin, monkeypatch):
+    from app.modules.documentos import documenso
+
+    chamadas = []
+
+    def req(method, url, token, **kw):
+        chamadas.append((method, url.split("/api/")[1], kw.get("json"), kw.get("params")))
+        if url.endswith("/api/v2/folder"):
+            return _Resp({"data": [{"id": "f1", "name": "Obras", "parentId": None},
+                                   {"id": "f2", "name": "Escola", "parentId": "f1"}], "totalPages": 1})
+        if url.endswith("/api/v2/folder/create"):
+            return _Resp({"id": "f3", "name": kw["json"]["name"], "parentId": kw["json"].get("parentId")})
+        if url.endswith("/api/v1/documents"):
+            return _Resp({"documentId": 55, "uploadUrl": "http://upload",
+                          "recipients": [{"recipientId": 1, "name": "A", "email": "a@x.com", "role": "SIGNER"}]})
+        return _Resp({})
+
+    class Up:
+        def __init__(self, *a, **k): ...
+        def __enter__(self): return self
+        def __exit__(self, *a): ...
+        def put(self, *a, **k): return type("R", (), {"status_code": 200})()
+
+    monkeypatch.setattr(documenso, "_req", req)
+    monkeypatch.setattr(documenso, "_cfg", lambda db: ("http://documenso", "tok", {}))
+    monkeypatch.setattr(documenso.httpx, "Client", Up)
+    assert admin.get("/api/documentos-acoes/documenso/pastas").json() == [
+        {"id": "f1", "nome": "Obras", "parent_id": None}, {"id": "f2", "nome": "Escola", "parent_id": "f1"}]
+    assert chamadas[-1][3]["type"] == "DOCUMENT"
+    nova = admin.post("/api/documentos-acoes/documenso/pastas", json={"nome": " Medições ", "parent_id": "f1"}).json()
+    assert nova == {"id": "f3", "nome": "Medições", "parent_id": "f1"}
+    assert chamadas[-1][2] == {"name": "Medições", "type": "DOCUMENT", "parentId": "f1"}
+
+    # anexo PDF de uma obra → documento → assinatura dentro da pasta
+    admin.put("/api/configuracoes/empresa", json={"responsavel": "Jorge Diretor", "email_responsavel": "jorge@empresa.com.br"})
+    obra = admin.post("/api/obras", json={"nome": "Obra anexos"}).json()
+    import io
+
+    from pypdf import PdfWriter
+
+    w = PdfWriter()
+    w.add_blank_page(595, 842)
+    buf = io.BytesIO()
+    w.write(buf)
+    arq = admin.post("/api/arquivos", data={"entidade": "obra", "entidade_id": obra["id"]},
+                     files={"arquivo": ("Contrato assinado.pdf", buf.getvalue(), "application/pdf")}).json()
+    img = admin.post("/api/arquivos", data={"entidade": "obra", "entidade_id": obra["id"]},
+                     files={"arquivo": ("f.png", __import__("tests.test_publico_relatorios", fromlist=["PNG"]).PNG, "image/png")}).json()
+    assert admin.post(f"/api/documentos-acoes/anexos/{img['id']}").status_code == 415
+    p1 = admin.post(f"/api/documentos-acoes/anexos/{arq['id']}").json()
+    assert p1["numero"].startswith("Anexo 001/") and p1["status"] == "emitido"
+    assert admin.post(f"/api/documentos-acoes/anexos/{arq['id']}").json()["documento_id"] == p1["documento_id"]
+    r = admin.post(f"/api/documentos-acoes/{p1['documento_id']}/assinatura",
+                   json={"assinantes": [{"nome": "Jorge Diretor", "email": "jorge@empresa.com.br"}], "pasta_id": "f2"})
+    assert r.status_code == 200, r.text
+    mover = next(c for c in chamadas if c[1] == "v2/document/update")
+    assert mover[2] == {"documentId": 55, "data": {"folderId": "f2"}}
+    assert [c[1] for c in chamadas][-2:] == ["v2/document/update", "v1/documents/55/send"]
+    sit = admin.get("/api/documentos-acoes/anexos", params={"entidade": "obra", "entidade_id": obra["id"]}).json()
+    assert sit == [{"arquivo_id": arq["id"], "documento_id": p1["documento_id"], "numero": p1["numero"],
+                    "status": "aguardando_assinatura", "assinantes": sit[0]["assinantes"]}]

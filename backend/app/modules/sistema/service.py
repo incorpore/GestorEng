@@ -11,7 +11,7 @@ DEFAULTS: dict[str, dict] = {
     "empresa": {
         "razao_social": "Velmont", "nome_fantasia": "Velmont", "cnpj": "", "inscricao_estadual": "",
         "inscricao_municipal": "", "endereco": "", "bairro": "", "cidade": "", "uf": "", "cep": "", "telefone": "",
-        "email": "", "site": "", "responsavel": "", "cargo_responsavel": "", "crea": "", "cor_primaria": "#1d4ed8",
+        "email": "", "site": "", "responsavel": "", "cargo_responsavel": "", "email_responsavel": "", "cpf_responsavel": "", "crea": "", "cor_primaria": "#1d4ed8",
         "logo_arquivo_id": None,
     },
     "timbrado": {

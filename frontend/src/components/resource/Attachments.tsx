@@ -10,6 +10,7 @@ import { bytes, dataHora } from '@/core/format'
 import { openApiFile, signedUrl } from '@/core/files'
 import { isNative } from '@/core/platform'
 import { errMsg, useToast } from '@/core/toast'
+import { AnexoAssinatura, useAssinaturaAnexos } from '@/modules/documentos/components/AnexoAssinatura'
 
 /** Anexos de qualquer registro: fotos em grade (com marca d'água nas entidades de obra) e demais arquivos em lista. */
 export function Attachments({ entidade, entidadeId, canEdit = true, somenteFotos = false }: {
@@ -26,6 +27,8 @@ export function Attachments({ entidade, entidadeId, canEdit = true, somenteFotos
   const { enviar, enviando } = useEnvioArquivos(entidade, entidadeId)
   const fotos = (data || []).filter((a) => a.mime.startsWith('image/'))
   const outros = somenteFotos ? [] : (data || []).filter((a) => !a.mime.startsWith('image/'))
+  const temPdf = entidade !== 'documento' && outros.some((a) => a.mime === 'application/pdf')
+  const assinaturas = useAssinaturaAnexos(entidade, entidadeId, temPdf)
 
   async function abrir(a: Foto) {
     try {
@@ -65,6 +68,8 @@ export function Attachments({ entidade, entidadeId, canEdit = true, somenteFotos
                     <p className="truncate text-sm font-medium">{a.nome}</p>
                     <p className="text-xs text-slate-400">{bytes(a.tamanho)} · {dataHora(a.created_at)}</p>
                   </button>
+                  {temPdf && a.mime === 'application/pdf' && <AnexoAssinatura arquivoId={a.id} nome={a.nome} entidade={entidade} entidadeId={entidadeId}
+                    situacao={assinaturas.data?.find((s) => s.arquivo_id === a.id)} />}
                   <IconButton label="Abrir" onClick={() => abrir(a)}><Download className="h-4 w-4" /></IconButton>
                   {canEdit && <IconButton label="Remover" className="hover:text-rose-600" onClick={() => remover(a)}><Trash2 className="h-4 w-4" /></IconButton>}
                 </li>

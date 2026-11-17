@@ -17,6 +17,8 @@ const F: FieldDef[] = [
   { name: 'cep', label: 'CEP', span: 1 },
   { name: 'telefone', label: 'Telefone', span: 1 }, { name: 'email', label: 'E-mail', span: 1 }, { name: 'site', label: 'Site', span: 2 },
   { name: 'responsavel', label: 'Representante legal', span: 2, section: 'Responsáveis' }, { name: 'cargo_responsavel', label: 'Cargo', span: 1 },
+  { name: 'cpf_responsavel', label: 'CPF do representante', span: 1 },
+  { name: 'email_responsavel', label: 'E-mail do representante (assinaturas)', type: 'email', span: 2, hint: 'Sempre incluído como assinante no Documenso' },
   { name: 'crea', label: 'CREA/CAU da empresa', span: 1 },
   { name: 'cor_primaria', label: 'Cor da marca', type: 'color', span: 1, section: 'Identidade visual' },
 ]

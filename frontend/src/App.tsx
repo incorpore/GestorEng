@@ -14,6 +14,9 @@ import NotFound from '@/pages/NotFound'
 import ServerSetup from '@/pages/ServerSetup'
 import { lazy, Suspense } from 'react'
 
+// comportamento do React Router 7 já ativado (remove os avisos do console)
+const FUTURO = { v7_relativeSplatPath: true, v7_fetcherPersist: true, v7_normalizeFormMethod: true, v7_partialHydration: true, v7_skipActionErrorRevalidation: true }
+
 const LinkPublico = lazy(() => import('@/pages/publico/LinkPublico'))
 
 function Authenticated() {
@@ -21,9 +24,9 @@ function Authenticated() {
   const router = useMemo(() => {
     const routes = frontModules.filter((m) => ALWAYS.has(m.key) || modules.has(m.key)).flatMap((m) => m.routes)
     const tree = [{ element: <AppShell />, children: [...routes, { path: '*', element: <NotFound /> }] }]
-    return isNative ? createHashRouter(tree) : createBrowserRouter(tree)
+    return isNative ? createHashRouter(tree, { future: FUTURO }) : createBrowserRouter(tree, { future: FUTURO })
   }, [modules])
-  return <RouterProvider router={router} />
+  return <RouterProvider router={router} future={{ v7_startTransition: true }} />
 }
 
 function Branding() {

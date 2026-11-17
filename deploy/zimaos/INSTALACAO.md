@@ -404,6 +404,13 @@ sudo docker logs --tail 100 struvia-db      # banco interno
 
 - **OpenWeather (clima)**: crie uma conta gratuita em openweathermap.org, copie a *API key* e cadastre em
   *Configurações > Integrações > OpenWeather*. A chave pode levar até 2 horas para ser ativada pelo OpenWeather.
+- **Documenso (assinaturas)**: em *Configurações > Empresa* preencha o **representante legal** e o **e-mail do
+  representante** — ele entra sempre como assinante. Os outros assinantes são adicionados no envio e a ordem é definida
+  arrastando os nomes. PDFs anexados (obra, diário, licitação...) têm o botão **Assinar**. As **pastas** do Documenso são
+  listadas e criadas pelo próprio Struvia (exige Documenso recente, com a API v2; em versões antigas o documento vai
+  para a pasta principal e o sistema avisa).
+- **Cloudflare**: se o domínio passa pelo Cloudflare com *Web Analytics* ativo, o script `beacon.min.js` já é
+  permitido. Avisos de `content.js` no console vêm de extensões do navegador e podem ser ignorados.
 - **Pedir fotos**: o botão gera o link na hora. Quem abre tira quantas fotos quiser **pela câmera** (a galeria não é
   oferecida e fotos antigas são recusadas); cada foto é enviada assim que é tirada. O link fecha quando a pessoa toca
   em **Finalizar**, quando você o exclui/encerra ou quando expira (7 dias).

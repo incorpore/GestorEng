@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from app.core import audit, storage
 from app.core.crud import Crud
 from app.core.database import get_db
-from app.core.deps import CurrentUser, require
+from app.core.deps import CurrentUser, get_current_user, require
 from app.core.models import Arquivo
 from app.core.registry import ModuleDef, registry
 from app.core.schemas import In, Out
@@ -324,6 +324,91 @@ class Assinante(BaseModel):
 class AssinaturaIn(BaseModel):
     assinantes: list[Assinante] = Field(min_length=1, max_length=20)
     mensagem: str | None = Field(None, max_length=2000)
+    sequencial: bool = True  # cada assinante recebe depois que o anterior assinar, na ordem da lista
+    pasta_id: str | None = Field(None, max_length=64)  # pasta no Documenso
+
+
+def _representante(db: Session) -> dict:
+    from app.modules.sistema.service import get_config
+
+    e = get_config(db, "empresa")
+    return {"nome": (e.get("responsavel") or "").strip(), "email": (e.get("email_responsavel") or "").strip(),
+            "cargo": e.get("cargo_responsavel") or ""}
+
+
+class PastaIn(BaseModel):
+    nome: str = Field(min_length=1, max_length=120)
+    parent_id: str | None = Field(None, max_length=64)
+
+
+@r.get("/documenso/pastas")
+def listar_pastas(db: Session = Depends(get_db), cu: CurrentUser = Depends(require("documentos.assinar"))):
+    return documenso.pastas(db)
+
+
+@r.post("/documenso/pastas", status_code=201)
+def nova_pasta(body: PastaIn, request: Request, db: Session = Depends(get_db),
+               cu: CurrentUser = Depends(require("documentos.assinar"))):
+    p = documenso.criar_pasta(db, body.nome.strip(), body.parent_id)
+    audit.log(db, user_id=cu.id, action="criar_pasta_documenso", entity="documento", data=p, request=request)
+    db.commit()
+    return p
+
+
+# ------------------------------------------------------------------ assinatura de arquivos anexados
+@r.get("/anexos")
+def anexos_assinatura(entidade: str, entidade_id: int, db: Session = Depends(get_db),
+                      cu: CurrentUser = Depends(get_current_user)):
+    """Situação de assinatura dos PDFs anexados a um registro (arquivo_id → documento)."""
+    from app.modules.sistema.arquivos import check_access
+
+    check_access(db, cu, entidade, entidade_id, write=False)
+    docs = db.scalars(select(Documento).where(Documento.tipo == "anexo", Documento.entidade == entidade,
+                                              Documento.entidade_id == entidade_id, Documento.status != "cancelado"))
+    return [{"arquivo_id": (d.variaveis or {}).get("_anexo_id"), "documento_id": d.id, "numero": d.numero,
+             "status": d.status, "assinantes": d.assinantes} for d in docs]
+
+
+@r.post("/anexos/{arquivo_id}", status_code=201)
+def preparar_anexo(arquivo_id: int, db: Session = Depends(get_db), cu: CurrentUser = Depends(require("documentos.assinar"))):
+    """Registra um PDF anexado como documento (numerado) para enviar à assinatura. Idempotente."""
+    from app.modules.sistema.arquivos import check_access, obra_da_entidade
+
+    from . import registro
+
+    a = db.get(Arquivo, arquivo_id)
+    if not a or a.entidade in (None, "documento"):
+        raise HTTPException(404, "Arquivo não encontrado")
+    check_access(db, cu, a.entidade, a.entidade_id, write=True)
+    if a.mime != "application/pdf":
+        raise HTTPException(415, "Só arquivos PDF podem ser assinados")
+    for d in db.scalars(select(Documento).where(Documento.tipo == "anexo", Documento.entidade == a.entidade,
+                                                Documento.entidade_id == a.entidade_id, Documento.status != "cancelado")):
+        if (d.variaveis or {}).get("_anexo_id") == a.id:
+            return {"documento_id": d.id, "numero": d.numero, "status": d.status}
+    titulo = a.nome[:-4] if a.nome.lower().endswith(".pdf") else a.nome
+    doc = registro.reservar(db, tipo="anexo", prefixo="Anexo", titulo=(a.descricao or titulo)[:200], entidade=a.entidade,
+                            entidade_id=a.entidade_id, obra_id=obra_da_entidade(db, a.entidade, a.entidade_id),
+                            user_id=cu.id)
+    registro.concluir(db, doc, storage.read_bytes(a.uuid), cu.id)
+    doc.variaveis = {**(doc.variaveis or {}), "_anexo_id": a.id}
+    db.commit()
+    return {"documento_id": doc.id, "numero": doc.numero, "status": doc.status}
+
+
+@r.get("/assinatura/padrao")
+def assinatura_padrao(db: Session = Depends(get_db), cu: CurrentUser = Depends(require("documentos.assinar"))):
+    """Representante legal (assinante obrigatório) e pessoas usadas recentemente, para sugestão."""
+    rep = _representante(db)
+    vistos, recentes = {rep["email"].lower()}, []
+    for lista in db.scalars(select(Documento.assinantes).where(Documento.assinantes.is_not(None))
+                            .order_by(Documento.enviado_assinatura_em.desc().nulls_last()).limit(60)):
+        for a in lista or []:
+            email = (a.get("email") or "").lower()
+            if email and email not in vistos and a.get("nome"):
+                vistos.add(email)
+                recentes.append({"nome": a["nome"], "email": a["email"]})
+    return {"representante": rep, "recentes": recentes[:30]}
 
 
 @r.post("/{did}/assinatura", response_model=DocumentoOut)
@@ -332,15 +417,26 @@ def enviar_assinatura(did: int, body: AssinaturaIn, request: Request, db: Sessio
     doc = _get_doc(db, cu, did)
     if doc.status != "emitido" or not doc.pdf_arquivo_id:
         raise HTTPException(409, "Emita o documento antes de enviar para assinatura")
+    rep = _representante(db)
+    if not rep["nome"] or not rep["email"]:
+        raise HTTPException(400, "Cadastre o nome e o e-mail do representante legal em Configurações › Empresa")
+    emails = [x.email.lower() for x in body.assinantes]
+    if len(set(emails)) != len(emails):
+        raise HTTPException(422, "Há assinantes com o mesmo e-mail")
+    if not any(x.email.lower() == rep["email"].lower() and x.papel == "SIGNER" for x in body.assinantes):
+        raise HTTPException(422, f"O representante legal ({rep['nome']}) deve estar entre os assinantes")
     a = db.get(Arquivo, doc.pdf_arquivo_id)
     res = documenso.enviar(db, titulo=f"{doc.numero or ''} {doc.titulo}".strip(), pdf=storage.read_bytes(a.uuid),
-                           assinantes=[x.model_dump() for x in body.assinantes], mensagem=body.mensagem)
+                           assinantes=[x.model_dump() for x in body.assinantes], mensagem=body.mensagem,
+                           sequencial=body.sequencial, pasta_id=body.pasta_id)
     doc.documenso_id = res["documento_id"]
     doc.assinantes = res["assinantes"]
     doc.status = "aguardando_assinatura"
     doc.enviado_assinatura_em = datetime.now(UTC)
+    doc.variaveis = {**(doc.variaveis or {}), "_pasta_documenso": body.pasta_id, "_aviso_assinatura": res.get("aviso")}
     audit.log(db, user_id=cu.id, action="enviar_assinatura", entity="documento", entity_id=doc.id,
-              data={"documenso_id": doc.documenso_id, "assinantes": [x.email for x in body.assinantes]}, request=request)
+              data={"documenso_id": doc.documenso_id, "assinantes": [x.email for x in body.assinantes],
+                    "pasta": body.pasta_id}, request=request)
     db.commit()
     db.refresh(doc)
     return doc
