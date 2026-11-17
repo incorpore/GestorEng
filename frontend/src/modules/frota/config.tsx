@@ -1,5 +1,6 @@
 import type { ResourceConfig } from '@/components/resource/types'
 import { STATUS_VEICULO, TIPO_VEICULO } from '@/core/options'
+import { registrarCriacao } from '@/components/resource/criacao'
 
 export const veiculosCfg: ResourceConfig = {
   endpoint: '/veiculos', title: 'Veículos e equipamentos', singular: 'Veículo/equipamento', perm: 'frota', attachEntity: 'veiculo', defaultOrder: 'identificacao',
@@ -9,7 +10,7 @@ export const veiculosCfg: ResourceConfig = {
     { name: 'identificacao', label: 'Placa / patrimônio', required: true, span: 1 },
     { name: 'descricao', label: 'Descrição', required: true, span: 2 },
     { name: 'marca', label: 'Marca', span: 1 }, { name: 'modelo', label: 'Modelo', span: 1 }, { name: 'ano', label: 'Ano', type: 'number', span: 1 },
-    { name: 'combustivel', label: 'Combustível', type: 'select', options: ['Diesel', 'Gasolina', 'Etanol', 'Flex', 'Elétrico', 'GNV'].map((x) => ({ value: x, label: x })), span: 1 },
+    { name: 'combustivel', label: 'Combustível', type: 'lista', lista: 'combustivel', span: 1 },
     { name: 'renavam', label: 'RENAVAM', span: 2 }, { name: 'chassi', label: 'Chassi / nº série', span: 2 },
     { name: 'medidor', label: 'Medidor', type: 'select', options: [{ value: 'km', label: 'Quilometragem' }, { value: 'horas', label: 'Horímetro' }], default: 'km', span: 1, section: 'Operação' },
     { name: 'leitura_atual', label: 'Leitura atual', type: 'number', span: 1 },
@@ -71,3 +72,5 @@ export const abastecimentosCfg: ResourceConfig = {
   ],
   filters: [{ name: 'veiculo_id', label: 'Veículo', type: 'relation', relation: veic }, { name: 'obra_id', label: 'Obra', type: 'relation', relation: { endpoint: '/obras' } }],
 }
+
+registrarCriacao({ ...veiculosCfg, labelKey: 'identificacao' })

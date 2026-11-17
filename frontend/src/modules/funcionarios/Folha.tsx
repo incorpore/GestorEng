@@ -40,7 +40,7 @@ export function Folha() {
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           <Field label="De"><Input type="date" value={f.inicio} onChange={(e) => setF({ ...f, inicio: e.target.value })} /></Field>
           <Field label="Até"><Input type="date" value={f.fim} onChange={(e) => setF({ ...f, fim: e.target.value })} /></Field>
-          <Field label="Obra"><RelationSelect endpoint="/obras" value={f.obra_id} onChange={(v) => setF({ ...f, obra_id: v })} placeholder="Todas" /></Field>
+          <Field label="Obra"><RelationSelect semCriar endpoint="/obras" value={f.obra_id} onChange={(v) => setF({ ...f, obra_id: v })} placeholder="Todas" /></Field>
           <div className="flex items-end"><Button className="w-full" icon={<Search className="h-4 w-4" />} onClick={buscar} loading={loading}>Calcular</Button></div>
         </div>
       </Card>

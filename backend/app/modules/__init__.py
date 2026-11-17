@@ -27,6 +27,7 @@ MODULES = [
     "app.modules.ia",
     "app.modules.backup",
     "app.modules.links",
+    "app.modules.listas",
 ]
 
 

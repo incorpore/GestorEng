@@ -1,4 +1,5 @@
 import type { ResourceConfig } from '@/components/resource/types'
+import { registrarCriacao } from '@/components/resource/criacao'
 
 const TIPO_ITEM = [{ value: 'material', label: 'Material' }, { value: 'ferramenta', label: 'Ferramenta' }, { value: 'epi', label: 'EPI' }, { value: 'patrimonio', label: 'Patrimônio' }]
 const TIPO_MOV = [{ value: 'entrada', label: 'Entrada', tone: 'green' }, { value: 'saida', label: 'Saída', tone: 'red' }, { value: 'transferencia', label: 'Transferência', tone: 'blue' }, { value: 'ajuste', label: 'Ajuste', tone: 'yellow' }]
@@ -8,7 +9,7 @@ export const itensCfg: ResourceConfig = {
   fields: [
     { name: 'codigo', label: 'Código', span: 1 }, { name: 'nome', label: 'Nome', required: true, span: 3 },
     { name: 'tipo', label: 'Tipo', type: 'select', options: TIPO_ITEM, required: true, default: 'material', span: 1 },
-    { name: 'categoria', label: 'Categoria', span: 1 }, { name: 'unidade', label: 'Unidade', default: 'un', required: true, span: 1 },
+    { name: 'categoria', label: 'Categoria', type: 'lista', lista: 'categoria_estoque', span: 1 }, { name: 'unidade', label: 'Unidade', type: 'lista', lista: 'unidade', default: 'un', required: true, span: 1 },
     { name: 'estoque_minimo', label: 'Estoque mínimo', type: 'number', span: 1 },
     { name: 'custo_medio', label: 'Custo médio', type: 'money', span: 2, hint: 'Atualizado automaticamente nas entradas' },
     { name: 'numero_patrimonio', label: 'Nº patrimônio', span: 2, hidden: (v) => v.tipo !== 'patrimonio' && v.tipo !== 'ferramenta' },
@@ -45,3 +46,6 @@ export const movsCfg: ResourceConfig = {
     { key: 'quantidade', label: 'Qtd.', type: 'number', align: 'right' }, { key: 'origem_nome', label: 'Origem', sortable: false }, { key: 'destino_nome', label: 'Destino', sortable: false }],
   filters: [{ name: 'tipo', label: 'Tipo', options: TIPO_MOV }, { name: 'item_id', label: 'Item', type: 'relation', relation: { endpoint: '/itens-estoque' } }],
 }
+
+registrarCriacao(itensCfg)
+registrarCriacao(locaisCfg)

@@ -1,4 +1,5 @@
 import { Input, Select, Textarea, Toggle } from '@/components/ui'
+import { ListaSelect } from './ListaSelect'
 import { GeoInput, MunicipioSelect, UfSelect } from './LocalidadeInputs'
 import { RelationSelect } from './RelationSelect'
 import type { FieldDef } from './types'
@@ -42,6 +43,8 @@ export function FieldInput({ f, value, onChange, values = {}, set }: {
     case 'municipio':
       return <MunicipioSelect disabled={f.readOnly} uf={f.ufField ? values[f.ufField] : null} value={value ?? null}
         onChange={(nome, ibge) => { onChange(nome); if (f.ibgeField && set) set(f.ibgeField, ibge ? String(ibge) : null) }} />
+    case 'lista':
+      return <ListaSelect lista={f.lista!} value={value} onChange={onChange} disabled={f.readOnly} />
     case 'geo':
       return <GeoInput disabled={f.readOnly} value={value ?? null} onChange={onChange}
         onCoords={(lat, lon) => { onChange(lat); if (f.lonField && set) set(f.lonField, lon) }} />

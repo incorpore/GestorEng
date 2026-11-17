@@ -2,13 +2,14 @@ import { Star } from 'lucide-react'
 import type { ResourceConfig } from '@/components/resource/types'
 import { dataHora } from '@/core/format'
 import { STATUS_LICITACAO } from '@/core/options'
+import { registrarCriacao } from '@/components/resource/criacao'
 
 export const licitacoesCfg: ResourceConfig = {
   endpoint: '/licitacoes', title: 'Licitações', singular: 'Licitação', perm: 'licitacoes', attachEntity: 'licitacao', formSize: 'xl',
   defaultOrder: '-data_abertura', searchPlaceholder: 'Objeto, órgão, número, município...',
   fields: [
     { name: 'numero', label: 'Número / processo', span: 1 },
-    { name: 'modalidade', label: 'Modalidade', span: 1 },
+    { name: 'modalidade', label: 'Modalidade', type: 'lista', lista: 'modalidade_licitacao', span: 1 },
     { name: 'status', label: 'Situação', type: 'select', options: STATUS_LICITACAO, required: true, default: 'prospeccao', span: 1 },
     { name: 'favorito', label: 'Favorita', type: 'boolean', span: 1 },
     { name: 'objeto', label: 'Objeto', type: 'textarea', required: true },
@@ -20,7 +21,7 @@ export const licitacoesCfg: ResourceConfig = {
     { name: 'data_publicacao', label: 'Publicação', type: 'datetime', span: 1, section: 'Datas e valores' },
     { name: 'data_abertura', label: 'Abertura das propostas', type: 'datetime', span: 1 },
     { name: 'data_encerramento_proposta', label: 'Encerramento', type: 'datetime', span: 1 },
-    { name: 'criterio_julgamento', label: 'Critério de julgamento', span: 1 },
+    { name: 'criterio_julgamento', label: 'Critério de julgamento', type: 'lista', lista: 'criterio_julgamento', span: 1 },
     { name: 'valor_estimado', label: 'Valor estimado', type: 'money', span: 2 },
     { name: 'valor_proposta', label: 'Nossa proposta', type: 'money', span: 2 },
     { name: 'responsavel', label: 'Responsável interno', span: 2 },
@@ -42,3 +43,5 @@ export const licitacoesCfg: ResourceConfig = {
     { name: 'data_abertura__gte', label: 'Abertura a partir de', type: 'date' },
   ],
 }
+
+registrarCriacao({ ...licitacoesCfg, labelKey: 'objeto' })

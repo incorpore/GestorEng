@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { Button, Field, Modal } from '@/components/ui'
 import { api } from '@/core/api'
 import { errMsg, useToast } from '@/core/toast'
@@ -59,15 +59,18 @@ export function ResourceForm({ open, onClose, endpoint, fields, row, title, onSa
   const toast = useToast()
   const [values, setValues] = useState<Record<string, any>>({})
   const [saving, setSaving] = useState(false)
+  const formId = `form-${useId().replace(/:/g, '')}`
 
   useEffect(() => {
     if (open) setValues({ ...initialValues(fields, row), ...(row ? { itens: row.itens } : {}), ...(!row ? defaults : {}) })
-  }, [open, row, fields, defaults])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, row, fields, JSON.stringify(defaults ?? null)])
 
   const set = (k: string, v: any) => setValues((s) => ({ ...s, [k]: v }))
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
+    e.stopPropagation() // formulário em pop-up dentro de outro formulário não deve enviar o de fora
     setSaving(true)
     try {
       let body: Record<string, any> = {}
@@ -89,9 +92,9 @@ export function ResourceForm({ open, onClose, endpoint, fields, row, title, onSa
     <Modal open={open} onClose={onClose} title={title} size={size}
       footer={<>
         <Button variant="secondary" type="button" onClick={onClose}>Cancelar</Button>
-        <Button type="submit" form="resource-form" loading={saving}>Salvar</Button>
+        <Button type="submit" form={formId} loading={saving}>Salvar</Button>
       </>}>
-      <form id="resource-form" onSubmit={submit} className="space-y-5">
+      <form id={formId} onSubmit={submit} className="space-y-5">
         <FormGrid fields={fields} values={values} set={set} />
         {extra?.(values, set)}
       </form>

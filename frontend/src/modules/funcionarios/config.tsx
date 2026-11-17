@@ -1,6 +1,7 @@
 import type { ResourceConfig } from '@/components/resource/types'
 import { moeda } from '@/core/format'
 import { VINCULO } from '@/core/options'
+import { registrarCriacao } from '@/components/resource/criacao'
 
 const isV = (...v: string[]) => (x: Record<string, any>) => !v.includes(x.vinculo)
 
@@ -10,7 +11,7 @@ export const funcionariosCfg: ResourceConfig = {
   fields: [
     { name: 'nome', label: 'Nome completo', required: true, span: 2 },
     { name: 'vinculo', label: 'Vínculo', type: 'select', options: VINCULO, required: true, default: 'contratado', span: 1 },
-    { name: 'funcao', label: 'Função', span: 1 },
+    { name: 'funcao', label: 'Função', type: 'lista', lista: 'funcao', span: 1 },
     { name: 'cpf', label: 'CPF', span: 1 }, { name: 'rg', label: 'RG', span: 1 }, { name: 'data_nascimento', label: 'Nascimento', type: 'date', span: 1 },
     { name: 'ativo', label: 'Ativo', type: 'boolean', default: true, span: 1 },
     { name: 'salario', label: 'Salário mensal', type: 'money', span: 1, hidden: isV('contratado'), section: 'Remuneração' },
@@ -67,3 +68,5 @@ export const apontamentosCfg: ResourceConfig = {
     { name: 'obra_id', label: 'Obra', type: 'relation', relation: { endpoint: '/obras' } }, { name: 'pago', label: 'Pago', type: 'boolean' },
     { name: 'data__gte', label: 'De', type: 'date' }, { name: 'data__lte', label: 'Até', type: 'date' }],
 }
+
+registrarCriacao(funcionariosCfg)

@@ -14,7 +14,7 @@ export function Saldos() {
     <Card padded={false}>
       <div className="grid grid-cols-1 gap-3 border-b border-slate-100 p-3 dark:border-slate-800 sm:grid-cols-3">
         <Input placeholder="Buscar item..." value={f.q} onChange={(e) => setF({ ...f, q: e.target.value })} />
-        <Field label=""><RelationSelect endpoint="/locais-estoque" value={f.local_id} onChange={(v) => setF({ ...f, local_id: v })} placeholder="Todos os locais" /></Field>
+        <Field label=""><RelationSelect semCriar endpoint="/locais-estoque" value={f.local_id} onChange={(v) => setF({ ...f, local_id: v })} placeholder="Todos os locais" /></Field>
         <div className="flex items-center"><Toggle checked={f.abaixo_minimo} onChange={(v) => setF({ ...f, abaixo_minimo: v })} label="Somente abaixo do mínimo" /></div>
       </div>
       {q.isLoading ? <Loading /> : !q.data?.length ? <Empty title="Sem saldo" text="Registre entradas para formar o estoque." /> : (

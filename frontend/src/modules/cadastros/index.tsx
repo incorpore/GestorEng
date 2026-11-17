@@ -3,6 +3,7 @@ import { ResourcePage } from '@/components/resource/ResourcePage'
 import type { ResourceConfig } from '@/components/resource/types'
 import { TIPO_PARCEIRO } from '@/core/options'
 import type { FrontModule } from '../types'
+import { registrarCriacao } from '@/components/resource/criacao'
 
 export const parceirosCfg: ResourceConfig = {
   endpoint: '/parceiros', title: 'Clientes, fornecedores e órgãos', singular: 'Cadastro', perm: 'cadastros',
@@ -46,3 +47,5 @@ const mod: FrontModule = {
   routes: [{ path: '/cadastros', element: <ResourcePage cfg={parceirosCfg} /> }],
 }
 export default mod
+
+registrarCriacao(parceirosCfg)

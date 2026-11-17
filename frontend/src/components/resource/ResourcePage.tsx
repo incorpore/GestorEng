@@ -88,7 +88,7 @@ export function ResourceList<T extends { id: number }>({ cfg, embedded = false, 
             {cfg.filters.map((f) => (
               <Field key={f.name} label={f.label}>
                 {f.type === 'relation' ? (
-                  <RelationSelect endpoint={f.relation!.endpoint} labelKey={f.relation!.labelKey} value={filters[f.name] ? Number(filters[f.name]) : null}
+                  <RelationSelect semCriar endpoint={f.relation!.endpoint} labelKey={f.relation!.labelKey} value={filters[f.name] ? Number(filters[f.name]) : null}
                     onChange={(v) => setFilters((s) => ({ ...s, [f.name]: v ?? '' }))} placeholder="Todos" />
                 ) : f.type === 'date' ? (
                   <Input type="date" value={filters[f.name] || ''} onChange={(e) => setFilters((s) => ({ ...s, [f.name]: e.target.value }))} />

@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { Plus, X } from 'lucide-react'
 import clsx from 'clsx'
 import { Button, Card, Field, Input, Select, Textarea, Toggle } from '@/components/ui'
+import { ListaSelect } from '@/components/resource/ListaSelect'
 import type { CampoSecao, SecaoDef } from '../secoes'
 
 const LARG = { sm: 'col-span-1', md: 'col-span-2 sm:col-span-2', lg: 'col-span-2 sm:col-span-3', full: 'col-span-2 sm:col-span-4' }
@@ -14,6 +15,8 @@ function Campo({ c, valor, onChange, disabled }: { c: CampoSecao; valor: any; on
       return <Input disabled={disabled} type="date" value={valor ?? ''} onChange={(e) => onChange(e.target.value || null)} />
     case 'select':
       return <Select disabled={disabled} value={valor ?? ''} onChange={(e) => onChange(e.target.value)}>{c.opcoes!.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</Select>
+    case 'lista':
+      return <ListaSelect lista={c.lista!} disabled={disabled} value={valor} onChange={(v) => onChange(v ?? '')} />
     case 'bool':
       return <div className="pt-1.5"><Toggle checked={!!valor} onChange={onChange} label={valor ? 'Sim' : 'Não'} /></div>
     case 'textarea':

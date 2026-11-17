@@ -2,8 +2,8 @@ import { AlertTriangle, ClipboardCheck, ClipboardList, Hammer, HardHat, Package,
 
 export interface Opcao { value: string; label: string }
 export interface CampoSecao {
-  key: string; label: string; tipo?: 'text' | 'number' | 'select' | 'date' | 'bool' | 'textarea'
-  opcoes?: Opcao[]; largura?: 'sm' | 'md' | 'lg' | 'full'; placeholder?: string; obrigatorio?: boolean
+  key: string; label: string; tipo?: 'text' | 'number' | 'select' | 'date' | 'bool' | 'textarea' | 'lista'
+  opcoes?: Opcao[]; lista?: string; largura?: 'sm' | 'md' | 'lg' | 'full'; placeholder?: string; obrigatorio?: boolean
 }
 export interface SecaoDef {
   chave: string; titulo: string; icone: LucideIcon; cor: string; campos: CampoSecao[]; novo: () => Record<string, unknown>
@@ -30,7 +30,7 @@ export const rotulo = (ops: Opcao[], v: unknown) => ops.find((o) => o.value === 
 export const SECOES: SecaoDef[] = [
   { chave: 'efetivo', titulo: 'Equipe', icone: HardHat, cor: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
     novo: () => ({ nome: '', funcao: '', horas: 8, quantidade: 1, empresa: 'propria' }),
-    campos: [{ key: 'nome', label: 'Nome', largura: 'lg' }, { key: 'funcao', label: 'Função', largura: 'md' },
+    campos: [{ key: 'nome', label: 'Nome', largura: 'lg' }, { key: 'funcao', label: 'Função', tipo: 'lista', lista: 'funcao', largura: 'md' },
       { key: 'horas', label: 'Horas', tipo: 'number', largura: 'sm' }, { key: 'quantidade', label: 'Qtd.', tipo: 'number', largura: 'sm' },
       { key: 'empresa', label: 'Empresa', largura: 'md', placeholder: 'propria' }] },
   { chave: 'equipamentos', titulo: 'Máquinas', icone: Truck, cor: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
@@ -40,7 +40,7 @@ export const SECOES: SecaoDef[] = [
   { chave: 'materiais', titulo: 'Materiais', icone: Package, cor: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
     novo: () => ({ descricao: '', quantidade: null, unidade: '' }),
     campos: [{ key: 'descricao', label: 'Material', largura: 'lg', obrigatorio: true }, { key: 'quantidade', label: 'Qtd.', tipo: 'number', largura: 'sm' },
-      { key: 'unidade', label: 'Un.', largura: 'sm' }, { key: 'observacao', label: 'Observação', largura: 'md' }] },
+      { key: 'unidade', label: 'Un.', tipo: 'lista', lista: 'unidade', largura: 'md' }, { key: 'observacao', label: 'Observação', largura: 'md' }] },
   { chave: 'atividades', titulo: 'Serviços', icone: Hammer, cor: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300',
     novo: () => ({ descricao: '', local: '', percentual: 0 }),
     campos: [{ key: 'descricao', label: 'Descrição', largura: 'lg', obrigatorio: true }, { key: 'local', label: 'Local', largura: 'md' },

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { CheckCircle2, Undo2 } from 'lucide-react'
-import { Button, Field, IconButton, Input, Modal, Select } from '@/components/ui'
+import { Button, Field, IconButton, Input, Modal } from '@/components/ui'
+import { ListaSelect } from '@/components/resource/ListaSelect'
 import { RelationSelect } from '@/components/resource/RelationSelect'
 import { api } from '@/core/api'
 import { useAuth } from '@/core/auth'
@@ -43,9 +44,7 @@ export function BaixarButton({ row, onDone }: { row: any; onDone: () => void }) 
           <Field label="Data"><Input type="date" value={v.data_pagamento} onChange={(e) => setV({ ...v, data_pagamento: e.target.value })} /></Field>
           <Field label="Conta" className="col-span-2"><RelationSelect endpoint="/contas-financeiras" value={v.conta_id} onChange={(x) => setV({ ...v, conta_id: x })} /></Field>
           <Field label="Forma" className="col-span-2">
-            <Select value={v.forma_pagamento} onChange={(e) => setV({ ...v, forma_pagamento: e.target.value })}>
-              {['PIX', 'Boleto', 'Transferência', 'Dinheiro', 'Cartão', 'Cheque', 'Débito automático'].map((x) => <option key={x}>{x}</option>)}
-            </Select>
+            <ListaSelect lista="forma_pagamento" value={v.forma_pagamento} onChange={(x) => setV({ ...v, forma_pagamento: x || '' })} />
           </Field>
         </div>
       </Modal>

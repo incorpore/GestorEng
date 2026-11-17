@@ -6,10 +6,11 @@ import type { FrontModule } from '../types'
 import { Backup } from './components/Backup'
 import { Empresa } from './components/Empresa'
 import { Integracoes } from './components/Integracoes'
+import { Listas } from './components/Listas'
 import { Modulos } from './components/Modulos'
 import { Timbrado } from './components/Timbrado'
 
-type T = 'empresa' | 'timbrado' | 'integracoes' | 'modulos' | 'backup'
+type T = 'empresa' | 'timbrado' | 'integracoes' | 'listas' | 'modulos' | 'backup'
 
 function Configuracoes() {
   const { user } = useAuth()
@@ -18,9 +19,9 @@ function Configuracoes() {
     <div className="space-y-4">
       <PageHeader title="Configurações" />
       <Tabs value={tab} onChange={setTab} tabs={[{ key: 'empresa', label: 'Empresa' }, { key: 'timbrado', label: 'Papel timbrado' }, { key: 'integracoes', label: 'Integrações' },
-        { key: 'modulos', label: 'Módulos' }, { key: 'backup', label: 'Backup', hidden: !user?.superusuario }]} />
+        { key: 'listas', label: 'Listas' }, { key: 'modulos', label: 'Módulos' }, { key: 'backup', label: 'Backup', hidden: !user?.superusuario }]} />
       {tab === 'empresa' && <Empresa />}{tab === 'timbrado' && <Timbrado />}{tab === 'integracoes' && <Integracoes />}
-      {tab === 'modulos' && <Modulos />}{tab === 'backup' && <Backup />}
+      {tab === 'listas' && <Listas />}{tab === 'modulos' && <Modulos />}{tab === 'backup' && <Backup />}
     </div>
   )
 }

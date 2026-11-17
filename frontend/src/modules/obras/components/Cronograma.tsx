@@ -8,10 +8,11 @@ import { api, type Page } from '@/core/api'
 import { useAuth } from '@/core/auth'
 import { data as fData } from '@/core/format'
 import { Gantt, SITUACAO_SERV, type ServicoGantt } from './Gantt'
+import { registrarCriacao } from '@/components/resource/criacao'
 
 const CAMPOS: FieldDef[] = [
   { name: 'descricao', label: 'Serviço', required: true, span: 4 },
-  { name: 'local', label: 'Local', span: 2 }, { name: 'etapa', label: 'Etapa', span: 2 },
+  { name: 'local', label: 'Local', span: 2 }, { name: 'etapa', label: 'Etapa', type: 'lista', lista: 'etapa_servico', span: 2 },
   { name: 'inicio', label: 'Início', type: 'date', required: true, span: 1 }, { name: 'fim', label: 'Término', type: 'date', required: true, span: 1 },
   { name: 'percentual', label: 'Avanço atual', type: 'percent', span: 1, hint: 'Atualizado pelos diários' }, { name: 'ordem', label: 'Ordem', type: 'number', span: 1 },
   { name: 'responsavel', label: 'Responsável', span: 2 }, { name: 'codigo', label: 'Código / item', span: 2 },
@@ -63,3 +64,5 @@ export function Cronograma({ obraId }: { obraId: number }) {
     </Card>
   )
 }
+
+registrarCriacao({ endpoint: '/servicos-obra', singular: 'Serviço do cronograma', perm: 'obras', fields: CAMPOS, labelKey: 'descricao' })

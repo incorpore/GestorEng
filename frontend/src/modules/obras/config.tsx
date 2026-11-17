@@ -1,6 +1,7 @@
 import type { ResourceConfig } from '@/components/resource/types'
 import { Badge } from '@/components/ui'
 import { STATUS_MEDICAO, STATUS_OBRA, TIPO_OBRA } from '@/core/options'
+import { registrarCriacao } from '@/components/resource/criacao'
 
 export const obrasCfg: ResourceConfig = {
   endpoint: '/obras', title: 'Obras', singular: 'Obra', perm: 'obras', attachEntity: 'obra', formSize: 'xl',
@@ -63,3 +64,5 @@ export const medicaoStatus = (s: string) => {
   const o = STATUS_MEDICAO.find((x) => x.value === s)
   return <Badge tone={o?.tone}>{o?.label || s}</Badge>
 }
+
+registrarCriacao(obrasCfg)

@@ -3,8 +3,8 @@ import { Badge } from '@/components/ui'
 import { moeda } from '@/core/format'
 import { STATUS_LANC, TIPO_LANC } from '@/core/options'
 import { BaixarButton } from './Baixar'
+import { registrarCriacao } from '@/components/resource/criacao'
 
-export const FORMAS = ['PIX', 'Boleto', 'Transferência', 'Dinheiro', 'Cartão', 'Cheque', 'Débito automático'].map((x) => ({ value: x, label: x }))
 
 export const lancamentosCfg: ResourceConfig = {
   endpoint: '/lancamentos', title: 'Lançamentos', singular: 'Lançamento', perm: 'financeiro', attachEntity: 'lancamento',
@@ -20,7 +20,7 @@ export const lancamentosCfg: ResourceConfig = {
     { name: 'obra_id', label: 'Obra (centro de custo)', type: 'relation', relation: { endpoint: '/obras' }, span: 2 },
     { name: 'parceiro_id', label: 'Cliente / fornecedor', type: 'relation', relation: { endpoint: '/parceiros' }, span: 2 },
     { name: 'conta_id', label: 'Conta', type: 'relation', relation: { endpoint: '/contas-financeiras' }, span: 2 },
-    { name: 'forma_pagamento', label: 'Forma de pagamento', type: 'select', options: FORMAS, span: 1 },
+    { name: 'forma_pagamento', label: 'Forma de pagamento', type: 'lista', lista: 'forma_pagamento', span: 1 },
     { name: 'numero_documento', label: 'Nº documento / NF', span: 1 },
     { name: 'data_pagamento', label: 'Data do pagamento', type: 'date', span: 1, hidden: (v) => v.status !== 'pago' },
     { name: 'valor_pago', label: 'Valor pago', type: 'money', span: 1, hidden: (v) => v.status !== 'pago' },
@@ -69,3 +69,6 @@ export const categoriasCfg: ResourceConfig = {
   columns: [{ key: 'nome', label: 'Categoria', primary: true }, { key: 'tipo', label: 'Tipo', type: 'select', options: TIPO_LANC }, { key: 'grupo', label: 'Grupo' }, { key: 'ativa', label: 'Ativa', type: 'boolean' }],
   filters: [{ name: 'tipo', label: 'Tipo', options: TIPO_LANC }],
 }
+
+registrarCriacao(categoriasCfg)
+registrarCriacao(contasCfg)
