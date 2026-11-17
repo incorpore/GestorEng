@@ -5,11 +5,13 @@ import { ApiError } from '@/core/api'
 import { AuthProvider } from '@/core/auth'
 import { applyTheme } from '@/core/theme'
 import { ToastProvider } from '@/core/toast'
+import { protegerContraVersaoAntiga } from '@/core/versao'
 import { ConfirmProvider } from '@/components/ui'
 import App from './App'
 import './index.css'
 
 applyTheme()
+protegerContraVersaoAntiga()
 
 const qc = new QueryClient({
   defaultOptions: {

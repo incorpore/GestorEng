@@ -10,6 +10,7 @@ import { getServerUrl, isNative, loadServerUrl } from '@/core/platform'
 import { ALWAYS, frontModules } from '@/modules'
 import ForcePassword from '@/pages/ForcePassword'
 import Login from '@/pages/Login'
+import ErroRota from '@/pages/ErroRota'
 import NotFound from '@/pages/NotFound'
 import ServerSetup from '@/pages/ServerSetup'
 import { lazy, Suspense } from 'react'
@@ -23,7 +24,7 @@ function Authenticated() {
   const { modules } = useAuth()
   const router = useMemo(() => {
     const routes = frontModules.filter((m) => ALWAYS.has(m.key) || modules.has(m.key)).flatMap((m) => m.routes)
-    const tree = [{ element: <AppShell />, children: [...routes, { path: '*', element: <NotFound /> }] }]
+    const tree = [{ element: <AppShell />, errorElement: <ErroRota />, children: [{ errorElement: <ErroRota />, children: [...routes, { path: '*', element: <NotFound /> }] }] }]
     return isNative ? createHashRouter(tree, { future: FUTURO }) : createBrowserRouter(tree, { future: FUTURO })
   }, [modules])
   return <RouterProvider router={router} future={{ v7_startTransition: true }} />
