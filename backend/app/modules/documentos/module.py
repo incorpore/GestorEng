@@ -22,7 +22,7 @@ from . import documenso, pdf, render
 from .models import Documento, ModeloDocumento
 
 TIPOS = Literal["oficio", "boletim_medicao", "recibo", "declaracao", "contrato", "relatorio", "memorando",
-                "proposta", "ata", "notificacao", "outro"]
+                "proposta", "ata", "notificacao", "cartilha", "outro"]
 
 
 class Margens(BaseModel):
@@ -262,6 +262,8 @@ def _get_doc(db, cu, did) -> Documento:
 @r.get("/{did}/pdf")
 def visualizar(did: int, db: Session = Depends(get_db), cu: CurrentUser = Depends(require("documentos.ver"))):
     doc = _get_doc(db, cu, did)
+    if doc.status in ("gerando", "erro"):
+        raise HTTPException(409, "O PDF ainda está sendo gerado" if doc.status == "gerando" else "Falha ao gerar este documento")
     if doc.pdf_assinado_id or doc.pdf_arquivo_id:
         a = db.get(Arquivo, doc.pdf_assinado_id or doc.pdf_arquivo_id)
         data = storage.read_bytes(a.uuid)

@@ -13,7 +13,8 @@ from app.core.deps import CurrentUser, require
 from app.core.registry import ModuleDef
 from app.core.schemas import In, Money, Out, Pct, Qty
 
-from .models import Medicao, MedicaoItem, Obra
+from .clima import router as clima_router
+from .models import Medicao, MedicaoItem, Obra, ServicoObra
 
 STATUS = Literal["planejamento", "em_andamento", "paralisada", "concluida", "cancelada"]
 
@@ -108,6 +109,37 @@ def _medicao_validate(db: Session, data: dict, obj, cu) -> None:
         raise HTTPException(403, "Sem permissão para aprovar medições")
 
 
+class ServicoIn(In):
+    obra_id: int
+    ordem: int = 0
+    codigo: str | None = Field(None, max_length=30)
+    descricao: str = Field(min_length=2, max_length=255)
+    local: str | None = Field(None, max_length=200)
+    etapa: str | None = Field(None, max_length=120)
+    inicio: date
+    fim: date
+    percentual: Pct = Decimal("0")
+    responsavel: str | None = Field(None, max_length=150)
+    predecessor_id: int | None = None
+    observacoes: str | None = None
+
+
+class ServicoOut(Out, ServicoIn):
+    duracao_dias: int = 0
+    situacao: str = "nao_iniciado"
+
+
+def _servico_validate(db: Session, data: dict, obj, cu) -> None:
+    inicio = data.get("inicio") or (obj.inicio if obj else None)
+    fim = data.get("fim") or (obj.fim if obj else None)
+    if inicio and fim and fim < inicio:
+        raise HTTPException(422, "A data de término deve ser igual ou posterior ao início")
+    if data.get("percentual") is not None and data["percentual"] > 100:
+        raise HTTPException(422, "Percentual máximo é 100")
+    if obj is not None and data.get("predecessor_id") == obj.id:
+        raise HTTPException(422, "Um serviço não pode depender dele mesmo")
+
+
 obras = Crud(Obra, ObraIn, ObraOut, perm="obras", entity="obra", obra_field="id",
              search=["nome", "codigo", "numero_contrato", "cidade", "objeto"],
              filters=["status", "tipo", "cliente_id", "licitacao_id", "uf"], order="-id", validate=_obra_validate)
@@ -115,6 +147,10 @@ obras = Crud(Obra, ObraIn, ObraOut, perm="obras", entity="obra", obra_field="id"
 medicoes = Crud(Medicao, MedicaoIn, MedicaoOut, perm="obras", entity="medicao", obra_field="obra_id",
                 filters=["obra_id", "status", "data"], order="-data,-numero", validate=_medicao_validate,
                 children={"itens": MedicaoItem})
+
+servicos = Crud(ServicoObra, ServicoIn, ServicoOut, perm="obras", entity="servico_obra", obra_field="obra_id",
+                filters=["obra_id", "etapa"], search=["descricao", "local", "codigo"], order="ordem,inicio,id",
+                validate=_servico_validate)
 
 extra = APIRouter(prefix="/obras", tags=["obra"])
 
@@ -172,11 +208,18 @@ def resumo_obra(obra_id: int, db: Session = Depends(get_db), cu: CurrentUser = D
         from app.modules.diario.models import DiarioObra
 
         out["diarios"] = db.scalar(select(func.count()).where(DiarioObra.obra_id == obra_id))
+        ultimo = db.scalar(select(DiarioObra).where(DiarioObra.obra_id == obra_id).order_by(DiarioObra.data.desc()).limit(1))
+        out["pendencias"] = [p for p in (ultimo.pendencias or []) if not p.get("resolvida")] if ultimo else []
+    lista = db.scalars(select(ServicoObra).where(ServicoObra.obra_id == obra_id)).all()
+    if lista:
+        dur = sum(s.duracao_dias for s in lista) or 1
+        out["avanco_cronograma"] = round(sum(float(s.percentual or 0) * s.duracao_dias for s in lista) / dur, 1)
     return out
 
 
 module = ModuleDef(key="obras", label="Obras", icon="building", order=10,
-                   routers=[extra, obras.router("/obras"), medicoes.router("/medicoes")],
+                   routers=[extra, clima_router, obras.router("/obras"), medicoes.router("/medicoes"),
+                            servicos.router("/servicos-obra")],
                    attachable={"obra": "obras", "medicao": "obras"},
                    template_entities={"obra": ("Obra", Obra, "obras.ver"), "medicao": ("Boletim de medição", Medicao, "obras.ver")})
 module.crud_permissions(label="Obras e medições", extra={"aprovar_medicao": "Aprovar/faturar medições"})

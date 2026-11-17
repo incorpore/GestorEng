@@ -53,14 +53,18 @@ def detect_mime(head: bytes, filename: str) -> str | None:
     return None
 
 
-async def save_upload(upload: UploadFile, allowed: set[str] | None = None) -> dict:
+async def read_upload(upload: UploadFile) -> bytes:
     limit = get_settings().max_upload_mb * 1024 * 1024
     data = await upload.read(limit + 1)
     if len(data) > limit:
         raise HTTPException(413, f"Arquivo excede {get_settings().max_upload_mb} MB")
     if not data:
         raise HTTPException(400, "Arquivo vazio")
-    return save_bytes(data, upload.filename or "arquivo", allowed)
+    return data
+
+
+async def save_upload(upload: UploadFile, allowed: set[str] | None = None) -> dict:
+    return save_bytes(await read_upload(upload), upload.filename or "arquivo", allowed)
 
 
 def save_bytes(data: bytes, filename: str, allowed: set[str] | None = None, mime: str | None = None) -> dict:
@@ -92,3 +96,5 @@ def delete(file_uuid: str) -> None:
     p = path_for(file_uuid)
     if p.exists():
         p.unlink()
+    for d in (root() / "derivados").glob(f"{file_uuid}_*.jpg"):
+        d.unlink(missing_ok=True)

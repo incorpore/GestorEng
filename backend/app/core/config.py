@@ -38,6 +38,8 @@ class Settings(BaseSettings):
     # aceitos como lista separada por vírgula ("a,b,c") ou JSON (["a","b"])
     cors_origins: Annotated[list[str], NoDecode] = ["http://localhost:5173", "capacitor://localhost", "https://localhost", "http://localhost"]
     cookie_secure: bool = True
+    # proxies reversos à frente do Struvia (IPs/CIDRs), para identificar o IP real dos visitantes
+    trusted_proxies: Annotated[list[str], NoDecode] = []
 
     # Primeiro administrador (criado se não houver usuários)
     admin_email: str | None = None
@@ -51,7 +53,7 @@ class Settings(BaseSettings):
     # Módulos habilitados ("*" = todos)
     enabled_modules: Annotated[list[str], NoDecode] = ["*"]
 
-    @field_validator("cors_origins", "enabled_modules", mode="before")
+    @field_validator("cors_origins", "enabled_modules", "trusted_proxies", mode="before")
     @classmethod
     def _split(cls, v):
         if isinstance(v, str):

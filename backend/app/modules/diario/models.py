@@ -28,6 +28,14 @@ class DiarioObra(TimestampMixin, Base):
     visitas: Mapped[str | None] = mapped_column(Text)
     observacoes: Mapped[str | None] = mapped_column(Text)
     responsavel: Mapped[str | None] = mapped_column(String(150))
+    # seções estruturadas (listas JSON)
+    clima_detalhe: Mapped[dict | None] = mapped_column(JSON)  # {"manha": {...}, "tarde": {...}}
+    clima_atual: Mapped[dict | None] = mapped_column(JSON)  # instantâneo do OpenWeather
+    materiais: Mapped[list | None] = mapped_column(JSON, default=list)
+    visitas_lista: Mapped[list | None] = mapped_column(JSON, default=list)
+    ocorrencias_lista: Mapped[list | None] = mapped_column(JSON, default=list)
+    pendencias: Mapped[list | None] = mapped_column(JSON, default=list)
+    providencias: Mapped[list | None] = mapped_column(JSON, default=list)
     status: Mapped[str] = mapped_column(String(20), default="aberto", index=True)  # aberto|fechado
     criado_por_id: Mapped[int | None] = mapped_column(ForeignKey("usuarios.id", ondelete="SET NULL"))
     fechado_por_id: Mapped[int | None] = mapped_column(ForeignKey("usuarios.id", ondelete="SET NULL"))
@@ -41,4 +49,13 @@ class DiarioObra(TimestampMixin, Base):
 
     @property
     def total_efetivo(self) -> int:
-        return sum(int(e.get("quantidade") or 0) for e in (self.efetivo or []))
+        return sum(int(e.get("quantidade") or 1) for e in (self.efetivo or []))
+
+    @property
+    def media_servicos(self) -> float | None:
+        vals = [float(a.get("percentual") or 0) for a in (self.atividades or [])]
+        return round(sum(vals) / len(vals), 1) if vals else None
+
+    @property
+    def pendencias_abertas(self) -> int:
+        return sum(1 for p in (self.pendencias or []) if not p.get("resolvida"))

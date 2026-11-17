@@ -151,8 +151,16 @@ def test_anexos(admin):
                    files={"arquivo": ("foto.png", png, "image/png")})
     assert r.status_code == 201, r.text
     aid = r.json()["id"]
+    assert r.json()["mime"] == "image/jpeg" and r.json()["tem_original"] is True  # foto de obra: marca d'água
     link = admin.get(f"/api/arquivos/{aid}/link").json()["url"]
-    assert admin.get(link).content == png
+    assert admin.get(link).content[:3] == b"\xff\xd8\xff"
+    original = admin.get(f"/api/arquivos/{aid}/link", params={"original": True}).json()["url"]
+    assert admin.get(original).content == png  # original preservado sem alteração
+    # anexos de outras entidades (ex.: cadastro) não são alterados
+    p = admin.post("/api/parceiros", json={"nome": "Fornecedor X"}).json()
+    r2 = admin.post("/api/arquivos", data={"entidade": "parceiro", "entidade_id": p["id"]},
+                    files={"arquivo": ("logo.png", png, "image/png")})
+    assert admin.get(admin.get(f"/api/arquivos/{r2.json()['id']}/link").json()["url"]).content == png
     assert admin.get(f"/api/arquivos/{aid}/conteudo", params={"t": "x"}).status_code == 401
     # executável disfarçado é rejeitado
     r = admin.post("/api/arquivos", data={"entidade": "obra", "entidade_id": o["id"]},

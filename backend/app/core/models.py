@@ -1,7 +1,7 @@
 """Modelos transversais: auditoria e arquivos."""
 from datetime import datetime
 
-from sqlalchemy import JSON, BigInteger, DateTime, ForeignKey, Index, Integer, String, func
+from sqlalchemy import JSON, BigInteger, DateTime, Float, ForeignKey, Index, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .database import Base
@@ -33,3 +33,14 @@ class Arquivo(Base):
     descricao: Mapped[str | None] = mapped_column(String(255))
     enviado_por_id: Mapped[int | None] = mapped_column(ForeignKey("usuarios.id", ondelete="SET NULL"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    # fotos: metadados de captura (marca d'água) e arquivo original preservado
+    latitude: Mapped[float | None] = mapped_column(Float)
+    longitude: Mapped[float | None] = mapped_column(Float)
+    coord_fonte: Mapped[str | None] = mapped_column(String(20))  # exif | dispositivo | obra
+    capturado_em: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    largura: Mapped[int | None] = mapped_column(Integer)
+    altura: Mapped[int | None] = mapped_column(Integer)
+    original_uuid: Mapped[str | None] = mapped_column(String(36))
+    origem: Mapped[str | None] = mapped_column(String(20))  # sistema | link
+    enviado_por_nome: Mapped[str | None] = mapped_column(String(150))
+    link_id: Mapped[int | None] = mapped_column(Integer)

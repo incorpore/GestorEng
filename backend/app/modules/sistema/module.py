@@ -15,11 +15,13 @@ from app.core.registry import ModuleDef, Permission, registry
 
 from . import service
 from .arquivos import router as arquivos_router
+from .localidades import router as localidades_router
 
 r = APIRouter(prefix="/configuracoes", tags=["configurações"])
 pub = APIRouter(prefix="/publico", tags=["público"])
 INTEGRACOES = {"openrouter": {"base_url": "https://openrouter.ai/api/v1", "modelo": "anthropic/claude-sonnet-4.5"},
-               "documenso": {"base_url": "", "webhook_secret_definido": False}}
+               "documenso": {"base_url": "", "webhook_secret_definido": False},
+               "openweather": {"base_url": "https://api.openweathermap.org"}}
 
 
 @r.get("/{chave}")
@@ -219,7 +221,7 @@ def painel(db: Session = Depends(get_db), cu: CurrentUser = Depends(get_current_
 
 
 module = ModuleDef(key="sistema", label="Configurações", icon="settings", order=950, core=True,
-                   routers=[r, ri, pub, rd, arquivos_router])
+                   routers=[r, ri, pub, rd, arquivos_router, localidades_router])
 module.permissions += [
     Permission("configuracoes.ver", "Configurações: Visualizar", "sistema"),
     Permission("configuracoes.editar", "Configurações: Editar (empresa, timbrado, integrações, módulos)", "sistema"),

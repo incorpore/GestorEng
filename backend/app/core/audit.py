@@ -1,3 +1,4 @@
+import ipaddress
 from datetime import date, datetime
 from decimal import Decimal
 
@@ -28,12 +29,38 @@ def snapshot(obj) -> dict:
     }
 
 
+def _confiavel(ip: str, redes) -> bool:
+    try:
+        end = ipaddress.ip_address(ip)
+    except ValueError:
+        return False
+    return any(end in r for r in redes)
+
+
 def client_ip(request: Request | None) -> str | None:
+    """IP real do visitante.
+
+    A API só é acessível pelo nginx do Struvia, que acrescenta ao X-Forwarded-For o endereço que se conectou a ele.
+    Por isso lemos a lista da direita para a esquerda (o visitante não consegue falsificar a última entrada), pulando
+    apenas proxies declarados em TRUSTED_PROXIES (ex.: o IP do Nginx Proxy Manager / Cloudflare Tunnel).
+    """
     if request is None:
         return None
     fwd = request.headers.get("x-forwarded-for")
     if fwd:
-        return fwd.split(",")[0].strip()[:64]
+        from .config import get_settings
+
+        redes = []
+        for cidr in get_settings().trusted_proxies:
+            try:
+                redes.append(ipaddress.ip_network(cidr, strict=False))
+            except ValueError:
+                continue
+        cadeia = [x.strip() for x in fwd.split(",") if x.strip()]
+        for ip in reversed(cadeia):
+            if not _confiavel(ip, redes):
+                return ip[:64]
+        return cadeia[0][:64]
     return request.client.host if request.client else None
 
 

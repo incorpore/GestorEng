@@ -117,3 +117,40 @@ class MedicaoItem(Base):
         if not self.qtd_contratada:
             return Decimal("0")
         return (self.qtd_acumulada / self.qtd_contratada * 100).quantize(Decimal("0.01"))
+
+
+class ServicoObra(TimestampMixin, Base):
+    """Serviço do cronograma da obra (gráfico de Gantt). O avanço é atualizado pelos diários."""
+
+    __tablename__ = "servicos_obra"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    obra_id: Mapped[int] = mapped_column(ForeignKey("obras.id", ondelete="CASCADE"), index=True)
+    ordem: Mapped[int] = mapped_column(Integer, default=0)
+    codigo: Mapped[str | None] = mapped_column(String(30))
+    descricao: Mapped[str] = mapped_column(String(255))
+    local: Mapped[str | None] = mapped_column(String(200))
+    etapa: Mapped[str | None] = mapped_column(String(120))
+    inicio: Mapped[date] = mapped_column(Date)
+    fim: Mapped[date] = mapped_column(Date)
+    percentual: Mapped[Decimal] = qty()
+    responsavel: Mapped[str | None] = mapped_column(String(150))
+    predecessor_id: Mapped[int | None] = mapped_column(ForeignKey("servicos_obra.id", ondelete="SET NULL"))
+    observacoes: Mapped[str | None] = mapped_column(Text)
+
+    @property
+    def duracao_dias(self) -> int:
+        return (self.fim - self.inicio).days + 1 if self.inicio and self.fim else 0
+
+    @property
+    def situacao(self) -> str:
+        from datetime import date as _d
+
+        p = float(self.percentual or 0)
+        hoje = _d.today()
+        if p >= 100:
+            return "concluido"
+        if self.fim and hoje > self.fim:
+            return "atrasado"
+        if p > 0 or (self.inicio and hoje >= self.inicio):
+            return "em_andamento"
+        return "nao_iniciado"

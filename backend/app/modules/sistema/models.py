@@ -1,4 +1,6 @@
-from sqlalchemy import JSON, String, Text
+from datetime import datetime
+
+from sqlalchemy import JSON, DateTime, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base, TimestampMixin
@@ -15,3 +17,12 @@ class Integracao(TimestampMixin, Base):
     chave: Mapped[str] = mapped_column(String(40), primary_key=True)
     config: Mapped[dict] = mapped_column(JSON, default=dict)
     segredo_cifrado: Mapped[str | None] = mapped_column(Text)
+
+
+class CacheExterno(Base):
+    """Cache de consultas a serviços públicos (IBGE etc.)."""
+
+    __tablename__ = "cache_externo"
+    chave: Mapped[str] = mapped_column(String(120), primary_key=True)
+    dados: Mapped[list | dict] = mapped_column(JSON)
+    atualizado_em: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
