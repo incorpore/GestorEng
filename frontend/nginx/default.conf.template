@@ -33,11 +33,22 @@ server {
         expires 1y;
         add_header Cache-Control "public, immutable";
         add_header X-Content-Type-Options "nosniff" always;
-        try_files $uri =404;
+        try_files $uri @asset_ausente;
+    }
+
+    # arquivo de versão antiga que não existe mais: 404 sem cache (o Cloudflare não guarda o erro)
+    location @asset_ausente {
+        add_header Cache-Control "no-store" always;
+        add_header Cloudflare-CDN-Cache-Control "no-store" always;
+        return 404;
     }
 
     location / {
-        add_header Cache-Control "no-cache";
+        # a página (index.html) nunca pode ficar em cache — nem no navegador nem no Cloudflare/proxy —,
+        # senão, após uma atualização, ela aponta para arquivos da versão anterior que não existem mais
+        add_header Cache-Control "no-store, no-cache, must-revalidate, max-age=0" always;
+        add_header CDN-Cache-Control "no-store" always;
+        add_header Cloudflare-CDN-Cache-Control "no-store" always;
         add_header X-Content-Type-Options "nosniff" always;
         add_header X-Frame-Options "DENY" always;
         add_header Content-Security-Policy "default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://cloudflareinsights.com; frame-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'" always;
