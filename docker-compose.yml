@@ -23,6 +23,8 @@ x-app: &app
   tmpfs: ["/tmp:mode=1777"]
   security_opt: [no-new-privileges:true]
   cap_drop: [ALL]
+  # só para ajustar o dono da pasta de arquivos; depois a API roda sem privilégios
+  cap_add: [CHOWN, DAC_OVERRIDE, FOWNER, SETUID, SETGID]
 
 services:
   db:

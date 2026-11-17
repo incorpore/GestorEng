@@ -80,7 +80,7 @@ def _link(db: Session, token: str) -> LinkPublico:
     if not link:
         raise HTTPException(404, "Link inválido")
     if not link.ativo:
-        raise HTTPException(410, "Este link foi desativado")
+        raise HTTPException(410, "Envio finalizado. Obrigado!" if link.encerramento == "finalizado" else "Este link foi encerrado")
     if link.expira_em < datetime.now(UTC):
         raise HTTPException(410, "Este link expirou")
     return link
@@ -117,6 +117,12 @@ class LinkIn(BaseModel):
     max_fotos: int | None = Field(None, ge=1, le=500)
 
 
+def _encerrar(link: LinkPublico, motivo: str) -> None:
+    link.ativo = False
+    link.encerramento = motivo
+    link.encerrado_em = link.encerrado_em or datetime.now(UTC)
+
+
 def _link_out(db: Session, link: LinkPublico) -> dict:
     ultimo = db.scalar(select(func.max(AcessoLink.at)).where(AcessoLink.link_id == link.id))
     total = db.scalar(select(func.count()).where(AcessoLink.link_id == link.id, AcessoLink.evento == "abriu"))
@@ -125,7 +131,7 @@ def _link_out(db: Session, link: LinkPublico) -> dict:
             "entidade_id": link.entidade_id, "titulo": link.titulo, "instrucoes": link.instrucoes,
             "destinatario": link.destinatario, "exige_localizacao": link.exige_localizacao, "max_fotos": link.max_fotos,
             "expira_em": link.expira_em, "ativo": link.ativo and link.expira_em >= datetime.now(UTC),
-            "created_at": link.created_at, "acessos": total, "fotos_recebidas": fotos, "ultimo_acesso": ultimo}
+            "created_at": link.created_at, "encerramento": link.encerramento, "encerrado_em": link.encerrado_em, "acessos": total, "fotos_recebidas": fotos, "ultimo_acesso": ultimo}
 
 
 @admin.post("", status_code=201)
@@ -149,7 +155,8 @@ def criar(body: LinkIn, request: Request, db: Session = Depends(get_db), cu: Cur
 @admin.get("")
 def listar(entidade: str | None = None, entidade_id: int | None = None, db: Session = Depends(get_db),
            cu: CurrentUser = Depends(get_current_user)):
-    q = select(LinkPublico).order_by(LinkPublico.id.desc()).limit(200)
+    q = (select(LinkPublico).where(LinkPublico.encerramento.is_distinct_from("excluido"))
+         .order_by(LinkPublico.id.desc()).limit(200))
     if entidade and entidade_id:
         _checar(db, cu, entidade, _obra_id(db, entidade, entidade_id), escrita=False)
         q = q.where(LinkPublico.entidade == entidade, LinkPublico.entidade_id == entidade_id)
@@ -171,11 +178,25 @@ def acessos(link_id: int, db: Session = Depends(get_db), cu: CurrentUser = Depen
 def desativar(link_id: int, request: Request, db: Session = Depends(get_db), cu: CurrentUser = Depends(get_current_user)):
     link = db.get(LinkPublico, link_id) or _404()
     _checar(db, cu, link.entidade, link.obra_id, escrita=True)
-    link.ativo = False
+    _encerrar(link, "desativado")
     audit.log(db, user_id=cu.id, action="desativar_link_publico", entity=link.entidade, entity_id=link.entidade_id,
               data={"link": link.id}, request=request)
     db.commit()
     return _link_out(db, link)
+
+
+@admin.delete("/{link_id}", status_code=204)
+def excluir(link_id: int, request: Request, db: Session = Depends(get_db), cu: CurrentUser = Depends(get_current_user)):
+    """Exclui o link: ele deixa de funcionar na hora e some da lista. As fotos recebidas e o registro de
+    acessos (IP, coordenadas) são mantidos para auditoria."""
+    link = db.get(LinkPublico, link_id) or _404()
+    _checar(db, cu, link.entidade, link.obra_id, escrita=True)
+    link.ativo = False
+    link.encerramento = "excluido"
+    link.encerrado_em = datetime.now(UTC)
+    audit.log(db, user_id=cu.id, action="excluir_link_publico", entity=link.entidade, entity_id=link.entidade_id,
+              data={"link": link.id}, request=request)
+    db.commit()
 
 
 # ------------------------------------------------------------------ público (sem login)
@@ -276,11 +297,30 @@ def pdf(token: str, request: Request, s: str = Query(...), db: Session = Depends
                     headers={"Content-Disposition": f'inline; filename="diario-{d.data.isoformat()}.pdf"'})
 
 
+def _foto_recente(dados: bytes) -> None:
+    """Só aceita foto tirada agora: se a EXIF trouxer data de captura, ela precisa ser dos últimos minutos
+    (bloqueia fotos antigas da galeria quando o aparelho não abre a câmera dentro da página)."""
+    import io
+
+    from PIL import Image
+
+    try:
+        quando, _, _ = imagens.ler_exif(Image.open(io.BytesIO(dados)))
+    except Exception:  # noqa: BLE001
+        return
+    if quando and abs((datetime.now(UTC) - quando).total_seconds()) > JANELA_CAMERA_MIN * 60:
+        raise HTTPException(422, "Use a câmera: só são aceitas fotos tiradas agora, não da galeria")
+
+
+JANELA_CAMERA_MIN = 10
+
+
 @pub.post("/{token}/fotos", status_code=201, dependencies=[Depends(limite_envio)])
 async def enviar_foto(token: str, request: Request, arquivo: UploadFile = File(...), sessao: str = Form(...),
                       nome: str | None = Form(None, max_length=150), descricao: str | None = Form(None, max_length=255),
                       latitude: float | None = Form(None, ge=-90, le=90), longitude: float | None = Form(None, ge=-180, le=180),
-                      precisao: float | None = Form(None, ge=0), db: Session = Depends(get_db)):
+                      precisao: float | None = Form(None, ge=0), captura: Literal["camera", "arquivo"] = Form("arquivo"),
+                      db: Session = Depends(get_db)):
     from app.modules.sistema.arquivos import salvar_arquivo
 
     link = _link(db, token)
@@ -292,12 +332,32 @@ async def enviar_foto(token: str, request: Request, arquivo: UploadFile = File(.
     dados = await storage.read_upload(arquivo)
     if (storage.detect_mime(dados[:4096], arquivo.filename or "") or "") not in {"image/jpeg", "image/png", "image/webp"}:
         raise HTTPException(415, "Envie apenas fotos (JPG, PNG ou WEBP)")
+    _foto_recente(dados)
     a = salvar_arquivo(db, dados, arquivo.filename or "foto.jpg", link.entidade, link.entidade_id, descricao=descricao,
                        latitude=latitude, longitude=longitude, origem="link", remetente=nome, link_id=link.id)
     _registrar(db, link, request, "enviou_foto", latitude=latitude, longitude=longitude, precisao=precisao, nome=nome,
-               detalhes={"arquivo_id": a.id, "coord_foto": [a.latitude, a.longitude], "fonte": a.coord_fonte})
+               detalhes={"arquivo_id": a.id, "coord_foto": [a.latitude, a.longitude], "fonte": a.coord_fonte,
+                         "captura": captura})
     db.commit()
     return {"id": a.id, "capturado_em": a.capturado_em, "coord_fonte": a.coord_fonte}
+
+
+class FinalizarIn(BaseModel):
+    sessao: str
+
+
+@pub.post("/{token}/finalizar", dependencies=[Depends(limite_pub)])
+def finalizar(token: str, body: FinalizarIn, request: Request, db: Session = Depends(get_db)):
+    """Quem está fotografando encerra o envio: o link é fechado e não aceita mais acessos."""
+    link = _link(db, token)
+    _validar_sessao(link, body.sessao)
+    if link.tipo != "fotos":
+        raise HTTPException(403, "Este link não é de envio de fotos")
+    enviadas = db.scalar(select(func.count()).where(Arquivo.link_id == link.id))
+    _encerrar(link, "finalizado")
+    _registrar(db, link, request, "finalizou", detalhes={"fotos": enviadas})
+    db.commit()
+    return {"fotos": enviadas}
 
 
 def _404():

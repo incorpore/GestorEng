@@ -12,7 +12,7 @@ import { EnvioFotos } from './EnvioFotos'
 export default function LinkPublico({ token }: { token: string }) {
   const [info, setInfo] = useState<any>(null)
   const [erro, setErro] = useState<string | null>(null)
-  const [sessao, setSessao] = useState<{ s: string; nome: string } | null>(null)
+  const [sessao, setSessao] = useState<{ s: string } | null>(null)
   const [conteudo, setConteudo] = useState<any>(null)
 
   useEffect(() => {
@@ -36,9 +36,9 @@ export default function LinkPublico({ token }: { token: string }) {
         {erro ? <div className="rounded-xl bg-white p-6 text-center dark:bg-slate-900"><Clock className="mx-auto mb-2 h-10 w-10 text-slate-300" /><p className="font-medium">{erro}</p>
           <p className="mt-1 text-sm text-slate-500">Peça um novo link a quem enviou.</p></div>
           : !info ? <Loading />
-          : !sessao ? <Consentimento token={token} info={info} onSessao={(s, nome) => setSessao({ s, nome })} />
+          : !sessao ? <Consentimento token={token} info={info} onSessao={(s) => setSessao({ s })} />
           : !conteudo ? <Loading />
-          : conteudo.tipo === 'fotos' ? <EnvioFotos token={token} sessao={sessao.s} nome={sessao.nome} limite={conteudo.max_fotos} jaEnviadas={conteudo.enviadas} />
+          : conteudo.tipo === 'fotos' ? <EnvioFotos token={token} sessao={sessao.s} limite={conteudo.max_fotos} jaEnviadas={conteudo.enviadas} />
           : conteudo.tipo === 'diario' ? <DiarioPublico token={token} sessao={sessao.s} dados={conteudo} /> : null}
         <p className="mt-8 text-center text-[11px] text-slate-400">{info?.empresa?.nome} · Struvia</p>
       </main>

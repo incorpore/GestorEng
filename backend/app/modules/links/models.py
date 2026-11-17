@@ -24,6 +24,8 @@ class LinkPublico(Base):
     max_fotos: Mapped[int | None] = mapped_column(Integer)
     expira_em: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     ativo: Mapped[bool] = mapped_column(Boolean, default=True)
+    encerrado_em: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    encerramento: Mapped[str | None] = mapped_column(String(20))  # finalizado | desativado | excluido
     criado_por_id: Mapped[int | None] = mapped_column(ForeignKey("usuarios.id", ondelete="SET NULL"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     acessos: Mapped[list["AcessoLink"]] = relationship(back_populates="link", cascade="all, delete-orphan",

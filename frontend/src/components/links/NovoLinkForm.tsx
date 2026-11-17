@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Button, Field, Input, Select, Textarea, Toggle } from '@/components/ui'
+import { Button, Field, Input, Select, Toggle } from '@/components/ui'
 import { api } from '@/core/api'
 import { errMsg, useToast } from '@/core/toast'
 import type { LinkPublico } from './tipos'
@@ -35,10 +35,7 @@ export function NovoLinkForm({ entidade, entidadeId, tipoInicial, onCriado }: {
             {[1, 3, 7, 15, 30, 90].map((d) => <option key={d} value={d}>{d} dia(s)</option>)}
           </Select>
         </Field>
-        {v.tipo === 'fotos' && <Field label="Limite de fotos (opcional)"><Input type="number" min={1} value={v.max_fotos} onChange={(e) => setV({ ...v, max_fotos: e.target.value })} /></Field>}
       </div>
-      {v.tipo === 'fotos' && <Field label="Instruções para quem vai fotografar"><Textarea rows={2} value={v.instrucoes}
-        onChange={(e) => setV({ ...v, instrucoes: e.target.value })} placeholder="Ex.: Fotografe as bocas de lobo concluídas, de frente e de cima." /></Field>}
       <Toggle checked={v.exige_localizacao} onChange={(x) => setV({ ...v, exige_localizacao: x })} label="Exigir localização do aparelho para liberar o acesso" />
       <p className="text-xs text-slate-500">Todo acesso registra IP, aparelho, data/hora e, quando autorizado, as coordenadas. A localização só é fornecida pelo navegador em endereços HTTPS.</p>
       <div className="flex justify-end"><Button onClick={criar} loading={loading}>Gerar link</Button></div>

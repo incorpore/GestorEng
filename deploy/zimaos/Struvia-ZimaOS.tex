@@ -845,9 +845,18 @@ na primeira criação.
 \textbf{\texttt{connection\ refused} / \texttt{could\ not\ connect}}
 (banco externo) --- refaça os testes do passo 4.2.
 
-\textbf{Pasta de arquivos sem permissão} (aparece no \texttt{verificar}
-ou ao anexar arquivos):
+\textbf{``Erro do servidor'' ao enviar fotos ou anexos} --- quase sempre
+é a pasta de arquivos sem permissão de gravação (o ZimaOS cria a pasta
+como \texttt{root}). \textbf{Não tem relação com o S3}: os arquivos
+ficam no próprio servidor, na pasta \texttt{storage}; o S3 é usado só
+para o backup. As imagens atuais corrigem isso sozinhas ao iniciar (por
+isso a \texttt{api} e o \texttt{worker} têm o bloco \texttt{cap\_add},
+usado só para ajustar o dono da pasta; em seguida o sistema roda sem
+privilégios). Se o log da \texttt{api} mostrar
+\texttt{ERRO:\ a\ pasta\ de\ arquivos\ ...\ não\ permite\ gravação},
+rode:
 \texttt{sudo\ chown\ -R\ 10001:10001\ /media/URSUS/AppData/Struvia/storage}
+e reinicie a \texttt{api}.
 
 \textbf{Sou desconectado ao recarregar a página} ---
 \texttt{COOKIE\_SECURE} está \texttt{"true"} mas o acesso é por
@@ -890,11 +899,19 @@ públicos}\label{integrauxe7uxf5es-e-links-puxfablicos}}
   OpenWeather}. A chave pode levar até 2 horas para ser ativada pelo
   OpenWeather.
 \item
+  \textbf{Pedir fotos}: o botão gera o link na hora. Quem abre tira
+  quantas fotos quiser \textbf{pela câmera} (a galeria não é oferecida e
+  fotos antigas são recusadas); cada foto é enviada assim que é tirada.
+  O link fecha quando a pessoa toca em \textbf{Finalizar}, quando você o
+  exclui/encerra ou quando expira (7 dias).
+\item
   \textbf{Links públicos (pedir fotos / visualizar diário)}: funcionam
   sem login, mas o navegador do visitante \textbf{só fornece a
-  localização em HTTPS}. Pelo endereço \texttt{http://IP:8917} o sistema
-  registra o IP e o aparelho, mas não as coordenadas. Para registrar as
-  coordenadas, publique o Struvia com HTTPS (seção abaixo).
+  localização e a câmera dentro da página em HTTPS}. Em \texttt{http://}
+  o celular abre o aplicativo de câmera do aparelho. Pelo endereço
+  \texttt{http://IP:8917} o sistema registra o IP e o aparelho, mas não
+  as coordenadas. Para registrar as coordenadas, publique o Struvia com
+  HTTPS (seção abaixo).
 \item
   \textbf{IP real atrás de proxy}: se usar Nginx Proxy Manager, Traefik
   ou Cloudflare Tunnel, acrescente na \texttt{api} e no \texttt{worker}
@@ -1014,6 +1031,12 @@ do repositório: o PDF quebra linhas longas.
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ no{-}new{-}privileges:true}
 \AttributeTok{    }\FunctionTok{cap\_drop}\KeywordTok{:}
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ ALL}
+\AttributeTok{    }\FunctionTok{cap\_add}\KeywordTok{:}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ CHOWN}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ DAC\_OVERRIDE}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ FOWNER}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ SETUID}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ SETGID}
 
 \AttributeTok{  }\FunctionTok{worker}\KeywordTok{:}
 \AttributeTok{    }\FunctionTok{container\_name}\KeywordTok{:}\AttributeTok{ struvia{-}worker}
@@ -1054,6 +1077,12 @@ do repositório: o PDF quebra linhas longas.
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ no{-}new{-}privileges:true}
 \AttributeTok{    }\FunctionTok{cap\_drop}\KeywordTok{:}
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ ALL}
+\AttributeTok{    }\FunctionTok{cap\_add}\KeywordTok{:}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ CHOWN}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ DAC\_OVERRIDE}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ FOWNER}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ SETUID}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ SETGID}
 
 \AttributeTok{  }\FunctionTok{web}\KeywordTok{:}
 \AttributeTok{    }\FunctionTok{container\_name}\KeywordTok{:}\AttributeTok{ struvia{-}web}
@@ -1150,6 +1179,12 @@ do repositório: o PDF quebra linhas longas.
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ no{-}new{-}privileges:true}
 \AttributeTok{    }\FunctionTok{cap\_drop}\KeywordTok{:}
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ ALL}
+\AttributeTok{    }\FunctionTok{cap\_add}\KeywordTok{:}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ CHOWN}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ DAC\_OVERRIDE}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ FOWNER}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ SETUID}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ SETGID}
 
 \AttributeTok{  }\FunctionTok{worker}\KeywordTok{:}
 \AttributeTok{    }\FunctionTok{container\_name}\KeywordTok{:}\AttributeTok{ struvia{-}worker}
@@ -1190,6 +1225,12 @@ do repositório: o PDF quebra linhas longas.
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ no{-}new{-}privileges:true}
 \AttributeTok{    }\FunctionTok{cap\_drop}\KeywordTok{:}
 \AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ ALL}
+\AttributeTok{    }\FunctionTok{cap\_add}\KeywordTok{:}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ CHOWN}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ DAC\_OVERRIDE}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ FOWNER}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ SETUID}
+\AttributeTok{      }\KeywordTok{{-}}\AttributeTok{ SETGID}
 
 \AttributeTok{  }\FunctionTok{web}\KeywordTok{:}
 \AttributeTok{    }\FunctionTok{container\_name}\KeywordTok{:}\AttributeTok{ struvia{-}web}

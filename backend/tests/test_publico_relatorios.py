@@ -63,6 +63,53 @@ def test_link_pedir_fotos_registra_ip_e_coordenadas(admin, client):
     assert client.get(f"/api/publico/l/{token}").status_code == 410
 
 
+def _jpeg_exif(quando: datetime) -> bytes:
+    img = Image.new("RGB", (800, 600), (90, 100, 110))
+    exif = Image.Exif()
+    exif.get_ifd(0x8769)[36867] = quando.strftime("%Y:%m:%d %H:%M:%S")
+    out = io.BytesIO()
+    img.save(out, "JPEG", exif=exif)
+    return out.getvalue()
+
+
+def test_link_fotos_camera_finalizar_e_excluir(admin, client):
+    from app.core.imagens import fuso
+
+    o, d = _obra_diario(admin, "Obra câmera")
+    link = admin.post("/api/links-publicos", json={"tipo": "fotos", "entidade": "obra", "entidade_id": o["id"]}).json()
+    token = link["url"].split("/p/")[1]
+    sess = client.post(f"/api/publico/l/{token}/localizacao", json={"latitude": -27.49, "longitude": -50.97}).json()["sessao"]
+    url = f"/api/publico/l/{token}/fotos"
+    # foto antiga (galeria) é recusada; foto recém-tirada e captura da câmera da página são aceitas
+    antiga = _jpeg_exif(datetime.now(fuso()) - timedelta(days=3))
+    r = client.post(url, data={"sessao": sess}, files={"arquivo": ("g.jpg", antiga, "image/jpeg")})
+    assert r.status_code == 422 and "câmera" in r.json()["detail"]
+    agora = _jpeg_exif(datetime.now(fuso()))
+    assert client.post(url, data={"sessao": sess}, files={"arquivo": ("c.jpg", agora, "image/jpeg")}).status_code == 201
+    assert client.post(url, data={"sessao": sess, "captura": "camera"},
+                       files={"arquivo": ("c.jpg", RETRATO, "image/jpeg")}).status_code == 201
+    # finalizar fecha o link
+    fim = client.post(f"/api/publico/l/{token}/finalizar", json={"sessao": sess})
+    assert fim.status_code == 200 and fim.json()["fotos"] == 2
+    r = client.get(f"/api/publico/l/{token}")
+    assert r.status_code == 410 and "finalizado" in r.json()["detail"]
+    assert client.post(url, data={"sessao": sess}, files={"arquivo": ("c.jpg", RETRATO, "image/jpeg")}).status_code == 410
+    lista = admin.get("/api/links-publicos", params={"entidade": "obra", "entidade_id": o["id"]}).json()
+    assert lista[0]["encerramento"] == "finalizado" and not lista[0]["ativo"] and lista[0]["fotos_recebidas"] == 2
+
+    # excluir: o link para de funcionar e sai da lista; fotos e acessos ficam
+    l2 = admin.post("/api/links-publicos", json={"tipo": "fotos", "entidade": "obra", "entidade_id": o["id"]}).json()
+    t2 = l2["url"].split("/p/")[1]
+    assert client.get(f"/api/publico/l/{t2}").status_code == 200
+    assert admin.delete(f"/api/links-publicos/{l2['id']}").status_code == 204
+    assert client.get(f"/api/publico/l/{t2}").status_code == 410
+    ids = [x["id"] for x in admin.get("/api/links-publicos", params={"entidade": "obra", "entidade_id": o["id"]}).json()]
+    assert l2["id"] not in ids and link["id"] in ids
+    assert len(admin.get(f"/api/links-publicos/{l2['id']}/acessos").json()) == 1
+    fotos = admin.get("/api/arquivos", params={"entidade": "obra", "entidade_id": o["id"]}).json()
+    assert sum(f["origem"] == "link" for f in fotos) == 2
+
+
 def test_link_visualizar_diario_e_pdf(admin, client):
     _, d = _obra_diario(admin, "Obra visualização")
     link = admin.post("/api/links-publicos", json={"tipo": "visualizar", "entidade": "diario", "entidade_id": d["id"],

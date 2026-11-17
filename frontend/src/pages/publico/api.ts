@@ -21,6 +21,8 @@ export const publico = {
   localizacao: (t: string, body: Record<string, unknown>) =>
     req<{ sessao: string }>(`/${t}/localizacao`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }),
   conteudo: (t: string, s: string) => req<any>(`/${t}/conteudo`, { headers: { 'X-Link-Sessao': s } }),
+  finalizar: (t: string, sessao: string) =>
+    req<{ fotos: number }>(`/${t}/finalizar`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sessao }) }),
   enviarFoto: (t: string, fd: FormData) => req<any>(`/${t}/fotos`, { method: 'POST', body: fd }),
   fotoUrl: (t: string, s: string, id: number) => absUrl(`/api/publico/l/${t}/foto/${id}?s=${encodeURIComponent(s)}`),
   pdfUrl: (t: string, s: string) => absUrl(`/api/publico/l/${t}/pdf?s=${encodeURIComponent(s)}`),

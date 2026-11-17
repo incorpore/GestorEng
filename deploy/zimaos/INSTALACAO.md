@@ -372,8 +372,12 @@ sudo systemctl restart docker
 
 **`connection refused` / `could not connect`** (banco externo) — refaça os testes do passo 4.2.
 
-**Pasta de arquivos sem permissão** (aparece no `verificar` ou ao anexar arquivos):
-`sudo chown -R 10001:10001 /media/URSUS/AppData/Struvia/storage`
+**"Erro do servidor" ao enviar fotos ou anexos** — quase sempre é a pasta de arquivos sem permissão de gravação
+(o ZimaOS cria a pasta como `root`). **Não tem relação com o S3**: os arquivos ficam no próprio servidor, na pasta
+`storage`; o S3 é usado só para o backup. As imagens atuais corrigem isso sozinhas ao iniciar (por isso a `api` e o
+`worker` têm o bloco `cap_add`, usado só para ajustar o dono da pasta; em seguida o sistema roda sem privilégios).
+Se o log da `api` mostrar `ERRO: a pasta de arquivos ... não permite gravação`, rode:
+`sudo chown -R 10001:10001 /media/URSUS/AppData/Struvia/storage` e reinicie a `api`.
 
 **Sou desconectado ao recarregar a página** — `COOKIE_SECURE` está `"true"` mas o acesso é por `http://`.
 Use `"false"` ou configure HTTPS.
@@ -400,8 +404,11 @@ sudo docker logs --tail 100 struvia-db      # banco interno
 
 - **OpenWeather (clima)**: crie uma conta gratuita em openweathermap.org, copie a *API key* e cadastre em
   *Configurações > Integrações > OpenWeather*. A chave pode levar até 2 horas para ser ativada pelo OpenWeather.
+- **Pedir fotos**: o botão gera o link na hora. Quem abre tira quantas fotos quiser **pela câmera** (a galeria não é
+  oferecida e fotos antigas são recusadas); cada foto é enviada assim que é tirada. O link fecha quando a pessoa toca
+  em **Finalizar**, quando você o exclui/encerra ou quando expira (7 dias).
 - **Links públicos (pedir fotos / visualizar diário)**: funcionam sem login, mas o navegador do visitante **só fornece a
-  localização em HTTPS**. Pelo endereço `http://IP:8917` o sistema registra o IP e o aparelho, mas não as coordenadas.
+  localização e a câmera dentro da página em HTTPS**. Em `http://` o celular abre o aplicativo de câmera do aparelho. Pelo endereço `http://IP:8917` o sistema registra o IP e o aparelho, mas não as coordenadas.
   Para registrar as coordenadas, publique o Struvia com HTTPS (seção abaixo).
 - **IP real atrás de proxy**: se usar Nginx Proxy Manager, Traefik ou Cloudflare Tunnel, acrescente na `api` e no
   `worker` a variável `TRUSTED_PROXIES` com o IP do proxy (ex.: `TRUSTED_PROXIES: 192.168.3.100`).

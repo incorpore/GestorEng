@@ -22,7 +22,8 @@ RUN groupadd -g 10001 app && useradd -u 10001 -g app -m -d /home/app -s /usr/sbi
 COPY --chown=app:app . .
 RUN chmod +x docker-entrypoint.sh
 
-USER app
+# Inicia como root apenas para corrigir o dono da pasta de arquivos (bind mounts criados como root, ex.: ZimaOS);
+# o entrypoint troca para o usuário "app" (setpriv) antes de executar qualquer coisa.
 ENV STORAGE_DIR=/data/storage HOME=/home/app XDG_CACHE_HOME=/tmp/.cache TZ=America/Sao_Paulo
 EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 CMD curl -fsS http://127.0.0.1:8000/api/health || exit 1

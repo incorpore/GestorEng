@@ -1,5 +1,22 @@
 #!/bin/sh
 set -e
+
+# ---- permissões da pasta de arquivos (fotos, anexos, documentos) e troca para o usuário sem privilégios
+if [ "$(id -u)" = "0" ]; then
+  DIR="${STORAGE_DIR:-/data/storage}"
+  mkdir -p "$DIR" 2>/dev/null || true
+  if [ -n "$(find "$DIR" -maxdepth 3 ! -user app -print -quit 2>/dev/null)" ]; then
+    echo "Ajustando o dono de $DIR para o usuário app (10001)..."
+    chown -R app:app "$DIR" 2>/dev/null || echo "AVISO: não foi possível alterar o dono de $DIR"
+  fi
+  exec setpriv --reuid=app --regid=app --init-groups --inh-caps=-all "$(readlink -f "$0")" "$@"
+fi
+
+DIR="${STORAGE_DIR:-/data/storage}"
+if ! ( mkdir -p "$DIR" && touch "$DIR/.teste-escrita" && rm -f "$DIR/.teste-escrita" ) 2>/dev/null; then
+  echo "ERRO: a pasta de arquivos $DIR não permite gravação pelo usuário $(id -u)." >&2
+  echo "      Fotos e anexos falharão. No servidor, rode: sudo chown -R 10001:10001 <pasta mapeada em $DIR>" >&2
+fi
 aguardar_banco() {
   python - <<'PY'
 import sys, time
