@@ -1,4 +1,5 @@
 import io
+import json
 
 from pypdf import PdfReader
 
@@ -145,15 +146,19 @@ def test_documenso_pastas_e_envio_na_pasta(admin, monkeypatch):
     chamadas = []
 
     def req(method, url, token, **kw):
-        chamadas.append((method, url.split("/api/")[1], kw.get("json"), kw.get("params")))
+        corpo = kw.get("json") or (json.loads(kw["data"]["payload"]) if kw.get("data") else None)
+        chamadas.append((method, url.split("/api/")[1], corpo, kw.get("params")))
         if url.endswith("/api/v2/folder"):
             return _Resp({"data": [{"id": "f1", "name": "Obras", "parentId": None},
                                    {"id": "f2", "name": "Escola", "parentId": "f1"}], "totalPages": 1})
         if url.endswith("/api/v2/folder/create"):
             return _Resp({"id": "f3", "name": kw["json"]["name"], "parentId": kw["json"].get("parentId")})
-        if url.endswith("/api/v1/documents"):
-            return _Resp({"documentId": 55, "uploadUrl": "http://upload",
-                          "recipients": [{"recipientId": 1, "name": "A", "email": "a@x.com", "role": "SIGNER"}]})
+        if url.endswith("/api/v2/document/create"):
+            assert kw["files"]["file"][2] == "application/pdf" and kw["files"]["file"][1][:5] == b"%PDF-"
+            return _Resp({"id": 55, "envelopeId": "envelope_1"})
+        if url.endswith("/api/v2/document/55"):
+            return _Resp({"status": "PENDING", "recipients": [{"name": "Jorge Diretor", "email": "jorge@empresa.com.br",
+                                                               "signingStatus": "NOT_SIGNED"}]})
         return _Resp({})
 
     class Up:
@@ -194,9 +199,12 @@ def test_documenso_pastas_e_envio_na_pasta(admin, monkeypatch):
     r = admin.post(f"/api/documentos-acoes/{p1['documento_id']}/assinatura",
                    json={"assinantes": [{"nome": "Jorge Diretor", "email": "jorge@empresa.com.br"}], "pasta_id": "f2"})
     assert r.status_code == 200, r.text
-    mover = next(c for c in chamadas if c[1] == "v2/document/update")
-    assert mover[2] == {"documentId": 55, "data": {"folderId": "f2"}}
-    assert [c[1] for c in chamadas][-2:] == ["v2/document/update", "v1/documents/55/send"]
+    criado = next(c for c in chamadas if c[1] == "v2/document/create")[2]
+    assert criado["folderId"] == "f2" and criado["title"].startswith("Contrato assinado")
+    assert criado["recipients"][0]["fields"][0]["type"] == "SIGNATURE" and criado["meta"]["signingOrder"] == "SEQUENTIAL"
+    assert [c[1] for c in chamadas][-2:] == ["v2/document/distribute", "v2/document/55"]
+    assert next(c for c in chamadas if c[1] == "v2/document/distribute")[2]["documentId"] == 55
+    assert not any(c[1].startswith("v1/") for c in chamadas)
     sit = admin.get("/api/documentos-acoes/anexos", params={"entidade": "obra", "entidade_id": obra["id"]}).json()
     assert sit == [{"arquivo_id": arq["id"], "documento_id": p1["documento_id"], "numero": p1["numero"],
                     "status": "aguardando_assinatura", "assinantes": sit[0]["assinantes"]}]
@@ -214,15 +222,15 @@ def test_pasta_automatica_erp_cliente_obra_tipo(admin, monkeypatch):
 
     def req(method, url, token, **kw):
         rota = url.split("/api/")[1]
-        chamadas.append((rota, kw.get("json")))
+        chamadas.append((rota, kw.get("json") or (json.loads(kw["data"]["payload"]) if kw.get("data") else None)))
         if rota == "v2/folder":
             return _Resp({"data": list(pastas), "totalPages": 1})
         if rota == "v2/folder/create":
             p = {"id": f"x{len(pastas) + 1}", "name": kw["json"]["name"], "parentId": kw["json"].get("parentId")}
             pastas.append(p)
             return _Resp(p)
-        if rota == "v1/documents":
-            return _Resp({"documentId": 70, "uploadUrl": "http://u", "recipients": []})
+        if rota == "v2/document/create":
+            return _Resp({"id": 70, "envelopeId": "envelope_70"})
         return _Resp({})
 
     class Up:
@@ -256,8 +264,8 @@ def test_pasta_automatica_erp_cliente_obra_tipo(admin, monkeypatch):
     assert criadas == [{"name": "Prefeitura de Vargem", "type": "DOCUMENT", "parentId": "x1"},
                        {"name": "Rua do Cemitério - Trecho 2", "type": "DOCUMENT", "parentId": "x2"},
                        {"name": "Anexos", "type": "DOCUMENT", "parentId": "x3"}]
-    assert next(c[1] for c in chamadas if c[0] == "v1/documents")["title"] == "Planilha medição 03.pdf"
-    assert next(c[1] for c in chamadas if c[0] == "v2/document/update") == {"documentId": 70, "data": {"folderId": "x4"}}
+    criado = next(c[1] for c in chamadas if c[0] == "v2/document/create")
+    assert criado["title"] == "Planilha medição 03.pdf" and criado["folderId"] == "x4"
     # segundo documento da mesma obra reaproveita as pastas
     modelo = admin.get("/api/modelos-documento", params={"tipo": "oficio"}).json()["items"][0]
     doc2 = admin.post("/api/documentos-acoes/gerar", json={"modelo_id": modelo["id"], "titulo": "Pedido de aditivo",
@@ -266,7 +274,7 @@ def test_pasta_automatica_erp_cliente_obra_tipo(admin, monkeypatch):
     chamadas.clear()
     assert admin.post(f"/api/documentos-acoes/{doc2['id']}/assinatura", json={"assinantes": [rep]}).status_code == 200
     assert [c[1]["name"] for c in chamadas if c[0] == "v2/folder/create"] == ["Documentos"]
-    titulo = next(c[1] for c in chamadas if c[0] == "v1/documents")["title"]
+    titulo = next(c[1] for c in chamadas if c[0] == "v2/document/create")["title"]
     assert titulo.startswith("Ofício nº") and titulo.endswith(" - Pedido de aditivo.pdf") and "/" not in titulo
 
 
@@ -304,3 +312,59 @@ def test_documenso_inacessivel_e_resposta_html_dao_mensagem_clara(admin, monkeyp
     monkeypatch.setattr(documenso.httpx, "Client", Html)
     r = admin.post(url, json=corpo)
     assert r.status_code == 424 and "não é JSON" in r.json()["detail"]
+
+
+def test_documenso_antigo_sem_v2_usa_v1_e_explica_falta_de_s3(admin, monkeypatch):
+    from fastapi import HTTPException
+
+    from app.modules.documentos import documenso
+
+    rotas = []
+
+    def req(method, url, token, **kw):
+        rota = url.split("/api/")[1]
+        rotas.append(rota)
+        if rota.startswith("v2/"):
+            e = HTTPException(424, f"Documenso retornou 404 em /api/{rota}: not found")
+            e.remoto = 404
+            raise e
+        if rota == "v1/documents":
+            raise HTTPException(424, 'Documenso retornou 500 em /api/v1/documents: '
+                                     '{"message":"Create document is not available without S3 transport."}')
+        return _Resp({})
+
+    monkeypatch.setattr(documenso, "_req", req)
+    monkeypatch.setattr(documenso, "_cfg", lambda db: ("http://d", "t", {}))
+    admin.put("/api/configuracoes/empresa", json={"responsavel": "Jorge", "email_responsavel": "jorge@empresa.com.br"})
+    modelo = admin.get("/api/modelos-documento", params={"tipo": "oficio"}).json()["items"][0]
+    doc = admin.post("/api/documentos-acoes/gerar", json={"modelo_id": modelo["id"], "titulo": "Antigo"}).json()
+    admin.post(f"/api/documentos-acoes/{doc['id']}/emitir")
+    r = admin.post(f"/api/documentos-acoes/{doc['id']}/assinatura",
+                   json={"assinantes": [{"nome": "Jorge", "email": "jorge@empresa.com.br"}], "pasta_auto": False})
+    assert r.status_code == 424 and "sem S3" in r.json()["detail"] and "Atualize o Documenso" in r.json()["detail"]
+    assert rotas == ["v2/document/create", "v1/documents"]
+
+
+def test_documenso_v2_status_e_download_assinado(monkeypatch):
+    from app.modules.documentos import documenso
+
+    class R:
+        def __init__(self, dados=None, content=b""):
+            self._d, self.content = dados or {}, content
+
+        def json(self):
+            return self._d
+
+    vistos = []
+
+    def req(method, url, token, **kw):
+        vistos.append((url.split("/api/")[1], kw.get("params")))
+        if url.endswith("/download"):
+            return R(content=b"%PDF-1.7 assinado")
+        return R({"status": "COMPLETED", "recipients": [{"name": "A", "email": "a@x", "signingStatus": "SIGNED"}]})
+
+    monkeypatch.setattr(documenso, "_req", req)
+    monkeypatch.setattr(documenso, "_cfg", lambda db: ("http://d", "t", {}))
+    assert documenso.status(None, "12")["status"] == "COMPLETED"
+    assert documenso.baixar_assinado(None, "12") == b"%PDF-1.7 assinado"
+    assert vistos == [("v2/document/12", None), ("v2/document/12/download", {"version": "signed"})]

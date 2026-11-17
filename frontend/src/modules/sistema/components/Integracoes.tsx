@@ -19,7 +19,7 @@ function IntegracaoCard({ chave, titulo, descricao, dados, campos, testar, segre
 
   async function run(k: string, fn: () => Promise<any>, ok: string) {
     setBusy(k)
-    try { await fn(); toast(ok); qc.invalidateQueries({ queryKey: ['integracoes'] }) } catch (e) { toast(errMsg(e), 'error') } finally { setBusy(null) }
+    try { const r = await fn(); toast(typeof r?.mensagem === 'string' ? r.mensagem : ok); qc.invalidateQueries({ queryKey: ['integracoes'] }) } catch (e) { toast(errMsg(e), 'error') } finally { setBusy(null) }
   }
   return (
     <Card title={<span className="flex items-center gap-2">{titulo} {dados.segredo_definido ? <Badge tone="green">configurado</Badge> : <Badge>pendente</Badge>}</span>}
