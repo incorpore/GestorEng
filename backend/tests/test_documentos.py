@@ -397,3 +397,45 @@ def test_envio_com_posicoes_marcadas(admin, monkeypatch):
     f0, f1 = (rec["fields"][0] for rec in enviados[0]["recipients"])
     assert f0 == {"type": "SIGNATURE", "pageNumber": 1, "pageX": 40, "pageY": 33, "width": 25, "height": 6}
     assert f1["pageX"] == 90 and f1["width"] == 10  # não ultrapassa a borda da página
+
+
+def test_envio_com_campos_em_varias_paginas(admin, monkeypatch):
+    from pypdf import PdfWriter
+
+    from app.core import storage
+    from app.core.database import SessionLocal
+    from app.core.models import Arquivo
+    from app.modules.documentos import documenso
+    from app.modules.documentos.models import Documento
+
+    admin.put("/api/configuracoes/empresa", json={"responsavel": "Jorge Diretor", "email_responsavel": "j@x.com"})
+    modelo = admin.get("/api/modelos-documento", params={"tipo": "oficio"}).json()["items"][0]
+    doc = admin.post("/api/documentos-acoes/gerar", json={"modelo_id": modelo["id"], "titulo": "Contrato 3 páginas"}).json()
+    admin.post(f"/api/documentos-acoes/{doc['id']}/emitir")
+    w = PdfWriter()
+    for _ in range(3):
+        w.add_blank_page(595, 842)
+    buf = io.BytesIO()
+    w.write(buf)
+    with SessionLocal() as db:
+        a = db.get(Arquivo, db.get(Documento, doc["id"]).pdf_arquivo_id)
+        storage.path_for(a.uuid).write_bytes(buf.getvalue())
+    enviados = []
+
+    def req(method, u, token, **kw):
+        if u.endswith("/api/v2/document/create"):
+            enviados.append(json.loads(kw["data"]["payload"]))
+            return _Resp({"id": 11})
+        return _Resp({"recipients": []})
+
+    monkeypatch.setattr(documenso, "_req", req)
+    monkeypatch.setattr(documenso, "_cfg", lambda db: ("http://d", "t", {}))
+    ass = [{"nome": "Jorge Diretor", "email": "j@x.com"}, {"nome": "Maria Fiscal", "email": "m@x.com"}]
+    # Jorge rubrica em todas as páginas; Maria só na última; página inexistente (5) é ignorada
+    campos = [{"indice": 0, "pagina": p, "x": 70, "y": 90, "largura": 20, "altura": 5} for p in (1, 2, 3, 5)]
+    campos.append({"indice": 1, "pagina": 3, "x": 10, "y": 80, "largura": 28, "altura": 6})
+    r = admin.post(f"/api/documentos-acoes/{doc['id']}/assinatura", json={"assinantes": ass, "pasta_auto": False, "campos": campos})
+    assert r.status_code == 200, r.text
+    jorge, maria = enviados[0]["recipients"]
+    assert [f["pageNumber"] for f in jorge["fields"]] == [1, 2, 3]
+    assert [f["pageNumber"] for f in maria["fields"]] == [3]

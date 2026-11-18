@@ -102,7 +102,7 @@ export function AssinaturaModal({ docId, open, onClose, onSent }: { docId: numbe
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
                 <p className="text-sm font-medium">Posição das assinaturas</p>
-                <p className="text-xs text-slate-500">{camposAtuais.length ? `${camposAtuais.length} marcada(s). Quem não for marcado assina no rodapé da última página.` : 'Sem marcação: as assinaturas ficam lado a lado no rodapé da última página.'}</p>
+                <p className="text-xs text-slate-500">{camposAtuais.length ? `${camposAtuais.length} campo(s) marcado(s). Quem não for marcado assina no rodapé da última página.` : 'Sem marcação: as assinaturas ficam lado a lado no rodapé da última página.'}</p>
               </div>
               <Button size="sm" variant="secondary" icon={<MousePointerClick className="h-4 w-4" />} disabled={rows.some((r) => !r.nome.trim() || !r.email.trim())}
                 onClick={() => { setMarcando(!marcando); if (!ativo) setAtivo(rows.find((r) => r.papel === 'SIGNER')?.email || null) }}>{marcando ? 'Ocultar documento' : 'Marcar no documento'}</Button>
@@ -112,25 +112,18 @@ export function AssinaturaModal({ docId, open, onClose, onSent }: { docId: numbe
                 <p className="mt-2 text-xs text-slate-500">Escolha a pessoa e clique no documento sobre a linha onde ela assina. Arraste o retângulo para ajustar.</p>
                 <ul className="mt-2 flex flex-wrap gap-2 text-xs">
                   {rows.filter((r) => r.papel === 'SIGNER').map((r) => {
-                    const c = camposAtuais.find((x) => x.email.toLowerCase() === r.email.toLowerCase())
+                    const pags = [...new Set(camposAtuais.filter((x) => x.email.toLowerCase() === r.email.toLowerCase()).map((x) => x.pagina))].sort((a, b) => a - b)
                     const i = idx(r.email)
                     const sel = ativo?.toLowerCase() === r.email.toLowerCase()
                     return <li key={r.id}><button type="button" onClick={() => setAtivo(r.email)} aria-pressed={sel}
                       className="flex items-center gap-1 rounded-full border-2 px-2.5 py-1"
                       style={{ borderColor: corAssinante(i), background: sel ? `${corAssinante(i)}22` : undefined, fontWeight: sel ? 600 : 400 }}>
-                      <span className="h-2 w-2 rounded-full" style={{ background: corAssinante(i) }} />{r.nome || 'Assinante'}: {c ? `pág. ${c.pagina}` : 'não marcado'}</button></li>
+                      <span className="h-2 w-2 rounded-full" style={{ background: corAssinante(i) }} />{r.nome || 'Assinante'}: {!pags.length ? 'não marcado' : pags.length > 4 ? `${pags.length} páginas` : `pág. ${pags.join(', ')}`}</button></li>
                   })}
                 </ul>
                 <div className="mt-2"><PosicoesAssinatura docId={docId} campos={camposAtuais} nomes={rows.map((r) => r.nome)}
                   ativo={ativo ? idx(ativo) : null}
-                  onChange={(cs) => {
-                    const novas = cs.map((c) => ({ ...c, email: rows[c.indice].email }))
-                    const marcou = novas.length > camposAtuais.length || novas.some((n) => !camposAtuais.find((c) => c.email === n.email && c.x === n.x && c.y === n.y))
-                    setPosicoes(novas)
-                    // depois de marcar alguém por clique, passa para a próxima pessoa ainda sem marcação
-                    const proximo = rows.find((r) => r.papel === 'SIGNER' && !novas.some((n) => n.email.toLowerCase() === r.email.toLowerCase()))
-                    if (marcou && novas.length > camposAtuais.length && proximo) setAtivo(proximo.email)
-                  }} /></div>
+                  onChange={(cs) => setPosicoes(cs.map((c) => ({ ...c, email: rows[c.indice].email })))} /></div>
               </>
             )}
           </div>

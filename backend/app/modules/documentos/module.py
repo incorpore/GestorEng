@@ -327,7 +327,7 @@ class AssinaturaIn(BaseModel):
     sequencial: bool = True  # cada assinante recebe depois que o anterior assinar, na ordem da lista
     pasta_id: str | None = Field(None, max_length=64)  # pasta escolhida no Documenso
     pasta_auto: bool = True  # sem pasta escolhida: usa o padrão (ERP/Cliente/Obra/Documentos|Anexos)
-    campos: list["CampoAssinatura"] | None = Field(None, max_length=60)  # posições marcadas na tela
+    campos: list["CampoAssinatura"] | None = Field(None, max_length=2000)  # posições marcadas na tela (várias por pessoa)
 
 
 class CampoAssinatura(BaseModel):

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { ChevronLeft, ChevronRight, Loader2, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Copy, Loader2, X } from 'lucide-react'
 import { api } from '@/core/api'
 
 export interface CampoPos { indice: number; pagina: number; x: number; y: number; largura: number; altura: number }
@@ -57,17 +57,44 @@ export function PosicoesAssinatura({ docId, campos, nomes, ativo, onChange }: {
 
   if (erro) return <p className="text-xs text-rose-600">{erro}</p>
   if (!total) return <p className="flex items-center gap-2 text-xs text-slate-500"><Loader2 className="h-4 w-4 animate-spin" />Abrindo o documento...</p>
-  const marcadasAqui = campos.filter((c) => c.pagina === pagina).length
+  const doAtivoAqui = ativo === null ? undefined : [...campos].reverse().find((c) => c.indice === ativo && c.pagina === pagina)
+  const paginasDoAtivo = ativo === null ? 0 : new Set(campos.filter((c) => c.indice === ativo).map((c) => c.pagina)).size
+  const porPagina = (k: number) => campos.filter((c) => c.pagina === k).length
+
+  /** Copia o campo desta página para todas as páginas, na mesma posição. */
+  function repetirEmTodas() {
+    if (!doAtivoAqui) return
+    const outros = campos.filter((c) => c.indice !== ativo)
+    const copias = Array.from({ length: total }, (_, i) => ({ ...doAtivoAqui, pagina: i + 1 }))
+    onChange([...outros, ...copias])
+  }
+  /** Remove os campos desta pessoa nas outras páginas. */
+  function soNestaPagina() {
+    onChange(campos.filter((c) => c.indice !== ativo || c.pagina === pagina))
+  }
 
   return (
     <div className="rounded-lg border border-slate-200 bg-slate-100 p-2 dark:border-slate-700 dark:bg-slate-800">
       <div className="mb-2 flex items-center justify-between gap-2 text-xs">
         <button type="button" className="inline-flex items-center rounded border border-slate-300 bg-white px-2 py-1 disabled:opacity-40 dark:border-slate-600 dark:bg-slate-900"
           disabled={pagina <= 1} onClick={() => setPagina(pagina - 1)}><ChevronLeft className="h-4 w-4" />Anterior</button>
-        <span className="text-slate-600 dark:text-slate-300">Página {pagina} de {total}{marcadasAqui ? ` · ${marcadasAqui} assinatura(s) aqui` : ''}</span>
+        <select aria-label="Ir para a página" value={pagina} onChange={(e) => setPagina(Number(e.target.value))}
+          className="rounded border border-slate-300 bg-white px-2 py-1 text-xs dark:border-slate-600 dark:bg-slate-900">
+          {Array.from({ length: total }, (_, i) => i + 1).map((k) => <option key={k} value={k}>Página {k} de {total}{porPagina(k) ? ` · ${porPagina(k)} assinatura(s)` : ''}</option>)}
+        </select>
         <button type="button" className="inline-flex items-center rounded border border-slate-300 bg-white px-2 py-1 disabled:opacity-40 dark:border-slate-600 dark:bg-slate-900"
           disabled={pagina >= total} onClick={() => setPagina(pagina + 1)}>Próxima<ChevronRight className="h-4 w-4" /></button>
       </div>
+      {ativo !== null && total > 1 && (
+        <div className="mb-2 flex flex-wrap items-center gap-2 text-xs">
+          <span className="text-slate-500">{nomes[ativo] || 'Assinante'}: {paginasDoAtivo ? `${paginasDoAtivo} página(s)` : 'nenhuma página'}</span>
+          <button type="button" disabled={!doAtivoAqui} onClick={repetirEmTodas} title={doAtivoAqui ? '' : 'Marque primeiro nesta página'}
+            className="inline-flex items-center gap-1 rounded border border-slate-300 bg-white px-2 py-1 disabled:opacity-40 dark:border-slate-600 dark:bg-slate-900">
+            <Copy className="h-3.5 w-3.5" />Repetir em todas as páginas</button>
+          <button type="button" disabled={!doAtivoAqui || paginasDoAtivo < 2} onClick={soNestaPagina}
+            className="rounded border border-slate-300 bg-white px-2 py-1 disabled:opacity-40 dark:border-slate-600 dark:bg-slate-900">Só nesta página</button>
+        </div>
+      )}
       <div className="max-h-[60vh] overflow-y-auto">
         {!imagem ? <p className="flex items-center gap-2 p-6 text-xs text-slate-500"><Loader2 className="h-4 w-4 animate-spin" />Carregando a página...</p>
           : <Pagina n={pagina} url={imagem} campos={campos} nomes={nomes} ativo={ativo} onChange={onChange} />}
@@ -90,7 +117,8 @@ function Pagina({ n, url, campos, nomes, ativo, onChange }: {
     // o clique marca o meio da linha de assinatura: o retângulo fica centralizado e logo acima do ponto
     const novo: CampoPos = { indice: ativo, pagina: n, largura: LARGURA, altura: ALTURA,
       x: +Math.min(Math.max(cx - LARGURA / 2, 0), 100 - LARGURA).toFixed(2), y: +Math.min(Math.max(cy - ALTURA, 0), 100 - ALTURA).toFixed(2) }
-    onChange([...campos.filter((c) => c.indice !== ativo), novo])
+    // um campo por pessoa em cada página: clicar de novo na mesma página move o campo dela
+    onChange([...campos.filter((c) => !(c.indice === ativo && c.pagina === n)), novo])
   }
 
   function mover(e: React.PointerEvent) {
