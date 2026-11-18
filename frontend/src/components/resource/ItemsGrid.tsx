@@ -1,6 +1,6 @@
 import { ArrowDown, ArrowUp, Plus, Trash2 } from 'lucide-react'
 import clsx from 'clsx'
-import { Button, IconButton } from '@/components/ui'
+import { Button, IconButton, Textarea } from '@/components/ui'
 import { moeda, numero } from '@/core/format'
 
 export interface GridCol {
@@ -52,7 +52,7 @@ export function ItemsGrid({ cols, rows, onChange, newRow, readOnly, rowClass, fo
                   return (
                     <td key={c.key} className="p-1">
                       {c.type === 'textarea'
-                        ? <textarea rows={1} className="input min-h-0 px-2 py-1" value={r[c.key] ?? ''} onChange={(e) => set(i, c.key, e.target.value)} />
+                        ? <Textarea variante="compacto" rows={1} value={r[c.key] ?? ''} onChange={(e) => set(i, c.key, e.target.value)} />
                         : <input className={clsx('input px-2 py-1', num && 'text-right')} type={num ? 'number' : 'text'} step="any" inputMode={num ? 'decimal' : undefined}
                           value={r[c.key] ?? ''} onChange={(e) => set(i, c.key, num ? (e.target.value === '' ? 0 : Number(e.target.value)) : e.target.value)} />}
                     </td>

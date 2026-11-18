@@ -46,7 +46,7 @@ export default function DiarioEditar() {
       setOrigem(m.origem)
       setV((s: any) => ({ ...s, efetivo: m.efetivo, equipamentos: m.equipamentos, atividades: m.atividades, pendencias: m.pendencias }))
     }).catch(() => null)
-  }, [novo, v?.obra_id, v?.data]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [novo, v?.obra_id, v?.data])
 
   if (!v) return <Loading />
   const ids = (lista: any[], k: string) => new Set<number>(lista.map((x) => x[k]).filter(Boolean))

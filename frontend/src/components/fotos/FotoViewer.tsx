@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { ChevronLeft, ChevronRight, Download, ExternalLink, MapPin, Trash2, X } from 'lucide-react'
+import { Overlay } from '@/components/ui'
 import { api } from '@/core/api'
 import { signedUrl } from '@/core/files'
 import { absUrl } from '@/core/platform'
@@ -18,17 +19,16 @@ export function FotoViewer({ fotos, indice, onFechar, onExcluir, podeOriginal }:
   useEffect(() => { setUrl(null); if (f) signedUrl(f.id).then(setUrl) }, [f])
   useEffect(() => {
     const k = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onFechar()
       if (e.key === 'ArrowRight') setI((x) => Math.min(fotos.length - 1, x + 1))
       if (e.key === 'ArrowLeft') setI((x) => Math.max(0, x - 1))
     }
     document.addEventListener('keydown', k)
     return () => document.removeEventListener('keydown', k)
-  }, [fotos.length, onFechar])
+  }, [fotos.length])
   if (!f) return null
   const btn = 'inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20'
   return (
-    <div className="fixed inset-0 z-[60] flex flex-col bg-black/95" role="dialog" aria-modal="true">
+    <Overlay onClose={onFechar} camada="viewer" className="flex flex-col bg-black/95" label="Foto">
       <div className="safe-top flex items-center justify-between gap-2 p-3 text-white">
         <span className="text-sm opacity-80">{i + 1} / {fotos.length}</span>
         <div className="flex gap-2">
@@ -52,6 +52,6 @@ export function FotoViewer({ fotos, indice, onFechar, onExcluir, podeOriginal }:
           </a>
         )}
       </div>
-    </div>
+    </Overlay>
   )
 }

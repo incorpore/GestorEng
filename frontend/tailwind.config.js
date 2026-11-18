@@ -14,6 +14,8 @@ export default {
         },
       },
       fontFamily: { sans: ['system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Ubuntu', 'Helvetica Neue', 'Arial', 'sans-serif'] },
+      // camadas da interface (Overlay/Modal/Toast): menu < pop-up < visualizador < confirmação < notificação
+      zIndex: { drawer: '40', modal: '50', viewer: '60', confirm: '80', toast: '90' },
       boxShadow: { card: '0 1px 2px rgb(0 0 0 / 0.04), 0 1px 3px rgb(0 0 0 / 0.06)' },
     },
   },

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { ImageIcon, MapPin } from 'lucide-react'
+import { ImageIcon, MapPin, Trash2 } from 'lucide-react'
 import { signedUrl } from '@/core/files'
 import { api } from '@/core/api'
 import { absUrl } from '@/core/platform'
@@ -28,14 +28,14 @@ export const dataCurta = (iso?: string | null) => {
 }
 
 /** Grade que mostra cada foto na sua proporção (verticais mais estreitas, horizontais mais largas). */
-export function FotoGrid({ fotos, onAbrir }: { fotos: Foto[]; onAbrir: (i: number) => void }) {
+export function FotoGrid({ fotos, onAbrir, onExcluir }: { fotos: Foto[]; onAbrir: (i: number) => void; onExcluir?: (f: Foto) => void }) {
   return (
     <div className="flex flex-wrap gap-2">
       {fotos.map((f, i) => {
         const prop = f.largura && f.altura ? Math.max(0.5, Math.min(2, f.largura / f.altura)) : 4 / 3
         return (
-          <button key={f.id} type="button" onClick={() => onAbrir(i)} style={{ flexGrow: prop, flexBasis: `${prop * 120}px` }}
-            className="group relative overflow-hidden rounded-xl bg-slate-100 text-left dark:bg-slate-800">
+          <div key={f.id} style={{ flexGrow: prop, flexBasis: `${prop * 120}px` }} className="group relative overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-800">
+          <button type="button" onClick={() => onAbrir(i)} aria-label={`Abrir ${f.descricao || f.nome}`} className="block w-full text-left">
             <div style={{ paddingBottom: `${100 / prop}%` }} />
             <Miniatura foto={f} className="absolute inset-0 h-full w-full object-cover transition group-hover:scale-[1.02]" />
             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2 text-white">
@@ -46,6 +46,13 @@ export function FotoGrid({ fotos, onAbrir }: { fotos: Foto[]; onAbrir: (i: numbe
               </p>
             </div>
           </button>
+          {onExcluir && (
+            <button type="button" aria-label={`Excluir ${f.descricao || f.nome}`} title="Excluir foto" onClick={() => onExcluir(f)}
+              className="absolute right-1.5 top-1.5 inline-flex h-8 w-8 items-center justify-center rounded-full bg-black/55 text-white opacity-100 transition hover:bg-rose-600 md:opacity-0 md:focus:opacity-100 md:group-hover:opacity-100">
+              <Trash2 className="h-4 w-4" />
+            </button>
+          )}
+          </div>
         )
       })}
       <div style={{ flexGrow: 10 }} />

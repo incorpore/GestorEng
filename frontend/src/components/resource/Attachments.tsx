@@ -38,7 +38,7 @@ export function Attachments({ entidade, entidadeId, canEdit = true, somenteFotos
     } catch (e) { toast(errMsg(e), 'error') }
   }
   async function remover(a: Foto) {
-    if (!(await confirm(`Remover "${a.descricao || a.nome}"?`, { danger: true, ok: 'Remover' }))) return
+    if (!(await confirm(`Excluir "${a.descricao || a.nome}"? Esta ação não pode ser desfeita.`, { title: 'Excluir arquivo', danger: true, ok: 'Excluir' }))) return
     try { await api.del(`/arquivos/${a.id}`); setAberta(null); qc.invalidateQueries({ queryKey: key }) } catch (e) { toast(errMsg(e), 'error') }
   }
 
@@ -58,7 +58,7 @@ export function Attachments({ entidade, entidadeId, canEdit = true, somenteFotos
       )}
       {isLoading ? <Spinner /> : !data?.length ? <Empty title={somenteFotos ? 'Sem fotos' : 'Sem anexos'} text="Fotos recebem marca d'água com coordenadas, data e hora." /> : (
         <>
-          {fotos.length > 0 && <FotoGrid fotos={fotos} onAbrir={setAberta} />}
+          {fotos.length > 0 && <FotoGrid fotos={fotos} onAbrir={setAberta} onExcluir={canEdit ? remover : undefined} />}
           {outros.length > 0 && (
             <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200 dark:divide-slate-800 dark:border-slate-800">
               {outros.map((a) => (

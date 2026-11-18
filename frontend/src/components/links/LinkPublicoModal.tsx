@@ -1,12 +1,12 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
-import { Ban, Copy, MessageCircle, Share2, Trash2 } from 'lucide-react'
-import { Badge, Button, Empty, Loading, Modal, Tabs } from '@/components/ui'
+import { Copy, MessageCircle, Share2, Trash2 } from 'lucide-react'
+import { Button, Empty, Loading, Modal, Tabs, useConfirm } from '@/components/ui'
 import { api } from '@/core/api'
 import { dataHora } from '@/core/format'
 import { getServerUrl, isNative } from '@/core/platform'
 import { errMsg, useToast } from '@/core/toast'
-import { AcessosLink } from './AcessosLink'
+import { ItemLink } from './ItemLink'
 import { NovoLinkForm } from './NovoLinkForm'
 import { type LinkPublico, urlCompleta } from './tipos'
 
@@ -17,9 +17,9 @@ export function LinkPublicoModal({ entidade, entidadeId, tipoInicial = 'fotos', 
 }) {
   const qc = useQueryClient()
   const toast = useToast()
+  const confirm = useConfirm()
   const [aba, setAba] = useState<'novo' | 'links'>('novo')
   const [criado, setCriado] = useState<LinkPublico | null>(null)
-  const [detalhe, setDetalhe] = useState<number | null>(null)
   const key = ['links', entidade, entidadeId]
   const gerando = useRef(false)
   const [erroGerar, setErroGerar] = useState<string | null>(null)
@@ -49,16 +49,13 @@ export function LinkPublicoModal({ entidade, entidadeId, tipoInicial = 'fotos', 
     try { await api.post(`/links-publicos/${l.id}/desativar`); qc.invalidateQueries({ queryKey: key }); toast('Link encerrado') } catch (e) { toast(errMsg(e), 'error') }
   }
   async function excluir(l: LinkPublico) {
-    if (!confirm('Excluir este link? Ele deixa de funcionar imediatamente. As fotos já recebidas e o registro de acessos são mantidos.')) return
+    if (!(await confirm('Excluir este link? Ele deixa de funcionar imediatamente. As fotos já recebidas e o registro de acessos são mantidos.', { title: 'Excluir link', danger: true, ok: 'Excluir' }))) return
     try {
       await api.del(`/links-publicos/${l.id}`)
       if (criado?.id === l.id) setCriado(null)
       qc.invalidateQueries({ queryKey: key }); toast('Link excluído')
     } catch (e) { toast(errMsg(e), 'error') }
   }
-  const situacao = (l: LinkPublico) => l.ativo ? <Badge tone="green">ativo</Badge>
-    : l.encerramento === 'finalizado' ? <Badge tone="blue">finalizado por quem fotografou</Badge>
-    : <Badge tone="gray">{l.encerramento === 'desativado' ? 'encerrado' : 'expirado'}</Badge>
   const acoes = (l: LinkPublico) => (
     <div className="flex flex-wrap gap-2">
       <Button size="sm" variant="secondary" icon={<Copy className="h-4 w-4" />} onClick={() => copiar(l)}>Copiar</Button>
@@ -68,8 +65,8 @@ export function LinkPublicoModal({ entidade, entidadeId, tipoInicial = 'fotos', 
   )
 
   return (
-    <Modal open={open} onClose={() => { setCriado(null); setDetalhe(null); gerando.current = false; onClose() }} title="Link público" size="lg">
-      <Tabs value={aba} onChange={(a) => { setAba(a); setCriado(null); setDetalhe(null); lista.refetch() }} tabs={[{ key: 'novo', label: 'Novo link' }, { key: 'links', label: `Links e acessos${lista.data?.length ? ` (${lista.data.length})` : ''}` }]} />
+    <Modal open={open} onClose={() => { setCriado(null); gerando.current = false; onClose() }} title="Link público" size="lg">
+      <Tabs value={aba} onChange={(a) => { setAba(a); setCriado(null); lista.refetch() }} tabs={[{ key: 'novo', label: 'Novo link' }, { key: 'links', label: `Links e acessos${lista.data?.length ? ` (${lista.data.length})` : ''}` }]} />
       <div className="pt-4">
         {aba === 'novo' && !criado && tipoInicial === 'fotos' && (erroGerar ? <p className="text-sm text-rose-600">{erroGerar}</p> : <Loading />)}
         {aba === 'novo' && !criado && tipoInicial !== 'fotos' && <NovoLinkForm entidade={entidade} entidadeId={entidadeId} tipoInicial={tipoInicial}
@@ -88,24 +85,7 @@ export function LinkPublicoModal({ entidade, entidadeId, tipoInicial = 'fotos', 
         )}
         {aba === 'links' && (lista.isLoading ? <Loading /> : !lista.data?.length ? <Empty title="Nenhum link criado" /> : (
           <ul className="space-y-2">
-            {lista.data.map((l) => (
-              <li key={l.id} className="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div>
-                    <p className="text-sm font-semibold">{l.tipo === 'fotos' ? 'Pedido de fotos' : 'Visualização'}{l.destinatario && ` — ${l.destinatario}`}
-                      {' '}{situacao(l)}</p>
-                    <p className="text-xs text-slate-500">{l.acessos} acesso(s){l.tipo === 'fotos' && ` · ${l.fotos_recebidas} foto(s)`} · expira {dataHora(l.expira_em)}</p>
-                  </div>
-                  <div className="flex gap-2">
-                    {l.ativo && acoes(l)}
-                    {l.ativo && <Button size="sm" variant="ghost" icon={<Ban className="h-4 w-4" />} onClick={() => desativar(l)}>Encerrar</Button>}
-                    <Button size="sm" variant="ghost" icon={<Trash2 className="h-4 w-4" />} onClick={() => excluir(l)}>Excluir</Button>
-                    <Button size="sm" variant="ghost" onClick={() => setDetalhe(detalhe === l.id ? null : l.id)}>{detalhe === l.id ? 'Ocultar' : 'Acessos'}</Button>
-                  </div>
-                </div>
-                {detalhe === l.id && <div className="mt-2 border-t border-slate-100 pt-2 dark:border-slate-800"><AcessosLink linkId={l.id} /></div>}
-              </li>
-            ))}
+            {lista.data.map((l) => <ItemLink key={l.id} l={l} acoes={acoes(l)} onEncerrar={() => desativar(l)} onExcluir={() => excluir(l)} />)}
           </ul>
         ))}
       </div>

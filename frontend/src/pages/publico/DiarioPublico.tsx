@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { FileDown, X } from 'lucide-react'
-import { Button } from '@/components/ui'
+import { Button, Overlay } from '@/components/ui'
 import { ClimaVisual } from '@/modules/diario/components/ClimaVisual'
 import { Indicadores } from '@/modules/diario/components/Indicadores'
 import { SecaoVisual } from '@/modules/diario/components/SecaoVisual'
@@ -34,11 +34,13 @@ export function DiarioPublico({ token, sessao, dados }: { token: string; sessao:
       {SECOES.map((s) => <SecaoVisual key={s.chave} def={s} itens={d[s.chave]} />)}
       {d.observacoes && <div className="card p-4 text-sm"><b className="mb-1 block">Observações</b><p className="whitespace-pre-line">{d.observacoes}</p></div>}
       {aberta !== null && (
-        <div className="fixed inset-0 z-50 flex flex-col bg-black/95" onClick={() => setAberta(null)}>
+        <Overlay onClose={() => setAberta(null)} camada="viewer" className="flex flex-col bg-black/95" label="Foto">
+          <div className="flex min-h-0 flex-1 flex-col" onClick={() => setAberta(null)}>
           <button className="self-end p-4 text-white" aria-label="Fechar"><X className="h-6 w-6" /></button>
           <img src={publico.fotoUrl(token, sessao, dados.fotos[aberta].id)} alt="" className="m-auto max-h-[85vh] max-w-full object-contain" />
           {dados.fotos[aberta].descricao && <p className="p-4 text-center text-white">{dados.fotos[aberta].descricao}</p>}
-        </div>
+          </div>
+        </Overlay>
       )}
     </div>
   )

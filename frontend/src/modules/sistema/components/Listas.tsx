@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Plus, X } from 'lucide-react'
-import { Button, Card, Input, Loading } from '@/components/ui'
+import { Button, Card, Input, Loading, useConfirm } from '@/components/ui'
 import { api } from '@/core/api'
 import { useAuth } from '@/core/auth'
 import { errMsg, useToast } from '@/core/toast'
@@ -22,6 +22,7 @@ export function Listas() {
 function CardLista({ l }: { l: ListaInfo }) {
   const qc = useQueryClient()
   const toast = useToast()
+  const confirm = useConfirm()
   const { can } = useAuth()
   const [novo, setNovo] = useState('')
   const recarregar = () => Promise.all([qc.invalidateQueries({ queryKey: ['listas'] }), qc.invalidateQueries({ queryKey: ['lista', l.lista] })])
@@ -30,7 +31,7 @@ function CardLista({ l }: { l: ListaInfo }) {
     try { await api.post(`/listas/${l.lista}`, { valor: novo }); setNovo(''); await recarregar() } catch (e) { toast(errMsg(e), 'error') }
   }
   async function remover(id: number, valor: string) {
-    if (!confirm(`Remover "${valor}" da lista? Registros que já usam esse valor não são alterados.`)) return
+    if (!(await confirm(`Remover "${valor}" da lista? Registros que já usam esse valor não são alterados.`, { title: 'Remover item', danger: true, ok: 'Remover' }))) return
     try { await api.del(`/listas/${l.lista}/${id}`); await recarregar() } catch (e) { toast(errMsg(e), 'error') }
   }
 
